@@ -8,10 +8,10 @@ class GameAction {
 
         // Define DOM objects
         this.container = document.getElementById(id);
-        this.progressBarContainer = this.container.querySelector('.progress-bar-container');
-        this.progressBar = this.container.querySelector('.progress-bar');
-        this.progressBarMastery = this.container.querySelector('.progress-bar-mastery');
-        this.progressBarText = this.container.querySelector('.progress-bar-text');
+        this.progressContainer = this.container.querySelector('.action-progress-container');
+        this.progressText = this.container.querySelector('.action-progress-text');
+        this.progressBarCurrent = this.container.querySelector('.action-progress-bar-current');
+        this.progressBarMastery = this.container.querySelector('.action-progress-bar-mastery');
         this.buttonActivate = this.container.querySelector('.action-button');
         this.buttonQueue = this.container.querySelector('.queue-button');
         this.queueList = this.container.querySelector('.queue-list')
@@ -51,8 +51,8 @@ class GameAction {
       const masteryPercentage = (this.progress.timeStart / this.length) * 100;
       const label = masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
 
-      this.progressBar.style.width = currentPercentage + '%';
-      this.progressBarText.innerText = label;
+      this.progressBarCurrent.style.width = currentPercentage + '%';
+      this.progressText.innerText = label;
       this.progressBarMastery.style.width = masteryPercentage + '%';
 
     }
@@ -82,7 +82,7 @@ class GameAction {
 
     calculateTimeStart() {
       const maxRatio = 0.9;
-      const growthRate = 0.0000001;
+      const growthRate = 0.00001;
 
       let masteryImpact = 0;
       if (this.progress.mastery === 0) {
@@ -112,14 +112,19 @@ function createNewAction(id) {
   container.id = id;
   container.className = 'action-container';
   container.innerHTML = `
-      <button class='queue-button'>➕</button>
-      <button class='action-button'>${label}</button>
-      <div class='queue-list'></div>
-      <div class='progress-bar-container'>
-          <div class='progress-bar' style='width: 0%'></div>
-          <div class='progress-bar-mastery' style='width: 0%'></div>
-          <div class='progress-bar-text'>0%</div>
-      </div>
+    <div class="action-header">
+      <span class="action-label">${label}</span>
+      <span class="queue-list">Queue: 1 2 3 (+5)</span>
+      <span class="action-button-container">
+        <button class="action-button">⏵</button>
+        <button class="queue-button">⨮</button>
+      </span>
+    </div>
+    <div class="action-progress-container">
+      <div class="action-progress-text">0% Mastery + 0% Current</div>
+      <div class="action-progress-bar-mastery"></div>
+      <div class="action-progress-bar-current"></div>
+    </div>
   `;
 
   // Add the new container to the game
@@ -198,11 +203,11 @@ function processActiveAndQueuedActions() {
 
     // Color each active action blue, otherwise black
     if (gameState.actionsActive.includes(currentActionId) === true) {
-      actionObject.progressBarContainer.style.border = '2px solid blue';
-      actionObject.progressBar.classList.add('active');
+      actionObject.progressContainer.style.border = '2px solid blue';
+      actionObject.progressBarCurrent.classList.add('active');
     } else {
-      actionObject.progressBarContainer.style.border = '2px solid black';
-      actionObject.progressBar.classList.remove('active');
+      actionObject.progressContainer.style.border = '2px solid black';
+      actionObject.progressBarCurrent.classList.remove('active');
     }
 
     // Build the queue text for each action
