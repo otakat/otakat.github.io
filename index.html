@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incremental Fairy Tale Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="tooltip" class="tooltip">Tooltip</div>
+
+    <div class="background"></div>
+      <div id="game-container" class="game-container">
+        <div id="menu-column" class="column">
+          <button class="tab-button" onclick="openTab('actions')">Main</button>
+          <button class="tab-button" onclick="openTab('settings')">Options</button>
+          <button class="tab-button" onclick="saveGame()">Save</button>
+          <button class="tab-button" onclick="resetGameState()">Reset</button>
+          <button class="tab-button" id="pause-button" onclick="buttonPause()">Pause</button>
+        </div>
+
+        <div id="main-column" class="column">
+          <div id="actions" class="tab-content">
+            <div id="health-bar-container">
+                <div id ="health-bar-text"># / #</div>
+                <div id="health-bar"></div>
+            </div>
+            <div id="actions-container"></div>
+          </div>
+
+          <div id="settings" class="tab-content">
+          </div>
+        </div>
+        <div id="log-column" class="column">
+          <div id="game-log" class="game-log"></div>
+        </div>
+      </div>
+
+    <script src="action_effects.js"></script>
+    <script src="script.js"></script>
+    <script src="start.js"></script>
+</body>
+</html>

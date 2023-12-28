@@ -1,0 +1,265 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: url('book.png') no-repeat center top;
+  background-size: 100vw 100vh; /* Ensure the image is fully visible */
+  background-position: center top;
+  padding-left: 0;
+  margin: 0; /* Remove default margin */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to the top */
+  min-height: 100vh; /* Full viewport height */
+  overflow: hidden;
+}
+
+@media (min-width: 1000px) {
+  body {
+    background-size: 1000px 100vh; /* Fixed size for larger viewports */
+  }
+}
+
+.game-container {
+  display: flex;
+  width: 100vw;
+  max-width: 1000px; /* Maximum width */
+  height: 78vh; /* Adjust based on the aspect ratio of the background image */
+  position: relative;
+  align-items: flex-start;
+  margin-top: 6vh;
+}
+
+.column {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+}
+
+#menu-column {
+  flex: 1;
+  margin-left: 1%;
+  margin-right: 1%;
+}
+
+#main-column {
+  flex: 4;
+  margin-left: 3%;
+  margin-right: 3%;
+}
+
+#log-column {
+  flex: 4;
+  margin-left: 3%;
+  margin-right: 9%;
+}
+
+#health-bar-container {
+    position: relative;
+    width: 100%;
+    background-color: #555;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+#health-bar {
+    height: 20px;
+    width: 100%; /* Initial width */
+    background-color: #880000; /* Red for health bar */
+}
+
+#health-bar-text {
+    position: absolute; /* Position the text absolutely */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white; /* Choose a color that contrasts with the health bar */
+    font-size: 1em;
+}
+
+#clock {
+    margin-top: 20px;
+    font-size: 24px;
+}
+
+#pause-button {
+  margin-bottom: 20px;
+}
+
+.game-log {
+    display: flex;
+    background: rgba(255,255,255,0.4);
+    flex-direction: column-reverse;
+    width: 100%; /* Adjust as needed */
+    height: 100%;
+    overflow-y: auto; /* Adds a vertical scrollbar */
+    border: 1px solid #ccc; /* Optional border */
+    padding: 5px;
+    font-family: monospace; /* Easier to read for logs */
+    font-size: 0.9em;
+    text-align: left;
+    white-space: pre-line; /* Ensures formatting and line breaks are respected */
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    z-index: 1000; /* Ensure it's above other elements */
+}
+
+/* ACTIONS */
+#actions-container {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.action-container {
+  width: 100%;
+}
+
+.progress-bar-container {
+    position: relative;
+    height: 20px;
+    width: 100%;
+    background-color: #555;
+    border: 2px solid black;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress-bar, .progress-bar-mastery, .progress-bar-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+}
+
+
+
+
+.progress-bar {
+
+  background-color: #4caf50;
+
+    z-index: 1;
+    width: 0%;
+}
+
+
+
+@keyframes progress {
+  from { background-position: 0% 0; }
+  to { background-position: -10% 0; }
+}
+
+@keyframes glowing {
+  0% {
+    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0px 0px 3px 1px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.progress-bar.active {
+  position: relative;
+  background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,.2),
+      transparent 15px,
+      rgba(255,255,255,.2) 30px
+    );
+  background-size: 120% 100%;
+  animation: progress 30s linear infinite;
+}
+
+.progress-bar.active::after {
+  content: '';
+  position: absolute;
+  right: 0px; /* Adjust this value based on the thickness of the border */
+  top: 0;
+  bottom: 0;
+  width: 1px; /* Width of the pulsing border */
+  background: rgba(255,255,255,0.8); /* Color of the pulsing border */
+  animation: glowing 0.5s infinite;
+}
+
+.progress-bar-mastery {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(0, 0, 0, 0.2) 25%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    rgba(0, 0, 0, 0.2) 75%
+  ),
+  linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(255, 255, 255, 0.05) 50%
+  );
+    background-color: #444444; /* Dark base color */
+    background-size: 10px 10px; /* Size of the repeating pattern */
+    z-index: 2;
+    width: 0%;
+}
+
+.progress-bar-text {
+    position: absolute; /* Position the text absolutely */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white; /* Choose a color that contrasts with the health bar */
+    font-size: 1em;
+    z-index: 3;
+}
+
+.queue-button {
+    cursor: pointer;
+    margin-right: 5px;
+    /* Additional styling as needed */
+}
+
+.queue-list {
+  height: 10px;
+}
+
+/* TABS */
+
+#tabs .tab-button {
+    width: 100px;
+    padding: 10px;
+    cursor: pointer;
+    /* Add more styling as needed */
+}
+
+.tab-content {
+    display: none; /* Hide all tab content by default */
+    /* Add more styling as needed */
+}
+
+/* Style for active tab content */
+.tab-content.active {
+    display: block;
+}
