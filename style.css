@@ -309,7 +309,7 @@ body {
     display: block;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 4in) {
   body {
     background-size: 200vw 100vh;
     background-position: top right;
