@@ -1,3 +1,22 @@
+/* ANIMATIONS */
+@keyframes progress {
+  from { background-position: 0% 0; }
+  to { background-position: -10% 0; }
+}
+
+@keyframes glowing {
+  0% {
+    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0px 0px 3px 1px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* BODY */
 body {
   font-family: Arial, sans-serif;
   text-align: center;
@@ -59,40 +78,38 @@ body {
   margin-right: 9%;
 }
 
-
-
 #health-bar-container {
-    position: relative;
-    width: 100%;
-    background-color: #555;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    border: 2px solid black;
+  position: relative;
+  width: 100%;
+  background-color: #555;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 2px solid black;
 }
 
 #health-bar {
-    height: 20px;
-    width: 100%; /* Initial width */
-    background-color: #880000; /* Red for health bar */
+  height: 20px;
+  width: 100%; /* Initial width */
+  background-color: #880000; /* Red for health bar */
 }
 
 #health-bar-text {
-    position: absolute; /* Position the text absolutely */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white; /* Choose a color that contrasts with the health bar */
-    font-size: 1em;
+  position: absolute; /* Position the text absolutely */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white; /* Choose a color that contrasts with the health bar */
+  font-size: 1em;
 }
 
 #clock {
-    margin-top: 20px;
-    font-size: 24px;
+  margin-top: 20px;
+  font-size: 24px;
 }
 
 #pause-button {
@@ -100,29 +117,29 @@ body {
 }
 
 .game-log {
-    display: flex;
-    background: rgba(255,255,255,0.4);
-    flex-direction: column-reverse;
-    width: 100%; /* Adjust as needed */
-    height: 100%;
-    overflow-y: auto; /* Adds a vertical scrollbar */
-    border: 1px solid #ccc; /* Optional border */
-    padding: 5px;
-    font-family: monospace; /* Easier to read for logs */
-    font-size: 0.9em;
-    text-align: left;
-    white-space: pre-line; /* Ensures formatting and line breaks are respected */
+  display: flex;
+  background: rgba(255,255,255,0.4);
+  flex-direction: column-reverse;
+  width: 100%; /* Adjust as needed */
+  height: 100%;
+  overflow-y: auto; /* Adds a vertical scrollbar */
+  border: 1px solid #ccc; /* Optional border */
+  padding: 5px;
+  font-family: monospace; /* Easier to read for logs */
+  font-size: 0.9em;
+  text-align: left;
+  white-space: pre-line; /* Ensures formatting and line breaks are respected */
 }
 
 .tooltip {
-    display: none;
-    position: absolute;
-    background-color: black;
-    color: white;
-    padding: 5px;
-    border-radius: 5px;
-    font-size: 0.8em;
-    z-index: 1000; /* Ensure it's above other elements */
+  display: none;
+  position: absolute;
+  background-color: black;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  z-index: 1000; /* Ensure it's above other elements */
 }
 
 /* ACTIONS */
@@ -240,7 +257,7 @@ body {
   z-index: 2;
 }
 
-.action-progress-bar.current.active {
+.action-progress-bar-current.active {
   position: relative;
   background-image: repeating-linear-gradient(
       -45deg,
@@ -252,38 +269,19 @@ body {
   animation: progress 30s linear infinite;
 }
 
-.action-progress-bar.current.active::after {
+.action-progress-bar-current.active::after {
   content: '';
   position: absolute;
-  right: 0px; /* Adjust this value based on the thickness of the border */
-  top: 0;
-  bottom: 0;
+  top: 0; bottom: 0; right: 0;
   width: 1px; /* Width of the pulsing border */
-  background: rgba(255,255,255,0.8); /* Color of the pulsing border */
-  animation: glowing 0.5s infinite;
-}
-
-@keyframes progress {
-  from { background-position: 0% 0; }
-  to { background-position: -10% 0; }
-}
-
-@keyframes glowing {
-  0% {
-    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
-  }
-  50% {
-    box-shadow: 0px 0px 3px 1px rgba(255, 255, 255, 0.8);
-  }
-  100% {
-    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
-  }
+  background: rgba(255,255,255,0.6); /* Color of the pulsing border */
+  animation: glowing 1s infinite;
 }
 
 .queue-button {
-    cursor: pointer;
-    margin-right: 5px;
-    /* Additional styling as needed */
+  cursor: pointer;
+  margin-right: 5px;
+  /* Additional styling as needed */
 }
 
 .queue-list {
@@ -291,20 +289,16 @@ body {
 }
 
 /* TABS */
-
-#tabs .tab-button {
-    width: 100%;
-    padding: 10px;
-    cursor: pointer;
-    /* Add more styling as needed */
+.tab-button {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
 }
 
 .tab-content {
-    display: none; /* Hide all tab content by default */
-    /* Add more styling as needed */
+    display: none;
 }
 
-/* Style for active tab content */
 .tab-content.active {
     display: block;
 }
