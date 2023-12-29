@@ -309,19 +309,20 @@ body {
     display: block;
 }
 
-@media only screen and (pointer: coarse) {
-  .wrapgrid {
-    overflow: hidden;
-    overflow-x: hidden;
-  }
-
+@media only screen and (max-width: 768px) {
   body {
+    max-width: 100%;
+    overflow-x: hidden;
     background-size: 200vw 100vh;
     background-position: top right;
   }
 
   .phone {
     display: block;
+  }
+
+  .pc {
+    display: none;
   }
 
   .game-container {
