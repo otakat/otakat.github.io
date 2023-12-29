@@ -19,6 +19,10 @@ body {
   }
 }
 
+.phone {
+  display:none;
+}
+
 .game-container {
   display: flex;
   width: 100vw;
@@ -54,6 +58,8 @@ body {
   margin-left: 3%;
   margin-right: 9%;
 }
+
+
 
 #health-bar-container {
     position: relative;
@@ -287,7 +293,7 @@ body {
 /* TABS */
 
 #tabs .tab-button {
-    width: 100px;
+    width: 100%;
     padding: 10px;
     cursor: pointer;
     /* Add more styling as needed */
@@ -301,4 +307,49 @@ body {
 /* Style for active tab content */
 .tab-content.active {
     display: block;
+}
+
+@media (max-width: 600px) {
+  body {
+    background-size: 200vw 100vh;
+    background-position: top right;
+  }
+
+  .phone {
+    display: block;
+  }
+
+  .game-container {
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    height: 100vh;
+    width: 100vh;
+    padding: 10px 50px;
+  }
+
+  #menu-column {
+    width:100%;
+    flex-basis: 5%;
+    margin: 0;
+    display:flex;
+    flex-direction:row;
+  }
+
+  #main-column {
+    width:100%;
+    margin: 0;
+  }
+
+  #log-column {
+    flex-basis: 0px;
+    display:none;
+  }
+
+  .game-log {
+    height: 70vh;
+  }
+
+  .tab-button {
+    height: 50px;
+  }
 }

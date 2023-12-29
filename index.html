@@ -12,6 +12,7 @@
       <div id="game-container" class="game-container">
         <div id="menu-column" class="column">
           <button class="tab-button" onclick="openTab('actions')">Main</button>
+          <button class="tab-button phone" onclick="openTab('log-tab')">Game Log</button>
           <button class="tab-button" onclick="openTab('settings')">Options</button>
           <button class="tab-button" onclick="saveGame()">Save</button>
           <button class="tab-button" onclick="resetGameState()">Reset</button>
@@ -30,9 +31,14 @@
 
           <div id="settings" class="tab-content">
           </div>
+
+          <div id="log-tab" class="tab-content phone">
+            <div id="game-log-phone" class="game-log phone"></div>
+          </div>
         </div>
-        <div id="log-column" class="column">
-          <div id="game-log" class="game-log"></div>
+
+        <div id="log-column" class="column pc">
+          <div id="game-log-pc" class="game-log pc"></div>
         </div>
       </div>
 

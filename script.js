@@ -267,13 +267,18 @@ function addLogEntry(text, id, tag = 'default') {
 }
 
 function updateLogUI() {
-  const log = document.getElementById('game-log');
-  log.textContent = '';
+  const logPC = document.getElementById('game-log-pc');
+  const logPhone = document.getElementById('game-log-phone');
+
+  logPC.textContent = '';
+  logPhone.textContent = '';
   gameState.gameLog.forEach(entry => {
-      log.textContent += entry.text + '\n';
+      logPC.textContent += entry.text + '\n';
+      logPhone.textContent += entry.text + '\n';
   })
 
-  log.scrollTop = log.scrollHeight;
+  logPC.scrollTop = logPC.scrollHeight;
+  logPhone.scrollTop = logPhone.scrollHeight;
 }
 
 function updateFrameClock() {
