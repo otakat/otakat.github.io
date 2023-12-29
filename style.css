@@ -17,19 +17,30 @@
 }
 
 /* BODY */
+* {
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: visible;
+}
+
 body {
+  min-height: 100vh; /* Full viewport height */
+  max-width: 1000px;
+
   font-family: Arial, sans-serif;
   text-align: center;
+
+  padding-top: 6vh;
+  padding-bottom: 1vh;
+  padding-left: 3vw;
+  padding-right: 3vw;
+
+  overflow-x: hidden;
+
   background: url('book.png') no-repeat center top;
   background-size: 100vw 100vh; /* Ensure the image is fully visible */
   background-position: center top;
-  padding-left: 0;
-  margin: 0; /* Remove default margin */
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Align to the top */
-  min-height: 100vh; /* Full viewport height */
-  overflow: hidden;
 }
 
 @media (min-width: 1000px) {
@@ -43,13 +54,10 @@ body {
 }
 
 .game-container {
+  min-height: 100%;
   display: flex;
-  width: 100vw;
-  max-width: 1000px; /* Maximum width */
-  height: 78vh; /* Adjust based on the aspect ratio of the background image */
-  position: relative;
+  height: 100%; /* Adjust based on the aspect ratio of the background image */
   align-items: flex-start;
-  margin-top: 6vh;
 }
 
 .column {
@@ -57,7 +65,6 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-
 }
 
 #menu-column {
@@ -259,11 +266,11 @@ body {
 .action-progress-bar-current.active {
   position: relative;
   background-image: repeating-linear-gradient(
-      -45deg,
-      rgba(255,255,255,.2),
-      transparent 15px,
-      rgba(255,255,255,.2) 30px
-    );
+    -45deg,
+    rgba(255,255,255,.2),
+    transparent 15px,
+    rgba(255,255,255,.2) 30px
+  );
   background-size: 120% 100%;
   animation: progress 30s linear infinite;
 }
@@ -277,16 +284,6 @@ body {
   animation: glowing 1s infinite;
 }
 
-.queue-button {
-  cursor: pointer;
-  margin-right: 5px;
-  /* Additional styling as needed */
-}
-
-.queue-list {
-  height: 10px;
-}
-
 /* TABS */
 .tab-button {
   width: 100%;
@@ -295,14 +292,14 @@ body {
 }
 
 .tab-content {
-    display: none;
+  display: none;
 }
 
 .tab-content.active {
-    display: block;
+  display: block;
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-device-width: 768px) {
   body {
     max-width: 100%;
     overflow-x: hidden;
@@ -321,9 +318,10 @@ body {
   .game-container {
     flex-direction: column-reverse;
     justify-content: space-between;
-    height: 100vh;
-    width: 100vh;
-    padding: 10px 50px;
+  }
+
+  .column {
+    flex-direction: row;
   }
 
   #menu-column {
@@ -332,11 +330,17 @@ body {
     margin: 0;
     display:flex;
     flex-direction:row;
+    justify-content: space-between;
+    flex-wrap:wrap;
   }
 
   #main-column {
     width:100%;
     margin: 0;
+  }
+
+  .tab-button {
+    width: auto;
   }
 
   .game-log {

@@ -129,8 +129,8 @@ function createNewAction(id) {
 
   // Add the new container to the game
   document.getElementById('actions-container').appendChild(container);
-  container.addEventListener('mouseover', (event) => showTooltip(event, id))
-  container.addEventListener('mouseout', hideTooltip);
+  //container.addEventListener('mouseover', (event) => showTooltip(event, id))
+  //container.addEventListener('mouseout', hideTooltip);
 
   // Hide the container if the action is not currently available
   if (gameState.actionsAvailable.includes(id) === false) {
@@ -363,12 +363,12 @@ function openTab(tabId = 'None') {
     // Hide all tab content
     var tabContents = document.getElementsByClassName("tab-content");
     for (var i = 0; i < tabContents.length; i++) {
-        tabContents[i].style.display = "none";
+        tabContents[i].classList.remove('active');
     }
 
     // Show the specific tab content
     if (tabId !== 'None') {
-      document.getElementById(tabId).style.display = "block";
+      document.getElementById(tabId).classList.add('active');
     }
 }
 

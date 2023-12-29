@@ -1,21 +1,21 @@
 const actionsList = {
   book1_pull_weeds: {
-      label: "Pull Weeds",
-      length: 5000,
-      effect: function () {
-        gameState.health.current = gameState.health.max;
-        updateHealthBar();
-        addLogEntry('Test1','id1','story');
-      }
+    label: "Pull Weeds",
+    length: 5000,
+    effect: function () {
+      gameState.health.current = gameState.health.max;
+      updateHealthBar();
+      addLogEntry('Test1','id1','story');
+    }
   },
   book1_talk_mom: {
-      label: "Talk to Mom",
-      length: 10000,
-      effect: function () {
-        gameState.health.max += 1000;
-        updateHealthBar();
-        addLogEntry('Test2','id2','story');
-      }
+    label: "Talk to Mom",
+    length: 10000,
+    effect: function () {
+      gameState.health.max += 1000;
+      updateHealthBar();
+      addLogEntry('Test2','id2','story');
+    }
   }
 }
 
