@@ -4,10 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fairy Tale Game</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 <body>
-  <div id="tooltip" class="tooltip">Tooltip</div>
+  <div class="container-fluid game-wrapper" style="padding-top: 10%;">
+    <div class="row">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <div class="row">
+              <div id="tooltip" class="tooltip">Tooltip</div>
+              <div class="col-2 order-1 menu-column">
+                <div id="menu-column" class="column">
+                  <button class="tab-button" onclick="openTab('actions')">Main</button>
+                  <button class="tab-button phone" onclick="openTab('log-tab')">Game Log</button>
+                  <button class="tab-button" onclick="openTab('settings')">Options</button>
+                  <button class="tab-button" onclick="saveGame()">Save</button>
+                  <button class="tab-button" onclick="resetGameState()">Reset</button>
+                  <button class="tab-button" id="pause-button" onclick="buttonPause()">Pause</button>
+                </div>
+              </div>
+              <div class="col-4 order-2 text-center actions-column">
+                <div id="actions" class="tab-content active">
+                  <div>Health</div>
+                  <div id="health-bar-container">
+                      <div id ="health-bar-text"># / #</div>
+                      <div id="health-bar"></div>
+                  </div>
+                  <div id="actions-container"></div>
+                </div>
+          
+                <div id="settings" class="tab-content">
+                </div>
+          
+                <div id="log-tab" class="tab-content phone">
+                  <div id="game-log-phone" class="game-log phone"></div>
+                </div>
+              </div>
+              <div class="col-6 order-3 log-column">
+                <div id="log-column" class="column pc">
+                  <div id="game-log-pc" class="game-log pc"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <div id="tooltip" class="tooltip">Tooltip</div>
 
   <div id="game-container" class="game-container">
     <div id="menu-column" class="column">
@@ -40,10 +86,10 @@
     <div id="log-column" class="column pc">
       <div id="game-log-pc" class="game-log pc"></div>
     </div>
-  </div>
+  </div> -->
 
-  <script src="action_effects.js"></script>
-  <script src="script.js"></script>
-  <script src="start.js"></script>
+  <script src="./assets/scripts/action_effects.js"></script>
+  <script src="./assets/scripts/script.js"></script>
+  <script src="./assets/scripts/start.js"></script>
 </body>
 </html>
