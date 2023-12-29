@@ -234,20 +234,6 @@ function processActiveAndQueuedActions() {
   })
 }
 
-function addToGameLog(message) {
-    const log = document.getElementById('game-log');
-    log.textContent += message + '\n'; // Add new line
-
-    // Keep only the last 500 lines
-    const lines = log.textContent.split('\n');
-    if (lines.length > 500) {
-        log.textContent = lines.slice(-500).join('\n');
-    }
-
-    // Scroll to the bottom
-    log.scrollTop = log.scrollHeight;
-}
-
 function generateUniqueId() {
     // Simple implementation (consider a more robust approach for a larger project)
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -330,7 +316,7 @@ function setPauseState(newState, logText, buttonLabel) {
     gameState.paused = newState;
 
     if (logText !== undefined) {
-      addToGameLog(logText);
+      addLogEntry(logText);
     }
     processPauseButton(buttonLabel);
   } else {
@@ -387,15 +373,17 @@ function openTab(tabId = 'None') {
 }
 
 function showTooltip(event, text = 'Default') {
-    let tooltip = document.getElementById('tooltip');
-    tooltip.innerHTML = text;
-    tooltip.style.display = 'block';
+  if (window.matchMedia('(pointer: coarse)').matches) {return;}
 
-    let scrollX = window.scrollX || document.documentElement.scrollLeft;
-    let scrollY = window.scrollY || document.documentElement.scrollTop;
+  let tooltip = document.getElementById('tooltip');
+  tooltip.innerHTML = text;
+  tooltip.style.display = 'block';
 
-    tooltip.style.left = (event.clientX + scrollX + 20) + 'px';
-    tooltip.style.top = (event.clientY + scrollY) + 'px';
+  let scrollX = window.scrollX || document.documentElement.scrollLeft;
+  let scrollY = window.scrollY || document.documentElement.scrollTop;
+
+  tooltip.style.left = (event.clientX + scrollX + 20) + 'px';
+  tooltip.style.top = (event.clientY + scrollY) + 'px';
 }
 
 function hideTooltip() {

@@ -346,11 +346,6 @@ body {
     margin: 0;
   }
 
-  #log-column {
-    flex-basis: 0px;
-    display:none;
-  }
-
   .game-log {
     height: 70vh;
   }
