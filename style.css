@@ -309,7 +309,12 @@ body {
     display: block;
 }
 
-@media (max-width: 4in) {
+@media only screen and (pointer: coarse) {
+  .wrapgrid {
+    overflow: hidden;
+    overflow-x: hidden;
+  }
+
   body {
     background-size: 200vw 100vh;
     background-position: top right;
