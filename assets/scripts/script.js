@@ -393,11 +393,10 @@ function hideTooltip() {
 
 function resetGameState() {
   gameState = {
-      // actionsAvailable: [],
-      // actionsActive: [],
-      // actionsQueued: [],
-      // actionsProgress: {},
-      action_mastery: [],
+      actionsAvailable: [],
+      actionsActive: [],
+      actionsQueued: [],
+      actionsProgress: {},
       health: {
           current: 10000,
           max: 10000
