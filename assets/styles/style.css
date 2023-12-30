@@ -57,7 +57,7 @@ body {
 
 #health-bar-container {
   position: relative;
-  width: 100%;
+  width: 100%; height: 30px;
   background-color: #555;
   border-radius: 5px;
   overflow: hidden;
@@ -66,38 +66,27 @@ body {
 }
 
 #health-bar {
-  height: 20px;
-  width: 100%; /* Initial width */
+  position: relative;
+  width: 100%; height: 100%;
   background-color: #880000; /* Red for health bar */
+  z-index:1;
 }
 
 #health-bar-text {
   position: absolute; /* Position the text absolutely */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  line-height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   color: white; /* Choose a color that contrasts with the health bar */
   font-size: 1em;
-}
-
-#clock {
-  margin-top: 20px;
-  font-size: 24px;
-}
-
-#pause-button {
-  margin-bottom: 20px;
+  z-index:2;
 }
 
 .game-log {
-  display: flex;
   background: rgba(255,255,255,0.4);
-  flex-direction: column-reverse;
-  width: 100%; /* Adjust as needed */
   max-height: 75vh;
   overflow-y: auto; /* Adds a vertical scrollbar */
   border: 1px solid #ccc; /* Optional border */
@@ -106,6 +95,7 @@ body {
   font-size: 0.8em;
   text-align: left;
   white-space: pre-line; /* Ensures formatting and line breaks are respected */
+  line-height: 1.1;
 }
 
 .tooltip {
@@ -271,6 +261,7 @@ body {
   display: block;
 }
 
+/* MOBILE-SPECIFIC STYLE */
 @media only screen and (max-device-width: 768px) {
   .container-fluid {
     background-size: 200vw 100vh;

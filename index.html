@@ -16,7 +16,7 @@
         <div class="row">
           <div class="col-12">-->
             <div class="row">
-              <div id="main-column" class="col-md-5 order-md-2 text-center">
+              <div id="main-column" class="col-md-5 order-md-2 text-center column">
                 <div id="actions" class="tab-content active">
                   <div>Health</div>
                   <div id="health-bar-container">
@@ -33,10 +33,6 @@
                   <div id="game-log-phone" class="game-log"></div>
                 </div>
               </div>
-              <div class="col-md-5 order-md-3 log-column pc">
-                <div id="game-log-pc" class="game-log"></div>
-              </div>
-
               <div id="menu-column" class="col-md-2 order-md-1 column">
                 <button class="tab-button" onclick="openTab('actions')">Main</button>
                 <button class="tab-button phone" onclick="openTab('log-tab')">Game Log</button>
@@ -44,6 +40,9 @@
                 <button class="tab-button" onclick="saveGame()">Save</button>
                 <button class="tab-button" onclick="resetGameState()">Reset</button>
                 <button class="tab-button" id="pause-button" onclick="buttonPause()">Pause</button>
+              </div>
+              <div id="log-column" class="col-md-5 order-md-3 column pc">
+                <div id="game-log-pc" class="game-log"></div>
               </div>
             </div>
           <!--</div>
