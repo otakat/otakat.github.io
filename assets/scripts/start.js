@@ -9,7 +9,7 @@ const pauseStates = {
 let gameActive = true;
 let manualPause = false;
 let frameRate = 60;
-let timeDilation = 1;
+let timeDilation = 5;
 let actionsConstructed = {};
 let gameState = {
     actionsAvailable: [],

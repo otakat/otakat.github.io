@@ -2,9 +2,11 @@ class GameAction {
   constructor(id, label, length, effect) {
       // Pull in default action properties
       this.id = id;
-      this.label = actionsList[id].label;
-      this.length = actionsList[id].length;
-      this.effect = actionsList[id].effect;
+      this.label = book1_actions[id].label;
+      this.length = book1_actions[id].length;
+      this.effect = book1_actions[id].effect;
+      this.maxCompletions = book1_actions[id].maxCompletions;
+      this.maxCompletionsEffect = book1_actions[id].maxCompletionsEffect;
 
       // Define DOM objects
       this.container = document.getElementById(id);
@@ -62,8 +64,12 @@ class GameAction {
     this.calculateTimeStart();
     this.progress.timeCurrent = this.progress.timeStart;
     this.update();
-    //deactivateAction(this.id);
+    deactivateAction(this.id);
     this.effect();
+
+    if (this.progress.completions >= this.maxCompletions) {
+      this.maxCompletionsEffect();
+    }
 
     console.log(this.progress);
   }
@@ -105,7 +111,7 @@ function createNewAction(id) {
     return;
   }
 
-  let label = actionsList[id].label
+  let label = book1_actions[id].label
 
   // Create the HTML structure for the action container
   const container = document.createElement('div');
@@ -158,6 +164,31 @@ function removeAction(actionId) {
     // Any additional cleanup...
 }
 
+function makeActionAvailable(actionId) {
+  if (gameState.actionsAvailable.includes(actionId)) {
+    actionsConstructed[actionId].container.style.display = 'block';
+  } else {
+    gameState.actionsAvailable.push(actionId)
+    createNewAction(actionId)
+  }
+}
+
+function makeActionUnavailable(actionId) {
+  gameState.actionsAvailable = gameState.actionsAvailable.filter(
+    value => value !== actionId
+  )
+  gameState.actionsActive = gameState.actionsActive.filter(
+    value => value !== actionId
+  )
+  gameState.actionsQueued = gameState.actionsQueued.filter(
+    value => value !== actionId
+  )
+  processActiveAndQueuedActions();
+
+  actionsConstructed[actionId].container.style.background = '#888'
+  //removeAction(actionId);
+}
+
 function toggleAction(actionId) {
   const index = gameState.actionsActive.indexOf(actionId);
   if (index === 0) {
@@ -168,19 +199,21 @@ function toggleAction(actionId) {
 }
 
 function activateAction(actionId) {
-  const index = gameState.actionsActive.indexOf(actionId);
-  if (index === 0) {return;}
-  if (index > 0) {gameState.actionsActive.splice(index, 1);}
-  gameState.actionsActive.unshift(actionId);
+  if (gameState.actionsAvailable.includes(actionId)) {
+      const index = gameState.actionsActive.indexOf(actionId);
+      if (index === 0) {return;}
+      if (index > 0) {gameState.actionsActive.splice(index, 1);}
+      gameState.actionsActive.unshift(actionId);
+  }
+
   processActiveAndQueuedActions();
 }
 
 function deactivateAction(actionId) {
-  const index = gameState.actionsActive.indexOf(actionId);
-  if (index >= 0) {
-    gameState.actionsActive.splice(index, 1);
-    processActiveAndQueuedActions();
-  }
+  gameState.actionsActive = gameState.actionsActive.filter(
+    value => value !== actionId
+  )
+  processActiveAndQueuedActions();
 }
 
 function queueAction(actionId) {
@@ -197,12 +230,9 @@ function processActiveAndQueuedActions() {
   }
 
   const queueExtrasThreshold = 3;
-
-  gameState.actionsAvailable.forEach(currentActionId => {
-    let actionObject = actionsConstructed[currentActionId]
-
+  Object.values(actionsConstructed).forEach(actionObject => {
     // Color each active action blue, otherwise black
-    if (gameState.actionsActive.includes(currentActionId) === true) {
+    if (gameState.actionsActive.includes(actionObject.id) === true) {
       actionObject.progressContainer.style.border = '2px solid blue';
       actionObject.progressBarCurrent.classList.add('active');
     } else {
@@ -217,7 +247,7 @@ function processActiveAndQueuedActions() {
     let queueCount = 0;
 
     gameState.actionsQueued.forEach((queuedActionId, index) => {
-      if (queuedActionId === currentActionId) {
+      if (queuedActionId === actionObject.id) {
         queueCount += 1;
         if (index < queueExtrasThreshold) {
           queueText += ' ' + (index + 1);
@@ -243,10 +273,14 @@ function addLogEntry(text, id, tag = 'default') {
     if (id === undefined) {
       id = generateUniqueId();
     }
+    const currentDate = new Date(Date.now())
+    const timestamp = currentDate.toString()
+
     const logEntry = {
         id: id, // Implement this function to generate unique IDs
         tag: tag,
-        text: text
+        text: text,
+        date: timestamp
     };
     gameState.gameLog.push(logEntry);
     updateLogUI();
@@ -257,49 +291,54 @@ function updateLogUI() {
   const logPhone = document.getElementById('game-log-phone');
 
   logPC.textContent = '';
-  logPhone.textContent = '';
   gameState.gameLog.forEach(entry => {
-      logPC.textContent += entry.text + '\n';
-      logPhone.textContent += entry.text + '\n';
+    logPC.textContent += entry.date + ' (';
+    logPC.textContent += entry.id + ', ';
+    logPC.textContent += entry.tag + ') '
+    logPC.textContent += entry.text + '\n\n';
   })
+
+  logPhone.textContent = logPC.textContent;
 
   logPC.scrollTop = logPC.scrollHeight;
   logPhone.scrollTop = logPhone.scrollHeight;
 }
 
 function updateFrameClock() {
+  // Start the first item in the queue if nothing is active
+  if (gameState.actionsActive.length < gameState.maxActions && gameState.paused !== pauseStates.HARD_PAUSE) {
+    let newAction = gameState.actionsQueued.shift()
+    activateAction(newAction)
+  }
+
+  // Soft pause the game if there are no active or queued actions
   if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0 && gameState.paused === pauseStates.NOT_PAUSED) {
     setPauseState(pauseStates.SOFT_PAUSE);
   }
+
+  // Unpause a soft paused game if there are any actions
   if ((gameState.actionsActive.length + gameState.actionsQueued.length) > 0 && gameState.paused === pauseStates.SOFT_PAUSE) {
     setPauseState(pauseStates.NOT_PAUSED);
   }
 
-    let currentTime = Date.now();
-    let timeElapsed = (currentTime - lastUpdateTime) * timeDilation;
+  let currentTime = Date.now();
+  let timeElapsed = (currentTime - lastUpdateTime) * timeDilation;
 
+  if (timeElapsed >= frameDuration) {
+    framesTotal += timeElapsed / frameDuration;
+    let fps = 1000 / timeElapsed;
 
-    if (timeElapsed >= frameDuration) {
-        framesTotal += timeElapsed / frameDuration;
-        let fps = 1000 / timeElapsed;
+    if (isGamePaused() === false) {
+      timeTotal += timeElapsed;
+      updateHealthBar(timeElapsed);
 
-        if (isGamePaused() === false) {
-          timeTotal += timeElapsed;
-          updateHealthBar(timeElapsed);
-
-          // Start the first item in the queue if nothing is activate
-          if (gameState.actionsActive.length < gameState.maxActions) {
-            let newAction = gameState.actionsQueued.shift()
-            activateAction(newAction)
-          }
-
-          gameState.actionsActive.forEach(actionId => {
-            actionsConstructed[actionId].update(timeElapsed)
-          })
-        }
-
-        lastUpdateTime = currentTime;
+      gameState.actionsActive.forEach(actionId => {
+        actionsConstructed[actionId].update(timeElapsed)
+      })
     }
+
+    lastUpdateTime = currentTime;
+  }
   window.requestAnimationFrame(updateFrameClock)
 }
 
@@ -415,9 +454,8 @@ function resetGameState() {
 }
 
 function saveGame() {
-    localStorage.setItem('gameState', JSON.stringify(gameState));
-
     addLogEntry('Game Saved');
+    localStorage.setItem('gameState', JSON.stringify(gameState));
 }
 
 function loadGame() {
@@ -442,7 +480,7 @@ function loadGame() {
 function initializeGame() {
   if (gameState.actionsAvailable.length === 0) {
     addLogEntry(storylines.book1_opener);
-    gameState.actionsAvailable = ["book1_pull_weeds", "book1_talk_mom"];
+    gameState.actionsAvailable = ['book1_action1'];
   }
 
   gameState.actionsAvailable.forEach(actionId => {
