@@ -1,0 +1,294 @@
+/* ANIMATIONS */
+@keyframes progress {
+  from { background-position: 0% 0; }
+  to { background-position: -10% 0; }
+}
+
+@keyframes glowing {
+  0% {
+    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0px 0px 3px 1px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+}
+
+html {
+	height: 100%;
+	min-height: 100%;
+	box-sizing: border-box;
+	scroll-behavior: smooth;
+}
+
+/* BODY */
+body {
+  font-family: Arial, sans-serif;
+  height: 100%;
+	font-size: 16px;
+  line-height: 1.5;
+	overflow-x: hidden;
+}
+
+.game-wrapper {
+  background: url('../images/book.png');
+  background-repeat: no-repeat;
+  background-size: 100vw 100vh;
+  min-height: 100%;
+  padding-top: 6vh;
+}
+
+.phone {
+  display:none;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+#main-column {
+  height: 75vh;
+  overflow-y: auto;
+}
+
+#health-bar-container {
+  position: relative;
+  width: 100%; height: 30px;
+  background-color: #555;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 2px solid black;
+}
+
+#health-bar {
+  position: relative;
+  width: 100%; height: 100%;
+  background-color: #880000; /* Red for health bar */
+  z-index:1;
+}
+
+#health-bar-text {
+  position: absolute; /* Position the text absolutely */
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  line-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white; /* Choose a color that contrasts with the health bar */
+  font-size: 1em;
+  z-index:2;
+}
+
+.game-log {
+  background: rgba(255,255,255,0.4);
+  max-height: 75vh;
+  overflow-y: auto; /* Adds a vertical scrollbar */
+  border: 1px solid #ccc; /* Optional border */
+  padding: 5px;
+  font-family: monospace; /* Easier to read for logs */
+  font-size: 0.8em;
+  text-align: left;
+  white-space: pre-line; /* Ensures formatting and line breaks are respected */
+  line-height: 1.1;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  background-color: black;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  z-index: 1000; /* Ensure it's above other elements */
+}
+
+/* ACTIONS */
+
+#actions-container {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.action-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: rgba(255,255,255,0.6);
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 0.8em;
+  margin-bottom: 5px;
+}
+
+.action-header {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items:baseline;
+  margin-bottom: 5px;
+}
+
+.action-label {
+  margin-right: 5px;
+  font-size: 1.2em;
+}
+
+.queue-list {
+  min-width: 60px;
+  text-align: center;
+  color: #555;
+  font-size: 0.9em;
+}
+
+.action-button-container {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.action-button, .queue-button {
+  height: 25px;
+  width: 25px;
+  margin-left: 2px;
+  margin-right: 2px;
+  background: #eee;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 1px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.action-progress-container {
+  width: 100%;
+  background-color: #555;
+  position: relative;
+  height: 20px;
+  border: 2px solid black;
+  border-radius: 5px;
+}
+
+.action-progress-text {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1em;
+  z-index: 3;
+}
+
+.action-progress-bar-current, .action-progress-bar-mastery {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 0%;
+  line-height: 20px; /* Match the height of the progress bar container */
+}
+
+.action-progress-bar-current {
+  background-color: #4caf50;
+  z-index: 1;
+}
+
+.action-progress-bar-mastery {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(0, 0, 0, 0.2) 25%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    rgba(0, 0, 0, 0.2) 75%
+  ),
+  linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(255, 255, 255, 0.05) 50%
+  );
+  background-color: #666; /* Dark base color */
+  background-size: 10px 10px; /* Size of the repeating pattern */
+  z-index: 2;
+}
+
+.action-progress-bar-current.active {
+  position: relative;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,.2),
+    transparent 15px,
+    rgba(255,255,255,.2) 30px
+  );
+  background-size: 120% 100%;
+  animation: progress 30s linear infinite;
+}
+
+.action-progress-bar-current.active::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 1px; /* Width of the pulsing border */
+  background: rgba(255,255,255,0.6); /* Color of the pulsing border */
+  animation: glowing 1s infinite;
+}
+
+/* TABS */
+.tab-button {
+  font-size: 0.8em;
+  width: 100%;
+  height: 80px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* MOBILE-SPECIFIC STYLE */
+@media only screen and (max-device-width: 768px) {
+  .container-fluid {
+    background-size: 200vw 100vh;
+    background-position: top right;
+  }
+
+  .phone {
+    display: block;
+  }
+
+  .pc {
+    display: none;
+  }
+
+  #menu-column {
+    display:flex;
+    flex-direction:row;
+    justify-content: space-between;
+    flex-wrap:wrap;
+  }
+
+  .tab-button {
+    height: 40px;
+    width: auto;
+  }
+
+  .game-log {
+    height: 75vh;
+  }
+}
