@@ -10,45 +10,52 @@
 <body>
   <div id="tooltip" class="tooltip">Tooltip</div>
 
-  <div class="container-fluid game-wrapper">
-    <!--<div class="row">
-      <div class="container">
+  <div class="container-fluid m-0">
+    <div class="row">
+      <div class="container m-0 game-wrapper">
         <div class="row">
-          <div class="col-12">-->
-            <div class="row">
-              <div id="main-column" class="col-md-5 order-md-2 text-center column">
-                <div id="actions" class="tab-content active">
-                  <div>Health</div>
-                  <div id="health-bar-container">
-                      <div id ="health-bar-text"># / #</div>
-                      <div id="health-bar"></div>
-                  </div>
+          <div id="menu-column" class="col">
+            <button class="tab-button" onclick="openTab('actions-tab')">Main</button>
+            <button class="tab-button phone" onclick="openTab('log-tab')">Game Log</button>
+            <button class="tab-button" onclick="openTab('settings-tab')">Options</button>
+            <button class="tab-button" onclick="saveGame()">Save</button>
+            <button class="tab-button" onclick="resetGameState()">Reset</button>
+            <button class="tab-button" id="pause-button" onclick="buttonPause()">Pause</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col col-md-8 text-center">
+            <div id="health-container">Health
+              <div id="health-bar-container">
+                  <div id ="health-bar-text"># / #</div>
+                  <div id="health-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row" style="flex: 1; min-height: 1px">
+          <div class="col-12" style="height: 100%">
+            <div class="row" style="height: 100%">
+              <div id="main-column" class="col-md-6 text-center">
+                <div id="actions-tab" class="tab-content">
+
                   <div id="actions-container"></div>
                 </div>
-
-                <div id="settings" class="tab-content">
+                <div id="settings-tab" class="tab-content hidden">
                 </div>
-
-                <div id="log-tab" class="tab-content">
+                <div id="log-tab" class="tab-content hidden">
                   <div id="game-log-phone" class="game-log"></div>
                 </div>
               </div>
-              <div id="menu-column" class="col-md-2 order-md-1 column">
-                <button class="tab-button" onclick="openTab('actions')">Main</button>
-                <button class="tab-button phone" onclick="openTab('log-tab')">Game Log</button>
-                <button class="tab-button" onclick="openTab('settings')">Options</button>
-                <button class="tab-button" onclick="saveGame()">Save</button>
-                <button class="tab-button" onclick="resetGameState()">Reset</button>
-                <button class="tab-button" id="pause-button" onclick="buttonPause()">Pause</button>
-              </div>
-              <div id="log-column" class="col-md-5 order-md-3 column pc">
+
+              <div id="log-column" class="col-md-6 pc">
                 <div id="game-log-pc" class="game-log"></div>
               </div>
             </div>
-          <!--</div>
+          </div>
         </div>
       </div>
-    </div>-->
+    </div>
   </div>
 
   <script src="./assets/scripts/action_effects.js"></script>

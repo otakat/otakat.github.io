@@ -17,42 +17,66 @@
 }
 
 html {
-	height: 100%;
-	min-height: 100%;
-	box-sizing: border-box;
+	height: 100vh;
 	scroll-behavior: smooth;
+  overflow: hidden;
 }
 
-/* BODY */
 body {
   font-family: Arial, sans-serif;
-  height: 100%;
+  height: 100vh;
 	font-size: 16px;
   line-height: 1.5;
-	overflow-x: hidden;
+  overflow: hidden;
+  background-color: #444;
+}
+
+ /* Limiting container width to lg */
+.container-fluid {
+  max-width: 960px;
 }
 
 .game-wrapper {
   background: url('../images/book.png');
   background-repeat: no-repeat;
-  background-size: 100vw 100vh;
+  background-size: 100% 100vh; /* Always stretched to screen height */
+  height: 100vh; /* Forces content to full screen height */
+  padding-top: 2vh; /* To ensure elements align with background */
+  padding-bottom: 2vh;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+#menu-column {
+  display:flex;
+  flex-flow:row wrap;
+}
+
+#main-column, #log-column {
+  height: 100%;
+  overflow: auto;
+}
+
+.game-log {
   min-height: 100%;
-  padding-top: 6vh;
+}
+
+/* Aligns main to top and menu to bottom of screen in mobile */
+.full-screen-wrap {
+  height:100%;
+  align-content: space-between;
 }
 
 .phone {
   display:none;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-#main-column {
-  height: 75vh;
-  overflow-y: auto;
+#health-container {
+  padding: 5px;
+  border-radius: 5px;
+  background-color: rgba(255,255,255,0.6);
 }
 
 #health-bar-container {
@@ -61,7 +85,6 @@ body {
   background-color: #555;
   border-radius: 5px;
   overflow: hidden;
-  margin-bottom: 20px;
   border: 2px solid black;
 }
 
@@ -87,7 +110,6 @@ body {
 
 .game-log {
   background: rgba(255,255,255,0.4);
-  max-height: 75vh;
   overflow-y: auto; /* Adds a vertical scrollbar */
   border: 1px solid #ccc; /* Optional border */
   padding: 5px;
@@ -110,11 +132,6 @@ body {
 }
 
 /* ACTIONS */
-
-#actions-container {
-  width: 100%;
-  margin-bottom: 5px;
-}
 
 .action-container {
   display: flex;
@@ -246,25 +263,40 @@ body {
 
 /* TABS */
 .tab-button {
+  height: 40px;
   font-size: 0.8em;
-  width: 100%;
-  height: 80px;
+  flex: 0 1 auto;
+  line-height: 1.1;
+  margin: 1px;
   padding: 3px 10px;
   cursor: pointer;
 }
 
-.tab-content {
-  display: none;
+#main-column {
+  overflow: auto;
 }
 
-.tab-content.active {
-  display: block;
-}
+  #health-container {
+    flex: 0 0 auto;
+  }
+
+  #actions-container {
+    overflow-y: scroll;
+    display:flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+  }
 
 /* MOBILE-SPECIFIC STYLE */
-@media only screen and (max-device-width: 768px) {
-  .container-fluid {
-    background-size: 200vw 100vh;
+@media (max-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .game-wrapper {
+    background-size: 200% 100vh; /* Only right book-page in mobile */
     background-position: top right;
   }
 
@@ -275,20 +307,9 @@ body {
   .pc {
     display: none;
   }
+}
 
-  #menu-column {
-    display:flex;
-    flex-direction:row;
-    justify-content: space-between;
-    flex-wrap:wrap;
-  }
-
-  .tab-button {
-    height: 40px;
-    width: auto;
-  }
-
-  .game-log {
-    height: 75vh;
-  }
+/* HIDE INACTIVE TABS */
+.tab-content.hidden, #actions-tab.hidden {
+  display: none;
 }
