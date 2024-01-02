@@ -134,7 +134,7 @@ function createNewAction(id) {
   `;
 
   // Add the new container to the game
-  document.getElementById('actions-container').appendChild(container);
+  document.getElementById('all-actions-container').appendChild(container);
   //container.addEventListener('mouseover', (event) => showTooltip(event, id))
   //container.addEventListener('mouseout', hideTooltip);
 
@@ -287,21 +287,15 @@ function addLogEntry(text, id, tag = 'default') {
 }
 
 function updateLogUI() {
-  const logPC = document.getElementById('game-log-pc');
-  const logPhone = document.getElementById('game-log-phone');
+  const log = document.getElementById('game-log');
 
-  logPC.textContent = '';
+  log.textContent = '';
   gameState.gameLog.forEach(entry => {
-    logPC.textContent += entry.date + ' (';
-    logPC.textContent += entry.id + ', ';
-    logPC.textContent += entry.tag + ') '
-    logPC.textContent += entry.text + '\n\n';
+    log.textContent += entry.date + ' (';
+    log.textContent += entry.id + ', ';
+    log.textContent += entry.tag + ') '
+    log.textContent += entry.text + '\n\n';
   })
-
-  logPhone.textContent = logPC.textContent;
-
-  logPC.scrollTop = logPC.scrollHeight;
-  logPhone.scrollTop = logPhone.scrollHeight;
 }
 
 function updateFrameClock() {
@@ -400,14 +394,14 @@ function updateHealthBar(timeChange = 0) {
 
 function openTab(tabId = 'None') {
     // Hide all tab content
-    var tabContents = document.getElementsByClassName("tab-content");
+    var tabContents = document.getElementsByClassName("mobile-tab");
     for (var i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.remove('active');
+        tabContents[i].classList.add('d-none');
     }
 
     // Show the specific tab content
     if (tabId !== 'None') {
-      document.getElementById(tabId).classList.add('active');
+      document.getElementById(tabId).classList.remove('d-none');
     }
 }
 

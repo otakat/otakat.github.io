@@ -22,7 +22,15 @@ let gameState = {
     },
     maxActions: 1,
     paused: pauseStates.NOT_PAUSED,
-    gameLog: []
+    gameLog: [],
+    skills: {
+      courage: 0,
+      perseverance: 0,
+      resourcefulness: 0,
+      curiosity: 0,
+      creativity: 0,
+      integrity: 0
+    }
 }
 
 // Initialize clock variables
@@ -37,7 +45,7 @@ let lastUpdateTime = Date.now();
 //createNewAction('action1', 'Pull Weeds', 5000, book1_pull_weeds, 'Test1');
 //createNewAction('action2', 'Talk to Mom', 5000, book1_talk_mom, 'Test2');
 
-openTab('actions');
+//openTab('actions-tab');
 window.requestAnimationFrame(updateFrameClock);
 window.onload = loadGame();
 setInterval(saveGame(), 10000);
