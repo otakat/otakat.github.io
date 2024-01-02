@@ -288,24 +288,10 @@ body {
   }
 
 /* MOBILE-SPECIFIC STYLE */
-@media (max-width: 576px) {
-  .container {
-    max-width: 540px;
-  }
-}
-
 @media only screen and (max-width: 768px) {
   .game-wrapper {
     background-size: 200% 100vh; /* Only right book-page in mobile */
     background-position: top right;
-  }
-
-  .phone {
-    display: block;
-  }
-
-  .pc {
-    display: none;
   }
 }
 

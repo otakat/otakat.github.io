@@ -402,12 +402,12 @@ function openTab(tabId = 'None') {
     // Hide all tab content
     var tabContents = document.getElementsByClassName("tab-content");
     for (var i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.add('hidden');
+        tabContents[i].classList.add('d-none');
     }
 
     // Show the specific tab content
     if (tabId !== 'None') {
-      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById(tabId).classList.remove('d-none');
     }
 }
 

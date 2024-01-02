@@ -16,7 +16,7 @@
         <div class="row">
           <div id="menu-column" class="col">
             <button class="tab-button" onclick="openTab('actions-tab')">Main</button>
-            <button class="tab-button phone" onclick="openTab('log-tab')">Game Log</button>
+            <button class="tab-button d-md-none" onclick="openTab('log-tab')">Game Log</button>
             <button class="tab-button" onclick="openTab('settings-tab')">Options</button>
             <button class="tab-button" onclick="saveGame()">Save</button>
             <button class="tab-button" onclick="resetGameState()">Reset</button>
@@ -36,21 +36,23 @@
         <div class="row" style="flex: 1; min-height: 1px">
           <div class="col-12" style="height: 100%">
             <div class="row" style="height: 100%">
-              <div id="main-column" class="col-md-6 text-center">
+              <div id="main-column" class="col text-center">
                 <div id="actions-tab" class="tab-content">
-
-                  <div id="actions-container"></div>
+                  <div class="row">
+                    <div id="actions-container" class="col col-md-6"></div>
+                    <div id="log-container" class="d-none d-md-block col-md-6">
+                      <div id="game-log-pc" class="game-log"></div>
+                    </div>
+                  </div>
                 </div>
-                <div id="settings-tab" class="tab-content hidden">
-                </div>
-                <div id="log-tab" class="tab-content hidden">
+                <div id="settings-tab" class="tab-content d-none">Settings</div>
+                <div id="log-tab" class="tab-content d-none">
                   <div id="game-log-phone" class="game-log"></div>
                 </div>
               </div>
-
-              <div id="log-column" class="col-md-6 pc">
+              <!--<div id="log-column" class="col-md-6 d-none d-md-block">
                 <div id="game-log-pc" class="game-log"></div>
-              </div>
+              </div>-->
             </div>
           </div>
         </div>
