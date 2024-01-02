@@ -22,7 +22,15 @@ let gameState = {
     },
     maxActions: 1,
     paused: pauseStates.NOT_PAUSED,
-    gameLog: []
+    gameLog: [],
+    skills: {
+      courage: 0,
+      perseverance: 0,
+      resourcefulness: 0,
+      curiosity: 0,
+      creativity: 0,
+      integrity: 0
+    }
 }
 
 // Initialize clock variables

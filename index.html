@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fairy Tale Game</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 <body>
   <div id="tooltip" class="tooltip">Tooltip</div>
 
-  <div class="container-fluid m-0">
+  <div class="container-fluid m-0 p-0">
     <div class="row">
-      <div class="container m-0 game-wrapper">
-        <div class="row">
-          <div id="menu-column" class="col">
-            <button class="tab-button" onclick="openTab('actions-tab')">Main</button>
-            <button class="tab-button d-md-none" onclick="openTab('log-tab')">Game Log</button>
-            <button class="tab-button" onclick="openTab('settings-tab')">Options</button>
-            <button class="tab-button" onclick="saveGame()">Save</button>
-            <button class="tab-button" onclick="resetGameState()">Reset</button>
-            <button class="tab-button" id="pause-button" onclick="buttonPause()">Pause</button>
-          </div>
+      <div class="container m-0 game-wrapper p-3">
+        <!-- Row for menu buttons -->
+        <div class="row px-3">
+            <button class="menu-button" onclick="openTab('actions-tab')">Main</button>
+            <button class="menu-button" onclick="openTab('settings-tab')">Options</button>
+            <button class="menu-button" onclick="saveGame()">Save</button>
+            <button class="menu-button" onclick="resetGameState()">Reset</button>
+            <button class="menu-button" id="pause-button" onclick="buttonPause()">Pause</button>
         </div>
+        <!-- Row for health bar -->
         <div class="row">
           <div class="col col-md-8 text-center">
             <div id="health-container">Health
@@ -33,23 +33,107 @@
             </div>
           </div>
         </div>
-        <div class="row main-row-fix">
-          <div class="col-12" style="height: 100%">
-            <div class="row" style="height: 100%">
-              <div id="main-column" class="col text-center">
-                <div id="actions-tab" class="tab-content">
-                  <div class="row">
-                    <div id="actions-container" class="col col-md-6"></div>
-                    <div id="log-container" class="d-none d-md-block col-md-6">
-                      <div id="game-log-pc" class="game-log"></div>
-                    </div>
+        <!-- Tab row for mobile view -->
+        <div class="row d-md-none">
+          <div class="col">
+            <span class="tab-button-container">
+              <button class="tab-button" onClick="openTab('actions-tab')">A</button>
+              <button class="tab-button" onClick="openTab('skills-tab')">S</button>
+              <button class="tab-button" onClick="openTab('log-tab')">L</button>
+            </span>
+          </div>
+        </div>
+        <!-- Row for everything else -->
+        <div class="row row-fix">
+          <!-- Settings. Off by default. -->
+          <div id="settings-pane" class="content-pane d-none col-12 full-height">Settings</div>
+          <!-- Main View. On by default. -->
+          <div id="main-pane" class="content-pane col-12 full-height flex-vert">
+            <!-- Skills -->
+            <div id="skills-tab" class="mobile-tab row d-none d-md-block">
+              <div class="col all-skills-container">
+                <!-- Courage -->
+                <div class="skill-container">
+                  <div class="skill-name">Courage</div>
+                  <div class="skill-current">
+                    <div class="skill-current-level">Level: 0</div>
+                    <div class="skill-current-bar"></div>
+                  </div>
+                  <div class="skill-permanent">
+                    <div class="skill-permanent-level">Level: 0</div>
+                    <div class="skill-permanent-bar"></div>
                   </div>
                 </div>
-                <div id="settings-tab" class="tab-content d-none">Settings</div>
-                <div id="log-tab" class="tab-content d-none">
-                  <div id="game-log-phone" class="game-log"></div>
+                <!-- Creativity -->
+                <div class="skill-container">
+                  <div class="skill-name">Creativity</div>
+                  <div class="skill-current">
+                    <div class="skill-current-level">Level: 0</div>
+                    <div class="skill-current-bar"></div>
+                  </div>
+                  <div class="skill-permanent">
+                    <div class="skill-permanent-level">Level: 0</div>
+                    <div class="skill-permanent-bar"></div>
+                  </div>
+                </div>
+                <!-- Curiosity -->
+                <div class="skill-container">
+                  <div class="skill-name">Curiosity</div>
+                  <div class="skill-current">
+                    <div class="skill-current-level">Level: 0</div>
+                    <div class="skill-current-bar"></div>
+                  </div>
+                  <div class="skill-permanent">
+                    <div class="skill-permanent-level">Level: 0</div>
+                    <div class="skill-permanent-bar"></div>
+                  </div>
+                </div>
+                <!-- Integrity -->
+                <div class="skill-container">
+                  <div class="skill-name">Integrity</div>
+                  <div class="skill-current">
+                    <div class="skill-current-level">Level: 0</div>
+                    <div class="skill-current-bar"></div>
+                  </div>
+                  <div class="skill-permanent">
+                    <div class="skill-permanent-level">Level: 0</div>
+                    <div class="skill-permanent-bar"></div>
+                  </div>
+                </div>
+                <!-- Perseverance -->
+                <div class="skill-container">
+                  <div class="skill-name">Perseverance</div>
+                  <div class="skill-current">
+                    <div class="skill-current-level">Level: 0</div>
+                    <div class="skill-current-bar"></div>
+                  </div>
+                  <div class="skill-permanent">
+                    <div class="skill-permanent-level">Level: 0</div>
+                    <div class="skill-permanent-bar"></div>
+                  </div>
+                </div>
+                <!-- Resourcefulness -->
+                <div class="skill-container">
+                  <div class="skill-name">Resourcefulness</div>
+                  <div class="skill-current">
+                    <div class="skill-current-level">Level: 0</div>
+                    <div class="skill-current-bar"></div>
+                  </div>
+                  <div class="skill-permanent">
+                    <div class="skill-permanent-level">Level: 0</div>
+                    <div class="skill-permanent-bar"></div>
+                  </div>
                 </div>
               </div>
+            </div>
+            <!-- Actions and Game Log -->
+            <div class="row row-col-1 row-col-md-2 row-fix">
+                <div id="actions-tab" class="mobile-tab col d-md-block full-height scroll">
+                  <div id="all-actions-container" class="col full-height scroll"></div>
+                </div>
+                <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 full-height scroll">
+                    <div id="game-log" class="game-log"></div>
+                </div>
               <!--<div id="log-column" class="col-md-6 d-none d-md-block">
                 <div id="game-log-pc" class="game-log"></div>
               </div>-->

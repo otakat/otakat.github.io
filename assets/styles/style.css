@@ -16,6 +16,29 @@
   }
 }
 
+/* MODIFIERS */
+
+.full-height {
+  height: 100%;
+}
+
+.scroll {
+  overflow: scroll;
+}
+
+.flex-vert {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 10px;
+}
+
+/* Without this fix, the main row is not limited to screen size */
+.row-fix {
+  flex: 1;
+  min-height: 1px;
+}
+
+/* BODY */
 html {
 	height: 100vh;
 	scroll-behavior: smooth;
@@ -33,13 +56,7 @@ body {
 
  /* Limiting container width to lg */
 .container-fluid {
-  max-width: 960px;
-}
-
-/* Without this fix, the main row is not limited to screen size */
-.main-row-fix {
-  flex: 1;
-  min-height: 1px;
+  max-width: 1280px;
 }
 
 .game-wrapper {
@@ -47,77 +64,278 @@ body {
   background-repeat: no-repeat;
   background-size: 100% 100vh; /* Always stretched to screen height */
   height: 100vh; /* Forces content to full screen height */
-  padding-top: 2vh; /* To ensure elements align with background */
-  padding-bottom: 2vh;
   display: flex;
   flex-flow: column nowrap;
   justify-content: flex-start;
   gap: 10px;
 }
 
-#menu-column {
-  display:flex;
-  flex-flow:row wrap;
-}
+/* MENU */
+  .menu-button {
+    width:auto;
+    height: 40px;
+    font-size: 0.8em;
+    flex: 0 1 auto;
+    line-height: 1.1;
+    margin: 1px;
+    padding: 3px 10px;
+    cursor: pointer;
+  }
 
-#main-column, #log-column {
-  height: 100%;
-  overflow: auto;
-}
-
-.game-log {
-  min-height: 100%;
-}
-
-/* Aligns main to top and menu to bottom of screen in mobile */
-.full-screen-wrap {
-  height:100%;
-  align-content: space-between;
-}
-
-.phone {
-  display:none;
-}
-
+/* HEALTH BAR */
 #health-container {
+  flex: 0 0 auto;
   padding: 5px;
   border-radius: 5px;
   background-color: rgba(255,255,255,0.6);
 }
 
-#health-bar-container {
-  position: relative;
-  width: 100%; height: 30px;
-  background-color: #555;
-  border-radius: 5px;
-  overflow: hidden;
-  border: 2px solid black;
-}
+  #health-bar-container {
+    position: relative;
+    width: 100%; height: 30px;
+    background-color: #555;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 2px solid black;
+  }
 
-#health-bar {
-  position: relative;
-  width: 100%; height: 100%;
-  background-color: #880000; /* Red for health bar */
-  z-index:1;
-}
+  #health-bar {
+    position: relative;
+    width: 100%; height: 100%;
+    background-color: #880000; /* Red for health bar */
+    z-index:1;
+  }
 
-#health-bar-text {
-  position: absolute; /* Position the text absolutely */
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  line-height: 100%;
+  #health-bar-text {
+    position: absolute; /* Position the text absolutely */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    line-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white; /* Choose a color that contrasts with the health bar */
+    font-size: 1em;
+    z-index:2;
+  }
+
+/* TABS MENU */
+.tab-button-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white; /* Choose a color that contrasts with the health bar */
-  font-size: 1em;
-  z-index:2;
+  flex-flow: row wrap;
+  gap: 10px;
+}
+
+  .tab-button {
+    height: 35x;
+    width: 50px;
+    font-size: 1.2em;
+  }
+
+/* MAIN AREA (Actions, log, etc.) */
+  /* SKILLS */
+  .all-skills-container {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 3px 5px;
+  }
+
+    .skill-container {
+      flex: 1 1 200px;
+      max-width: 300px;
+      background-color: rgba(255,255,255,0.6);
+      border-radius: 5px;
+      padding: 5px;
+      display: flex;
+      flex-flow: column nowrap;
+    }
+
+      .skill-name {
+        font-size: 0.8em;
+        font-weight: bold;
+      }
+
+      .skill-current, .skill-permanent {
+        position: relative;
+        width:100%; height: 20px;
+        background-color: gray;
+        border: 1px solid black;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+        .skill-current-level, .skill-permanent-level {
+          position:absolute;
+          top: 0; left: 0;
+          font-size: 0.8em;
+          font-weight: bold;
+          color: white;
+          z-index: 2;
+          padding-left: 10px;
+        }
+
+        .skill-current-bar, .skill-permanent-bar {
+          height:20px; width: 60%;
+          position:absolute;
+          top:0; left:0;
+          line-height: 20px;
+          z-index: 1;
+        }
+
+        .skill-current-bar {
+          background-color: #000055;
+        }
+
+        .skill-permanent-bar {
+          background-color: #555500;
+        }
+
+  /* ACTIONS */
+  #all-actions-container {
+    min-height: 100%;
+    display:flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    gap: 5px;
+  }
+
+    .action-container {
+      display: flex;
+      flex-flow: column nowrap;
+      align-items: flex-start;
+      background: rgba(255,255,255,0.6);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 0.8em;
+      gap: 2px;
+    }
+
+      .action-header {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items:baseline;
+        gap: 5px;
+      }
+
+        .action-label {
+          font-size: 1.2em;
+        }
+
+        .queue-list {
+          min-width: 60px;
+          text-align: center;
+          color: #555;
+          font-size: 0.9em;
+        }
+
+        .action-button-container {
+          flex: 0 0 auto;
+          display: flex;
+          flex-flow: row wrap;
+          justify-content: space-between;
+          gap: 2px;
+        }
+
+          .action-button, .queue-button {
+            flex: 0 0 25px;
+            height: 25px;
+            width: 25px;
+            background: #eee;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 1px;
+            cursor: pointer;
+            font-size: 1em;
+          }
+
+      .action-progress-container {
+        width: 100%;
+        background-color: #555;
+        position: relative;
+        height: 20px;
+        border: 2px solid black;
+        border-radius: 5px;
+      }
+
+        .action-progress-text {
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: white;
+          font-size: 1em;
+          z-index: 3;
+        }
+
+        .action-progress-bar-current, .action-progress-bar-mastery {
+          position: absolute;
+          top: 0; left: 0;
+          height: 100%;
+          width: 0%;
+          line-height: 20px; /* Match the height of the progress bar container */
+        }
+
+        .action-progress-bar-current {
+          background-color: #4caf50;
+          z-index: 1;
+        }
+
+          .action-progress-bar-current.active {
+            position: relative;
+            background-image: repeating-linear-gradient(
+              -45deg,
+              rgba(255,255,255,.2),
+              transparent 15px,
+              rgba(255,255,255,.2) 30px
+            );
+            background-size: 120% 100%;
+            animation: progress 30s linear infinite;
+          }
+
+          .action-progress-bar-current.active::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; right: 0;
+            width: 1px; /* Width of the pulsing border */
+            background: rgba(255,255,255,0.6); /* Color of the pulsing border */
+            animation: glowing 1s infinite;
+          }
+
+        .action-progress-bar-mastery {
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(0, 0, 0, 0.2) 25%,
+            rgba(0, 0, 0, 0.2) 50%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.1) 75%,
+            rgba(0, 0, 0, 0.2) 75%
+          ),
+          linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(0, 0, 0, 0.2) 50%,
+            rgba(255, 255, 255, 0.05) 50%
+          );
+          background-color: #666; /* Dark base color */
+          background-size: 10px 10px; /* Size of the repeating pattern */
+          z-index: 2;
+        }
+
+#log-tab {
+  background: rgba(255,255,255,0.6);
+  border: 1px solid #ccc; /* Optional border */
+  border-radius: 2px;
 }
 
 .game-log {
-  background: rgba(255,255,255,0.4);
-  overflow-y: auto; /* Adds a vertical scrollbar */
-  border: 1px solid #ccc; /* Optional border */
+  min-height:100%;
   padding: 5px;
   font-family: monospace; /* Easier to read for logs */
   font-size: 0.8em;
@@ -137,161 +355,6 @@ body {
   z-index: 1000; /* Ensure it's above other elements */
 }
 
-/* ACTIONS */
-
-.action-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  background: rgba(255,255,255,0.6);
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 0.8em;
-  margin-bottom: 5px;
-}
-
-.action-header {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items:baseline;
-  margin-bottom: 5px;
-}
-
-.action-label {
-  margin-right: 5px;
-  font-size: 1.2em;
-}
-
-.queue-list {
-  min-width: 60px;
-  text-align: center;
-  color: #555;
-  font-size: 0.9em;
-}
-
-.action-button-container {
-  flex-grow: 0;
-  flex-shrink: 0;
-}
-
-.action-button, .queue-button {
-  height: 25px;
-  width: 25px;
-  margin-left: 2px;
-  margin-right: 2px;
-  background: #eee;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 1px;
-  cursor: pointer;
-  font-size: 1em;
-}
-
-.action-progress-container {
-  width: 100%;
-  background-color: #555;
-  position: relative;
-  height: 20px;
-  border: 2px solid black;
-  border-radius: 5px;
-}
-
-.action-progress-text {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 1em;
-  z-index: 3;
-}
-
-.action-progress-bar-current, .action-progress-bar-mastery {
-  position: absolute;
-  top: 0; left: 0;
-  height: 100%;
-  width: 0%;
-  line-height: 20px; /* Match the height of the progress bar container */
-}
-
-.action-progress-bar-current {
-  background-color: #4caf50;
-  z-index: 1;
-}
-
-.action-progress-bar-mastery {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.05) 25%,
-    rgba(0, 0, 0, 0.2) 25%,
-    rgba(0, 0, 0, 0.2) 50%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.1) 75%,
-    rgba(0, 0, 0, 0.2) 75%
-  ),
-  linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.05),
-    rgba(0, 0, 0, 0.2) 50%,
-    rgba(255, 255, 255, 0.05) 50%
-  );
-  background-color: #666; /* Dark base color */
-  background-size: 10px 10px; /* Size of the repeating pattern */
-  z-index: 2;
-}
-
-.action-progress-bar-current.active {
-  position: relative;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(255,255,255,.2),
-    transparent 15px,
-    rgba(255,255,255,.2) 30px
-  );
-  background-size: 120% 100%;
-  animation: progress 30s linear infinite;
-}
-
-.action-progress-bar-current.active::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; right: 0;
-  width: 1px; /* Width of the pulsing border */
-  background: rgba(255,255,255,0.6); /* Color of the pulsing border */
-  animation: glowing 1s infinite;
-}
-
-/* TABS */
-.tab-button {
-  height: 40px;
-  font-size: 0.8em;
-  flex: 0 1 auto;
-  line-height: 1.1;
-  margin: 1px;
-  padding: 3px 10px;
-  cursor: pointer;
-}
-
-#main-column {
-  overflow: auto;
-}
-
-  #health-container {
-    flex: 0 0 auto;
-  }
-
-  #actions-container {
-    overflow-y: scroll;
-    display:flex;
-    flex-flow: column nowrap;
-    justify-content: space-between;
-  }
 
 /* MOBILE-SPECIFIC STYLE */
 @media only screen and (max-width: 768px) {
