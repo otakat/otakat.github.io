@@ -36,6 +36,12 @@ body {
   max-width: 960px;
 }
 
+/* Without this fix, the main row is not limited to screen size */
+.main-row-fix {
+  flex: 1;
+  min-height: 1px;
+}
+
 .game-wrapper {
   background: url('../images/book.png');
   background-repeat: no-repeat;
