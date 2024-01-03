@@ -1,267 +1,97 @@
-class GameAction {
-  constructor(id, label, length, effect) {
-      // Pull in default action properties
-      this.id = id;
-      this.label = book1_actions[id].label;
-      this.length = book1_actions[id].length;
-      this.effect = book1_actions[id].effect;
-      this.maxCompletions = book1_actions[id].maxCompletions;
-      this.maxCompletionsEffect = book1_actions[id].maxCompletionsEffect;
+function doSkillsExist(skillOrSkills) {
+  // Define valid skills
+  const validSkills = skillList;
 
-      // Define DOM objects
-      this.container = document.getElementById(id);
-      this.progressContainer = this.container.querySelector('.action-progress-container');
-      this.progressText = this.container.querySelector('.action-progress-text');
-      this.progressBarCurrent = this.container.querySelector('.action-progress-bar-current');
-      this.progressBarMastery = this.container.querySelector('.action-progress-bar-mastery');
-      this.buttonActivate = this.container.querySelector('.action-button');
-      this.buttonQueue = this.container.querySelector('.queue-button');
-      this.queueList = this.container.querySelector('.queue-list')
-
-      // Add button effects
-      this.buttonActivate.addEventListener('click', () => toggleAction(id));
-      this.buttonQueue.addEventListener('click', () => queueAction(id));
-
-      this.initializeActionProgress();
-      this.calculateTimeStart();
-      this.update();
-
-      actionsConstructed[id] = this;
+  // Initialize skills in gameState if not present
+  if (!gameState.hasOwnProperty("skills")) {
+    gameState.skills = {};
   }
 
-  update(timeChange = 0) {
-    if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
-      this.progress.timeCurrent = 0;
-    }
-    if (typeof this.progress.timeStart !== 'number' || isNaN(this.progress.timeStart)) {
-      this.progress.timeStart = 0;
-    }
+  // Abort if no skills were provided
+  if (skillOrSkills === undefined) {return false;}
 
-    if (this.progress.timeCurrent < this.progress.timeStart) {
-      this.progress.timeCurrent = this.progress.timeStart;
-    }
-    this.progress.timeCurrent += timeChange;
-    this.progress.mastery += timeChange;
-
-    if (this.progress.timeCurrent >= this.length) {
-      this.finish();
-    }
-
-    this.calculateTimeStart();
-
-    const currentPercentage = (this.progress.timeCurrent / this.length) * 100;
-    const masteryPercentage = (this.progress.timeStart / this.length) * 100;
-    const label = masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
-
-    this.progressBarCurrent.style.width = currentPercentage + '%';
-    this.progressText.innerText = label;
-    this.progressBarMastery.style.width = masteryPercentage + '%';
-
-  }
-
-  finish() {
-    this.progress.completions += 1;
-    this.calculateTimeStart();
-    this.progress.timeCurrent = this.progress.timeStart;
-    this.update();
-    deactivateAction(this.id);
-    this.effect();
-
-    if (this.progress.completions >= this.maxCompletions) {
-      this.maxCompletionsEffect();
-    }
-
-    console.log(this.progress);
-  }
-
-  initializeActionProgress() {
-    if (gameState.actionsProgress.hasOwnProperty(this.id) === false) {
-      gameState.actionsProgress[this.id] = {
-        timeStart: 0,
-        timeCurrent: 0,
-        mastery: 0,
-        completions: 0
-      };
-    }
-    this.progress = gameState.actionsProgress[this.id];
-  }
-
-  calculateTimeStart() {
-    const maxRatio = 0.9;
-    const growthRate = 0.00001;
-
-    let masteryImpact = 0;
-    if (this.progress.mastery === 0) {
-      masteryImpact = 0;
+  function checkAndInitSkill(skill) {
+    if (!validSkills.includes(skill)) {
+      return false;
     } else {
-      masteryImpact = maxRatio * Math.atan(growthRate * this.progress.mastery);
-    }
-    masteryImpact = Math.max(0, Math.min(masteryImpact, maxRatio));
-
-    this.progress.timeStart = masteryImpact * this.length
-    if (this.progress.timeCurrent < this.progress.timeStart) {
-      this.progress.timeCurrent = this.progress.timeStart;
-    }
-  }
-}
-
-function createNewAction(id) {
-  if (actionsConstructed.hasOwnProperty(id)) {
-    console.error('Action is already constructed:',id)
-    return;
-  }
-
-  let label = book1_actions[id].label
-
-  // Create the HTML structure for the action container
-  const container = document.createElement('div');
-  container.id = id;
-  container.className = 'action-container';
-  container.innerHTML = `
-    <div class="action-header">
-      <span class="action-label">${label}</span>
-      <span class="queue-list">Queue: 1 2 3 (+5)</span>
-      <span class="action-button-container">
-        <button class="action-button">⏵</button>
-        <button class="queue-button">⨮</button>
-      </span>
-    </div>
-    <div class="action-progress-container">
-      <div class="action-progress-text">0% Mastery + 0% Current</div>
-      <div class="action-progress-bar-mastery"></div>
-      <div class="action-progress-bar-current"></div>
-    </div>
-  `;
-
-  // Add the new container to the game
-  document.getElementById('all-actions-container').appendChild(container);
-  //container.addEventListener('mouseover', (event) => showTooltip(event, id))
-  //container.addEventListener('mouseout', hideTooltip);
-
-  // Hide the container if the action is not currently available
-  if (gameState.actionsAvailable.includes(id) === false) {
-    container.style.display = "none";
-  }
-
-  // Initialize the GameAction for this container
-  new GameAction(id);
-}
-
-function removeAction(actionId) {
-  // Remove HTML elements
-    const actionElement = document.getElementById(actionId);
-    if (actionElement) {
-        actionElement.parentNode.removeChild(actionElement);
-    }
-
-    // Remove from gameState and arrays
-    delete actionsConstructed[actionId];
-    gameState.actionsAvailable = gameState.actionsAvailable.filter(id => id !== actionId);
-    gameState.actionsActive = gameState.actionsActive.filter(id => id !== actionId);
-    gameState.actionsQueued = gameState.actionsQueued.filter(id => id !== actionId);
-    processActiveAndQueuedActions();
-
-    // Any additional cleanup...
-}
-
-function makeActionAvailable(actionId) {
-  if (gameState.actionsAvailable.includes(actionId)) {
-    actionsConstructed[actionId].container.style.display = 'block';
-  } else {
-    gameState.actionsAvailable.push(actionId)
-    createNewAction(actionId)
-  }
-}
-
-function makeActionUnavailable(actionId) {
-  gameState.actionsAvailable = gameState.actionsAvailable.filter(
-    value => value !== actionId
-  )
-  gameState.actionsActive = gameState.actionsActive.filter(
-    value => value !== actionId
-  )
-  gameState.actionsQueued = gameState.actionsQueued.filter(
-    value => value !== actionId
-  )
-  processActiveAndQueuedActions();
-
-  actionsConstructed[actionId].container.style.background = '#888'
-  //removeAction(actionId);
-}
-
-function toggleAction(actionId) {
-  const index = gameState.actionsActive.indexOf(actionId);
-  if (index === 0) {
-    deactivateAction(actionId);
-  } else {
-    activateAction(actionId);
-  }
-}
-
-function activateAction(actionId) {
-  if (gameState.actionsAvailable.includes(actionId)) {
-      const index = gameState.actionsActive.indexOf(actionId);
-      if (index === 0) {return;}
-      if (index > 0) {gameState.actionsActive.splice(index, 1);}
-      gameState.actionsActive.unshift(actionId);
-  }
-
-  processActiveAndQueuedActions();
-}
-
-function deactivateAction(actionId) {
-  gameState.actionsActive = gameState.actionsActive.filter(
-    value => value !== actionId
-  )
-  processActiveAndQueuedActions();
-}
-
-function queueAction(actionId) {
-  gameState.actionsQueued.push(actionId);
-  processActiveAndQueuedActions();
-}
-
-function processActiveAndQueuedActions() {
-  // Transfer excess actions from active to the front of the queue
-  if (gameState.actionsActive.length > gameState.maxActions) {
-    let excessNumber = gameState.actionsActive.length - gameState.maxActions;
-    let excessActions = gameState.actionsActive.splice(gameState.maxActions, excessNumber);
-    gameState.actionsQueued.unshift(...excessActions);
-  }
-
-  const queueExtrasThreshold = 3;
-  Object.values(actionsConstructed).forEach(actionObject => {
-    // Color each active action blue, otherwise black
-    if (gameState.actionsActive.includes(actionObject.id) === true) {
-      actionObject.progressContainer.style.border = '2px solid blue';
-      actionObject.progressBarCurrent.classList.add('active');
-    } else {
-      actionObject.progressContainer.style.border = '2px solid black';
-      actionObject.progressBarCurrent.classList.remove('active');
-    }
-
-    // Build the queue text for each action
-    actionObject.queueList.innerText = '';
-
-    let queueText = '';
-    let queueCount = 0;
-
-    gameState.actionsQueued.forEach((queuedActionId, index) => {
-      if (queuedActionId === actionObject.id) {
-        queueCount += 1;
-        if (index < queueExtrasThreshold) {
-          queueText += ' ' + (index + 1);
-        }
+      if (!gameState.skills.hasOwnProperty(skill)) {
+        gameState.skills[skill] = {
+          current_level: 0,
+          current_progress: 0,
+          permanent_level: 0,
+          permanent_progress: 0
+        };
       }
-    });
-
-    if (queueCount > queueExtrasThreshold) {
-      queueText += ' (+' + (queueCount - queueExtrasThreshold) + ')';
+      return true;
     }
+  }
 
-    if (queueText !== ''){queueText = 'Queue:'+queueText;}
-    actionObject.queueList.innerText = queueText;
-  })
+  if (Array.isArray(skillOrSkills)) { // If an array was provided
+    for (let skill of skillOrSkills) {
+      if (!checkAndInitSkill(skill)) {return false;}
+    }
+    return true;
+  } else { // If single skill provided
+    return checkAndInitSkill(skillOrSkills);
+  }
+}
+
+function multiplyTimeChangeBySkills(timeChange, skills){
+  // Abort if any skill is illegal
+  if (!doSkillsExist(skills)) {return timeChange;}
+
+  let multipliers = skills.map(skill => {
+    currentLevel = gameState.skills[skill].current_level
+    permanentLevel = gameState.skills[skill].permanent_level
+
+    return Math.pow(1.1, currentLevel) * Math.pow(1.01, permanentLevel);
+  });
+
+  let sum = multipliers.reduce((accumulator, currentValue) =>
+    accumulator + currentValue,
+  );
+  let averageMultiplier = sum / multipliers.length;
+
+  const newTimeChange = timeChange * averageMultiplier
+  return newTimeChange;
+}
+
+function updateSkill(skill, timeChange) {
+  const currentExperienceToLevel = 5000;
+  const permanentExperienceToLevel = 5000;
+
+  if (!doSkillsExist(skill)) {return false;}
+
+  let skill_to_update = gameState.skills[skill]
+
+
+
+  skill_to_update.current_progress += timeChange;
+  if (skill_to_update.current_progress > currentExperienceToLevel) {
+    skill_to_update.current_level += 1;
+    document.getElementById(skill + '-current-level').innerText = 'Current Loop: ' + skill_to_update.current_level;
+    skill_to_update.current_progress -= currentExperienceToLevel;
+  }
+  let currentProgressPercentage = skill_to_update.current_progress / currentExperienceToLevel * 100;
+  document.getElementById(skill + '-current-progress').style.width = currentProgressPercentage + '%';
+
+  skill_to_update.permanent_progress += timeChange;
+  if (skill_to_update.permanent_progress > permanentExperienceToLevel) {
+    skill_to_update.permanent_level += 1;
+    document.getElementById(skill + '-permanent-level').innerText = 'Permanent: ' + skill_to_update.permanent_level;
+    skill_to_update.permanent_progress -= permanentExperienceToLevel;
+  }
+  let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
+  document.getElementById(skill + '-permanent-progress').style.width = permanentProgressPercentage + '%';
+
+  console.log(skill);
+  console.log(document.getElementById(skill).classList);
+
+  if (Math.max(skill_to_update.current_level, skill_to_update.current_progress, skill_to_update.permanent_level, skill_to_update.permanent_progress) <= 0) {
+    document.getElementById(skill).classList.add('d-none');
+  } else {
+    document.getElementById(skill).classList.remove('d-none');
+  }
 }
 
 function generateUniqueId() {
@@ -274,7 +104,7 @@ function addLogEntry(text, id, tag = 'default') {
       id = generateUniqueId();
     }
     const currentDate = new Date(Date.now())
-    const timestamp = currentDate.toString()
+    const timestamp = currentDate.toLocaleDateString('en-US');
 
     const logEntry = {
         id: id, // Implement this function to generate unique IDs
@@ -287,7 +117,11 @@ function addLogEntry(text, id, tag = 'default') {
 }
 
 function updateLogUI() {
+  const logTab = document.getElementById('log-tab');
   const log = document.getElementById('game-log');
+
+  // Check if the scrollbar is at the bottom before updating the content
+  const isScrolledToBottom = logTab.scrollHeight - logTab.clientHeight <= logTab.scrollTop + 1;
 
   log.textContent = '';
   gameState.gameLog.forEach(entry => {
@@ -296,6 +130,11 @@ function updateLogUI() {
     log.textContent += entry.tag + ') '
     log.textContent += entry.text + '\n\n';
   })
+
+  // If the scrollbar was at the bottom, keep it at the bottom after the update
+  if (isScrolledToBottom) {
+    logTab.scrollTop = logTab.scrollHeight;
+  }
 }
 
 function updateFrameClock() {
@@ -324,11 +163,12 @@ function updateFrameClock() {
 
     if (isGamePaused() === false) {
       timeTotal += timeElapsed;
-      updateHealthBar(timeElapsed);
 
       gameState.actionsActive.forEach(actionId => {
         actionsConstructed[actionId].update(timeElapsed)
       })
+
+      updateHealthBar(timeElapsed);
     }
 
     lastUpdateTime = currentTime;
@@ -382,7 +222,7 @@ function isGamePaused() {
 function updateHealthBar(timeChange = 0) {
     gameState.health.current -= timeChange;
     if (gameState.health.current <= 0) {
-        gameState.health.current = gameState.health.max;
+        endLoop();
         // Reset or other logic when progress bar reaches 0
     }
     percentHealth = gameState.health.current / gameState.health.max * 100;
@@ -419,25 +259,40 @@ function showTooltip(event, text = 'Default') {
   tooltip.style.top = (event.clientY + scrollY) + 'px';
 }
 
+function endLoop(){
+  addLogEntry("You run has ended. Restarting...");
+
+  gameState.health.current = gameState.health.max;
+  skillList.forEach(skill => {
+    if (gameState.skills.hasOwnProperty(skill)) {
+      gameState.skills[skill].current_level = 0;
+      gameState.skills[skill].current_progress = 0;
+    }
+  })
+
+  Object.keys(actionsConstructed).forEach(actionId => {
+    removeAction(actionId);
+  })
+
+  gameState.actionsActive = [];
+  gameState.actionsQueued = [];
+  gameState.actionsAvailable = ["book1_action1"];
+
+  Object.values(gameState.actionsProgress).forEach(action => {
+    action.completions = 0;
+    action.timeCurrent = 0;
+  })
+
+  initializeGame();
+}
+
 function hideTooltip() {
     let tooltip = document.getElementById('tooltip');
     tooltip.style.display = 'none';
 }
 
 function resetGameState() {
-  gameState = {
-      actionsAvailable: [],
-      actionsActive: [],
-      actionsQueued: [],
-      actionsProgress: {},
-      health: {
-          current: 10000,
-          max: 10000
-      },
-      maxActions: 1,
-      paused: pauseStates.NOT_PAUSED,
-      gameLog: []
-  }
+  gameState = JSON.parse(JSON.stringify(emptyGameState));
 
   Object.keys(actionsConstructed).forEach(action => {
     removeAction(action);
@@ -484,4 +339,10 @@ function initializeGame() {
   processPauseButton();
   processActiveAndQueuedActions();
   updateHealthBar();
+  updateSkill("courage", 0);
+  updateSkill("creativity", 0);
+  updateSkill("curiosity", 0);
+  updateSkill("integrity", 0);
+  updateSkill("perseverance", 0);
+  updateSkill("resourcefulness", 0);
 }
