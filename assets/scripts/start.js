@@ -5,33 +5,30 @@ const pauseStates = {
   FULL_PAUSE: 'fully paused' // Cannot be broken except via pause button
 }
 
+const skillList = ["courage", "creativity", "curiosity", "integrity", "perseverance", "resourcefulness"];
+
+const emptyGameState = {
+  actionsAvailable: ["book1_action1"],
+  actionsActive: [],
+  actionsQueued: [],
+  actionsProgress: {},
+  health: {
+      current: 25000,
+      max: 25000
+  },
+  maxActions: 1,
+  paused: pauseStates.NOT_PAUSED,
+  gameLog: [],
+  skills: {}
+}
+
 /// INITIALIZATION ///
 let gameActive = true;
 let manualPause = false;
 let frameRate = 60;
-let timeDilation = 5;
+let timeDilation = 2;
 let actionsConstructed = {};
-let gameState = {
-    actionsAvailable: [],
-    actionsActive: [],
-    actionsQueued: [],
-    actionsProgress: {},
-    health: {
-        current: 10000,
-        max: 10000
-    },
-    maxActions: 1,
-    paused: pauseStates.NOT_PAUSED,
-    gameLog: [],
-    skills: {
-      courage: 0,
-      perseverance: 0,
-      resourcefulness: 0,
-      curiosity: 0,
-      creativity: 0,
-      integrity: 0
-    }
-}
+let gameState = JSON.parse(JSON.stringify(emptyGameState));
 
 // Initialize clock variables
 let frameDuration = 1000 / frameRate;

@@ -1,25 +1,22 @@
 const book1_actions = {
   book1_action1: {
-    label: "Action1",
+    label: "Action1: Curiosity x2 + Perseverance",
     length: 5000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book1_action1_complete);
       makeActionAvailable('book1_action2')
     },
-    maxCompletions: 10,
+    maxCompletions: 50,
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action1');
-    }
+    },
+    skills: ["curiosity", "curiosity", "perseverance"]
   },
   book1_action2: {
-    label: "Action2",
-    length: 5000,
+    label: "Action2: Courage",
+    length: 6000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book2_action1_complete);
       makeActionAvailable('book1_action3')
     },
@@ -27,14 +24,13 @@ const book1_actions = {
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action2');
-    }
+    },
+    skills: ["courage"]
   },
   book1_action3: {
-    label: "Action3",
-    length: 5000,
+    label: "Action3: Integrity + Resourcefulness",
+    length: 7000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book3_action1_complete);
       makeActionAvailable('book1_action4')
     },
@@ -42,14 +38,13 @@ const book1_actions = {
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action3');
-    }
+    },
+    skills: ["integrity", "resourcefulness"]
   },
   book1_action4: {
-    label: "Action4",
-    length: 5000,
+    label: "Action4: Creativity x3 + Courage",
+    length: 8000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book4_action1_complete);
       makeActionAvailable('book1_action5')
     },
@@ -57,14 +52,13 @@ const book1_actions = {
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action4');
-    }
+    },
+    skills: ["creativity", "creativity", "creativity", "courage"]
   },
   book1_action5: {
-    label: "Action5",
-    length: 5000,
+    label: "Action5: Courage, Creativity, Curiosity, Integrity, Perseverance",
+    length: 9000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book5_action1_complete);
       makeActionAvailable('book1_action6')
     },
@@ -72,14 +66,13 @@ const book1_actions = {
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action5');
-    }
+    },
+    skills: ["courage", "creativity", "curiosity", "integrity", "perseverance"]
   },
   book1_action6: {
-    label: "Action6",
-    length: 5000,
+    label: "Action6: Resourcefulness Part 1",
+    length: 10000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book6_action1_complete);
       makeActionAvailable('book1_action7')
     },
@@ -87,21 +80,21 @@ const book1_actions = {
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action6');
-    }
+    },
+    skills: ["resourcefulness"]
   },
   book1_action7: {
-    label: "Action7",
-    length: 5000,
+    label: "Action7: Resourcefulness Part 2",
+    length: 11000,
     effect: function () {
-      gameState.health.current = gameState.health.max;
-      updateHealthBar();
       addLogEntry(storylines.book7_action1_complete);
     },
     maxCompletions: 10,
     maxCompletionsEffect: function () {
       addLogEntry('You cannot perform this action anymore.');
       makeActionUnavailable('book1_action7');
-    }
+    },
+    skills: ["resourcefulness"]
   }
 }
 
