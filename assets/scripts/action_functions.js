@@ -35,6 +35,7 @@ class GameAction {
 
       this.calculateTimeStart();
       this.update();
+			processActiveAndQueuedActions()
   }
 
 	get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
@@ -180,7 +181,7 @@ function createNewAction(id) {
   container.innerHTML = `
     <div class="action-header">
       <span class="action-label">${label}</span>
-      <span class="queue-list">Queue: 1 2 3 (+5)</span>
+      <span class="queue-list"></span>
       <span class="action-button-container">
         <button class="action-button">⏵</button>
         <button class="queue-button">⨮</button>

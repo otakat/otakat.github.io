@@ -6,6 +6,7 @@ function sanitizeNumber(value, defaultValue = 0) {
     return defaultValue;
   }
 }
+
 function doSkillsExist(skillOrSkills) {
   // Define valid skills
   const validSkills = skillList;
@@ -107,10 +108,10 @@ function generateUniqueId() {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-function addLogEntry(text, id, tag = 'default') {
-    if (id === undefined) {
-      id = generateUniqueId();
-    }
+function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
+    //if (id === undefined) {
+    //  id = generateUniqueId();
+    //}
     const currentDate = new Date(Date.now())
     const timestamp = currentDate.toLocaleDateString('en-US');
 
@@ -145,9 +146,54 @@ function updateLogUI() {
   }
 }
 
+function createPopup(text, alertType = 'alert-primary') {
+    // Check alertType for legal entry, correct if applicable, or use default
+    fullType = alertType.startsWith('alert-') ? alertType : 'alert-' + alertType
+    const allAlertTypes = new Set(['alert-primary', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-warning', 'alert-info', 'alert-light', 'alert-dark'])
+    if (!allAlertTypes.has(fullType)) {
+      console.error('Illegal alert type: ', alertType);
+      fullType = 'alert-primary';
+    }
+
+    // Create alert div
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${fullType} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+
+    // Add message and close button to alert
+    alertDiv.innerHTML = `
+        ${text}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+        </div>`;
+
+    // Append alert to the popup-container
+    document.getElementById('popup-container').appendChild(alertDiv);
+
+    // Calculate timeout duration based on message length (e.g., 5000ms + 100ms per word)
+    const duration = 3000 + text.split(' ').length * 100;
+    const progressBar = alertDiv.querySelector('.progress-bar');
+
+    // Animate progress bar
+    progressBar.style.transition = `width ${duration}ms linear`;
+    setTimeout(() => progressBar.style.width = '0%', 0);
+
+    // Set timeout to remove the alert
+    setTimeout(() => {
+        alertDiv.classList.remove('show');
+        setTimeout(() => alertDiv.remove(), 150); // Wait for fade out
+    }, duration);
+}
+
+function logPopupCombo(text, alertType, id, tag) {
+  addLogEntry(text, id, tag);
+  createPopup(text, alertType);
+}
+
 function updateFrameClock() {
   // Start the first item in the queue if nothing is active
-  if (gameState.actionsActive.length < gameState.maxActions && gameState.actionsQueued.length >= 1 && gameState.paused !== pauseStates.HARD_PAUSE) {
+  if (gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive && gameState.actionsQueued.length >= 1 && gameState.paused !== pauseStates.HARD_PAUSE) {
     let newAction = gameState.actionsQueued.shift()
     activateAction(newAction)
   }
@@ -197,7 +243,7 @@ function setPauseState(newState, logText, buttonLabel) {
     gameState.paused = newState;
 
     if (logText !== undefined) {
-      addLogEntry(logText);
+      logPopupCombo(logText, 'secondary');
     }
     processPauseButton(buttonLabel);
   } else {
@@ -268,7 +314,7 @@ function showTooltip(event, text = 'Default') {
 }
 
 function endLoop(){
-  addLogEntry("You run has ended. Restarting...");
+  logPopupCombo("You run has ended. Restarting...", 'danger');
 
   gameState.health.current = gameState.health.max;
   skillList.forEach(skill => {
@@ -310,9 +356,16 @@ function resetGameState() {
   initializeGame();
 }
 
-function saveGame() {
-    addLogEntry('Game Saved');
-    localStorage.setItem('gameState', JSON.stringify(gameState));
+function saveGame(isManualSave = false) {
+    try {
+      localStorage.setItem('gameState', JSON.stringify(gameState));
+      if (isManualSave) {logPopupCombo('Game Saved', 'secondary');}
+    } catch (error) {
+      const errorMessage = 'Error saving to local storage';
+      logPopupCombo(errorMessage, 'danger');
+      console.error(errorMessage);
+    }
+
 }
 
 function aggregateObjectProperties(originalObject, newObject) {
@@ -345,7 +398,7 @@ function loadGame() {
     gameState = aggregateObjectProperties(emptyGameState, savedGameState);
 
 
-    addLogEntry('Data Loaded');
+    logPopupCombo('Data Loaded', 'secondary');
   }
 
   initializeGame();
@@ -353,7 +406,7 @@ function loadGame() {
 
 function initializeGame() {
   if (gameState.actionsAvailable.length === 0) {
-    addLogEntry(storylines.book1_opener);
+    logPopupCombo(storylines.book1_opener, 'info');
     gameState.actionsAvailable = ['book1_action1'];
   }
 

@@ -7,15 +7,17 @@ const default_action = {
   startEffects: {
     each: function(actionId) {return true;},
     unavailable: function(actionId) {
-      addLogEntry(getAction(actionId).data.label + ' is not available to perform.')
+      logPopupCombo(getAction(actionId).data.label + ' is not available to perform.', 'danger')
       return false;
     }
   },
   completionMax: 1,
   completionEffects: {
-    each: function(actionId) {addLogEntry('You completed ' + getAction(actionId).data.label + '.');},
+    each: function(actionId) {
+      logPopupCombo('You completed ' + getAction(actionId).data.label + '.', 'success');
+    },
     last: function (actionId) {
-      addLogEntry('You cannot perform ' + getAction(actionId).data.label + ' anymore.');
+      logPopupCombo('You cannot perform ' + getAction(actionId).data.label + ' anymore.', 'warning');
       makeActionUnavailable(actionId);
     }
   }
@@ -26,115 +28,88 @@ const book1_actions = {
     label: "Action1: Curiosity x2 + Perseverance",
     length: 5000,
     skills: ["curiosity", "curiosity", "perseverance"],
+    completionMax: 5,
     startEffects: {
-      each: function() {
+      each: function(actionId) {
         if (gameState.health.current < gameState.health.max / 2) {
-          addLogEntry('You are too tired to attempt this action.')
+          logPopupCombo('You are too tired to attempt this action.', 'danger')
           return false;
         }
         return true;
       },
-      unavailable: function() {
-        addLogEntry('You have already completed this action too many times.')
-        return false;
-      }
     },
-    completionMax: 5,
     completionEffects: {
-      each: function() {
-        addLogEntry(storylines.book1_action1_complete);
-      },
-      1: function () {
+      1: function (actionId) {
+        logPopupCombo('You unlocked ' + book1_actions['book1_action2'].label + '.', 'primary');
         makeActionAvailable('book1_action2');
       },
-      last: function () {
-        addLogEntry('You cannot perform this action anymore.');
-        makeActionUnavailable('book1_action1');
-      }
     }
   },
   book1_action2: {
     label: "Action2: Courage",
     length: 6000,
-    effect: function () {
-      addLogEntry(storylines.book2_action1_complete);
-      makeActionAvailable('book1_action3')
-    },
-    maxCompletions: 10,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action2');
-    },
-    skills: ["courage"]
+    skills: ["curiosity", "curiosity", "perseverance"],
+    completionMax: 5,
+    completionEffects: {
+      1: function (actionId) {
+        logPopupCombo('You unlocked ' + book1_actions['book1_action3'].label + '.', 'primary');
+        makeActionAvailable('book1_action3');
+      },
+    }
   },
   book1_action3: {
     label: "Action3: Integrity + Resourcefulness",
     length: 7000,
-    effect: function () {
-      addLogEntry(storylines.book3_action1_complete);
-      makeActionAvailable('book1_action4')
-    },
-    maxCompletions: 10,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action3');
-    },
-    skills: ["integrity", "resourcefulness"]
+    skills: ["integrity", "resourcefulness"],
+    completionMax: 5,
+    completionEffects: {
+      1: function (actionId) {
+        logPopupCombo('You unlocked ' + book1_actions['book1_action4'].label + '.', 'primary');
+        makeActionAvailable('book1_action4');
+      },
+    }
   },
   book1_action4: {
     label: "Action4: Creativity x3 + Courage",
     length: 8000,
-    effect: function () {
-      addLogEntry(storylines.book4_action1_complete);
-      makeActionAvailable('book1_action5')
-    },
-    maxCompletions: 10,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action4');
-    },
-    skills: ["creativity", "creativity", "creativity", "courage"]
+    skills: ["creativity", "creativity", "creativity", "courage"],
+    completionMax: 5,
+    completionEffects: {
+      1: function (actionId) {
+        logPopupCombo('You unlocked ' + book1_actions['book1_action5'].label + '.', 'primary');
+        makeActionAvailable('book1_action5');
+      },
+    }
   },
   book1_action5: {
     label: "Action5: Courage, Creativity, Curiosity, Integrity, Perseverance",
     length: 9000,
-    effect: function () {
-      addLogEntry(storylines.book5_action1_complete);
-      makeActionAvailable('book1_action6')
-    },
-    maxCompletions: 10,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action5');
-    },
-    skills: ["courage", "creativity", "curiosity", "integrity", "perseverance"]
+    skills: ["courage", "creativity", "curiosity", "integrity", "perseverance"],
+    completionMax: 5,
+    completionEffects: {
+      1: function (actionId) {
+        logPopupCombo('You unlocked ' + book1_actions['book1_action6'].label + '.', 'primary');
+        makeActionAvailable('book1_action6');
+      },
+    }
   },
   book1_action6: {
     label: "Action6: Resourcefulness Part 1",
     length: 10000,
-    effect: function () {
-      addLogEntry(storylines.book6_action1_complete);
-      makeActionAvailable('book1_action7')
-    },
-    maxCompletions: 10,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action6');
-    },
-    skills: ["resourcefulness"]
+    skills: ["resourcefulness"],
+    completionMax: 5,
+    completionEffects: {
+      1: function (actionId) {
+        logPopupCombo('You unlocked ' + book1_actions['book1_action7'].label + '.', 'primary');
+        makeActionAvailable('book1_action7');
+      },
+    }
   },
   book1_action7: {
     label: "Action7: Resourcefulness Part 2",
     length: 11000,
-    effect: function () {
-      addLogEntry(storylines.book7_action1_complete);
-    },
-    maxCompletions: 10,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action7');
-    },
-    skills: ["resourcefulness"]
+    skills: ["resourcefulness"],
+    completionMax: 5,
   }
 }
 
