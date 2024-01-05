@@ -1,17 +1,57 @@
+const skillList = ["courage", "creativity", "curiosity", "integrity", "perseverance", "resourcefulness"];
+
+const default_action = {
+  label: "Default Action Name",
+  length: 5000,
+  skills: skillList,
+  startEffects: {
+    each: function(actionId) {return true;},
+    unavailable: function(actionId) {
+      addLogEntry(getAction(actionId).data.label + ' is not available to perform.')
+      return false;
+    }
+  },
+  completionMax: 1,
+  completionEffects: {
+    each: function(actionId) {addLogEntry('You completed ' + getAction(actionId).data.label + '.');},
+    last: function (actionId) {
+      addLogEntry('You cannot perform ' + getAction(actionId).data.label + ' anymore.');
+      makeActionUnavailable(actionId);
+    }
+  }
+}
+
 const book1_actions = {
   book1_action1: {
     label: "Action1: Curiosity x2 + Perseverance",
     length: 5000,
-    effect: function () {
-      addLogEntry(storylines.book1_action1_complete);
-      makeActionAvailable('book1_action2')
+    skills: ["curiosity", "curiosity", "perseverance"],
+    startEffects: {
+      each: function() {
+        if (gameState.health.current < gameState.health.max / 2) {
+          addLogEntry('You are too tired to attempt this action.')
+          return false;
+        }
+        return true;
+      },
+      unavailable: function() {
+        addLogEntry('You have already completed this action too many times.')
+        return false;
+      }
     },
-    maxCompletions: 50,
-    maxCompletionsEffect: function () {
-      addLogEntry('You cannot perform this action anymore.');
-      makeActionUnavailable('book1_action1');
-    },
-    skills: ["curiosity", "curiosity", "perseverance"]
+    completionMax: 5,
+    completionEffects: {
+      each: function() {
+        addLogEntry(storylines.book1_action1_complete);
+      },
+      1: function () {
+        makeActionAvailable('book1_action2');
+      },
+      last: function () {
+        addLogEntry('You cannot perform this action anymore.');
+        makeActionUnavailable('book1_action1');
+      }
+    }
   },
   book1_action2: {
     label: "Action2: Courage",

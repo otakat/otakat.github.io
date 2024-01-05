@@ -1,35 +1,74 @@
-// THE ACTION CLASS
+this.isAvailable// THE ACTION CLASS
 class GameAction {
-  constructor(id, label, length, effect) {
-      // Pull in default action properties
+  constructor(id) {
+      // Initialize properties
       this.id = id;
-      this.label = book1_actions[id].label;
-      this.length = book1_actions[id].length;
-      this.effect = book1_actions[id].effect;
-      this.maxCompletions = book1_actions[id].maxCompletions;
-      this.maxCompletionsEffect = book1_actions[id].maxCompletionsEffect;
-			this.skills = book1_actions[id].skills;
 
-      // Define DOM objects
-      this.container = document.getElementById(id);
-      this.progressContainer = this.container.querySelector('.action-progress-container');
-      this.progressText = this.container.querySelector('.action-progress-text');
-      this.progressBarCurrent = this.container.querySelector('.action-progress-bar-current');
-      this.progressBarMastery = this.container.querySelector('.action-progress-bar-mastery');
-      this.buttonActivate = this.container.querySelector('.action-button');
-      this.buttonQueue = this.container.querySelector('.queue-button');
-      this.queueList = this.container.querySelector('.queue-list')
+			// For static properties
+			this.data = aggregateObjectProperties(default_action, book1_actions[id]);
+
+			// For progress-based properties
+			this.initializeActionProgress();
+			this.progress = new Proxy(gameState.actionsProgress[id], {
+				get (target, property) {return target[property];},
+				set (target, property, value) {
+					target[property] = sanitizeNumber(value);
+					return true;
+				}
+			});
+
+			this.container = document.getElementById(id);
+			this.elements = {
+				container: this.container,
+	      progressContainer: this.container.querySelector('.action-progress-container'),
+	      progressText: this.container.querySelector('.action-progress-text'),
+	      progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
+	      progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
+	      buttonActivate: this.container.querySelector('.action-button'),
+	      buttonQueue: this.container.querySelector('.queue-button'),
+	      queueList: this.container.querySelector('.queue-list')
+			}
 
       // Add button effects
-      this.buttonActivate.addEventListener('click', () => toggleAction(id));
-      this.buttonQueue.addEventListener('click', () => queueAction(id));
+      this.elements.buttonActivate.addEventListener('click', () => toggleAction(id));
+      this.elements.buttonQueue.addEventListener('click', () => queueAction(id));
 
-      this.initializeActionProgress();
       this.calculateTimeStart();
       this.update();
-
-      actionsConstructed[id] = this;
   }
+
+	get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
+	get isActive() {return gameState.actionsActive.includes(this.id);}
+	get isQueued() {return gameState.actionsQueued.includes(this.id);}
+
+	start() {
+		if (!this.data || !this.progress) {
+        console.error('Invalid action data');
+        return false;
+    }
+
+		const effects = this.data.startEffects;
+		const completions = this.progress.completions;
+
+		// Execute the unavailable effect (and usually halt start)
+		if ('unavailable' in effects && !this.isAvailable) {
+			const continueAfterUnavailable = effects.unavailable(this.id);
+			if (!continueAfterUnavailable) {return false;}
+		}
+
+		// Execute the completions-based effect and halt start if needed
+		if (completions in effects) {
+			const continueAfterCompletions = effects[completions](this.id);
+			if (!continueAfterCompletions)	{return false};
+		}
+
+		if ('each' in effects) {
+			const continueAfterEach = effects.each(this.id);
+			if (!continueAfterEach) {return false;}
+		}
+
+		return true;
+	}
 
   update(timeChange = 0) {
     if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
@@ -44,10 +83,10 @@ class GameAction {
     }
 
 		let newTimeChange = timeChange;
-		if (doSkillsExist(this.skills)) {
-			newTimeChange = multiplyTimeChangeBySkills(timeChange, this.skills);
-			this.skills.forEach(skill => {
-				updateSkill(skill, newTimeChange / this.skills.length);
+		if (doSkillsExist(this.data.skills)) {
+			newTimeChange = multiplyTimeChangeBySkills(timeChange, this.data.skills);
+			this.data.skills.forEach(skill => {
+				updateSkill(skill, newTimeChange / this.data.skills.length);
 			});
 		}
 
@@ -55,19 +94,19 @@ class GameAction {
     this.progress.timeCurrent += newTimeChange;
     this.progress.mastery += newTimeChange;
 
-    if (this.progress.timeCurrent >= this.length) {
+    if (this.progress.timeCurrent >= this.data.length) {
       this.finish();
     }
 
     this.calculateTimeStart();
 
-    const currentPercentage = (this.progress.timeCurrent / this.length) * 100;
-    const masteryPercentage = (this.progress.timeStart / this.length) * 100;
+    const currentPercentage = (this.progress.timeCurrent / this.data.length) * 100;
+    const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
     const label = masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
 
-    this.progressBarCurrent.style.width = currentPercentage + '%';
-    this.progressText.innerText = label;
-    this.progressBarMastery.style.width = masteryPercentage + '%';
+    this.elements.progressBarCurrent.style.width = currentPercentage + '%';
+    this.elements.progressText.innerText = label;
+    this.elements.progressBarMastery.style.width = masteryPercentage + '%';
 
   }
 
@@ -77,40 +116,48 @@ class GameAction {
     this.progress.timeCurrent = this.progress.timeStart;
     this.update();
     deactivateAction(this.id);
-    this.effect();
 
-    if (this.progress.completions >= this.maxCompletions) {
-      this.maxCompletionsEffect();
+    this.data.completionEffects.each(this.id);
+
+		if (this.data.completionEffects.hasOwnProperty(this.progress.completions)) {
+			this.data.completionEffects[this.progress.completions](this.id);
+		}
+
+    if (this.progress.completions >= this.data.completionMax) {
+      this.data.completionEffects.last(this.id);
     }
 
-    console.log(this.progress);
+    console.log(this.id);
   }
 
   initializeActionProgress() {
-    if (gameState.actionsProgress.hasOwnProperty(this.id) === false) {
-      gameState.actionsProgress[this.id] = {
-        timeStart: 0,
-        timeCurrent: 0,
-        mastery: 0,
-        completions: 0
-      };
-    }
-    this.progress = gameState.actionsProgress[this.id];
+		let progress = gameState.actionsProgress;
+		const defaultProgress = {
+			timeStart: 0,
+			timeCurrent: 0,
+			mastery: 0,
+			completions: 0
+		};
+
+		if (!(this.id in progress)) {
+			progress[this.id] = defaultProgress;
+		} else {
+			progress[this.id] = aggregateObjectProperties(defaultProgress, progress[this.id]);
+		}
   }
 
   calculateTimeStart() {
-    const maxRatio = 0.9;
-    const growthRate = 0.00001;
+    const parameters = gameState.globalParameters;
 
     let masteryImpact = 0;
     if (this.progress.mastery === 0) {
       masteryImpact = 0;
     } else {
-      masteryImpact = maxRatio * Math.atan(growthRate * this.progress.mastery);
+      masteryImpact = parameters.masteryMaxRatio * Math.atan(parameters.masteryGrowthRate * this.progress.mastery);
     }
-    masteryImpact = Math.max(0, Math.min(masteryImpact, maxRatio));
+    masteryImpact = Math.max(0, Math.min(masteryImpact, parameters.masteryMaxRatio));
 
-    this.progress.timeStart = masteryImpact * this.length
+    this.progress.timeStart = masteryImpact * this.data.length
     if (this.progress.timeCurrent < this.progress.timeStart) {
       this.progress.timeCurrent = this.progress.timeStart;
     }
@@ -157,7 +204,11 @@ function createNewAction(id) {
   }
 
   // Initialize the GameAction for this container
-  new GameAction(id);
+  actionsConstructed[id] = new GameAction(id);
+}
+
+function getAction(actionId) {
+	return actionsConstructed.hasOwnProperty(actionId) ? actionsConstructed[actionId] : false;
 }
 
 function removeAction(actionId) {
@@ -212,7 +263,13 @@ function toggleAction(actionId) {
 }
 
 function activateAction(actionId) {
-  if (gameState.actionsAvailable.includes(actionId)) {
+	if (actionsConstructed[actionId] === undefined) {
+		console.error("No GameAction object constructed: ",actionId)
+	}
+	const startSuccessful = actionsConstructed[actionId].start();
+	console.log(startSuccessful);
+
+  if (startSuccessful) {
       const index = gameState.actionsActive.indexOf(actionId);
       if (index === 0) {return;}
       if (index > 0) {gameState.actionsActive.splice(index, 1);}
@@ -236,9 +293,9 @@ function queueAction(actionId) {
 
 function processActiveAndQueuedActions() {
   // Transfer excess actions from active to the front of the queue
-  if (gameState.actionsActive.length > gameState.maxActions) {
-    let excessNumber = gameState.actionsActive.length - gameState.maxActions;
-    let excessActions = gameState.actionsActive.splice(gameState.maxActions, excessNumber);
+  if (gameState.actionsActive.length > gameState.globalParameters.actionsMaxActive) {
+    let excessNumber = gameState.actionsActive.length - gameState.globalParameters.actionsMaxActive;
+    let excessActions = gameState.actionsActive.splice(gameState.globalParameters.actionsMaxActive, excessNumber);
     gameState.actionsQueued.unshift(...excessActions);
   }
 
@@ -246,15 +303,15 @@ function processActiveAndQueuedActions() {
   Object.values(actionsConstructed).forEach(actionObject => {
     // Color each active action blue, otherwise black
     if (gameState.actionsActive.includes(actionObject.id) === true) {
-      actionObject.progressContainer.style.border = '2px solid blue';
-      actionObject.progressBarCurrent.classList.add('active');
+      actionObject.elements.progressContainer.style.border = '2px solid blue';
+      actionObject.elements.progressBarCurrent.classList.add('active');
     } else {
-      actionObject.progressContainer.style.border = '2px solid black';
-      actionObject.progressBarCurrent.classList.remove('active');
+      actionObject.elements.progressContainer.style.border = '2px solid black';
+      actionObject.elements.progressBarCurrent.classList.remove('active');
     }
 
     // Build the queue text for each action
-    actionObject.queueList.innerText = '';
+    actionObject.elements.queueList.innerText = '';
 
     let queueText = '';
     let queueCount = 0;
@@ -273,6 +330,6 @@ function processActiveAndQueuedActions() {
     }
 
     if (queueText !== ''){queueText = 'Queue:'+queueText;}
-    actionObject.queueList.innerText = queueText;
+    actionObject.elements.queueList.innerText = queueText;
   })
 }
