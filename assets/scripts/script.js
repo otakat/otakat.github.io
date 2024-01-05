@@ -1,3 +1,11 @@
+function sanitizeNumber(value, defaultValue = 0) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  } else {
+    console.error("Value (" + value + ") is not a number, using default (" + defaultValue + ")");
+    return defaultValue;
+  }
+}
 function doSkillsExist(skillOrSkills) {
   // Define valid skills
   const validSkills = skillList;
@@ -57,8 +65,8 @@ function multiplyTimeChangeBySkills(timeChange, skills){
 }
 
 function updateSkill(skill, timeChange) {
-  const currentExperienceToLevel = 5000;
-  const permanentExperienceToLevel = 5000;
+  const currentExperienceToLevel = 3000;
+  const permanentExperienceToLevel = 3000;
 
   if (!doSkillsExist(skill)) {return false;}
 
@@ -69,23 +77,23 @@ function updateSkill(skill, timeChange) {
   skill_to_update.current_progress += timeChange;
   if (skill_to_update.current_progress > currentExperienceToLevel) {
     skill_to_update.current_level += 1;
-    document.getElementById(skill + '-current-level').innerText = 'Current Loop: ' + skill_to_update.current_level;
+
     skill_to_update.current_progress -= currentExperienceToLevel;
   }
   let currentProgressPercentage = skill_to_update.current_progress / currentExperienceToLevel * 100;
-  document.getElementById(skill + '-current-progress').style.width = currentProgressPercentage + '%';
+
 
   skill_to_update.permanent_progress += timeChange;
   if (skill_to_update.permanent_progress > permanentExperienceToLevel) {
     skill_to_update.permanent_level += 1;
-    document.getElementById(skill + '-permanent-level').innerText = 'Permanent: ' + skill_to_update.permanent_level;
     skill_to_update.permanent_progress -= permanentExperienceToLevel;
   }
   let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
-  document.getElementById(skill + '-permanent-progress').style.width = permanentProgressPercentage + '%';
 
-  console.log(skill);
-  console.log(document.getElementById(skill).classList);
+  document.getElementById(skill + '-current-level').innerText = 'Current Loop: ' + skill_to_update.current_level;
+  document.getElementById(skill + '-current-progress').style.width = currentProgressPercentage + '%';
+  document.getElementById(skill + '-permanent-level').innerText = 'Permanent: ' + skill_to_update.permanent_level;
+  document.getElementById(skill + '-permanent-progress').style.width = permanentProgressPercentage + '%';
 
   if (Math.max(skill_to_update.current_level, skill_to_update.current_progress, skill_to_update.permanent_level, skill_to_update.permanent_progress) <= 0) {
     document.getElementById(skill).classList.add('d-none');
@@ -139,7 +147,7 @@ function updateLogUI() {
 
 function updateFrameClock() {
   // Start the first item in the queue if nothing is active
-  if (gameState.actionsActive.length < gameState.maxActions && gameState.paused !== pauseStates.HARD_PAUSE) {
+  if (gameState.actionsActive.length < gameState.maxActions && gameState.actionsQueued.length >= 1 && gameState.paused !== pauseStates.HARD_PAUSE) {
     let newAction = gameState.actionsQueued.shift()
     activateAction(newAction)
   }
@@ -161,7 +169,7 @@ function updateFrameClock() {
     framesTotal += timeElapsed / frameDuration;
     let fps = 1000 / timeElapsed;
 
-    if (isGamePaused() === false) {
+    if (!isGamePaused()) {
       timeTotal += timeElapsed;
 
       gameState.actionsActive.forEach(actionId => {
@@ -307,23 +315,40 @@ function saveGame() {
     localStorage.setItem('gameState', JSON.stringify(gameState));
 }
 
-function loadGame() {
-    const savedState = localStorage.getItem('gameState');
-    if (savedState) {
-        gameState = JSON.parse(savedState);
+function aggregateObjectProperties(originalObject, newObject) {
+  // The new object take precedence;
 
-        if (typeof gameState.health.current !== 'number' || isNaN(gameState.health.current)) {
-          gameState.health.current = 0;
-        }
+  let aggregateObject = {...originalObject};
 
-        if (gameState.gameLog === undefined) {
-          gameState.gameLog = [];
-        }
-
-        addLogEntry('Data Loaded');
+  for (let key in newObject) {
+    if (Array.isArray(newObject[key])) {
+        // If it's an array, replace it entirely from the saved state
+        aggregateObject[key] = newObject[key];
+    } else if (typeof newObject[key] === 'object' && newObject[key] !== null) {
+        // For objects, do a deep merge
+        aggregateObject[key] = {...originalObject[key], ...newObject[key]};
+    } else {
+        // For primitive types, just assign the saved state value
+        aggregateObject[key] = newObject[key];
     }
+  }
+  return aggregateObject;
+}
 
-    initializeGame();
+function loadGame() {
+  const savedState = localStorage.getItem('gameState');
+  if (savedState) {
+    const savedGameState = JSON.parse(savedState);
+
+    // Merge the saved game state with the empty game state
+    // This ensures new variables in emptyGameState are initialized properly
+    gameState = aggregateObjectProperties(emptyGameState, savedGameState);
+
+
+    addLogEntry('Data Loaded');
+  }
+
+  initializeGame();
 }
 
 function initializeGame() {
