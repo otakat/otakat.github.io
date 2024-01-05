@@ -70,6 +70,12 @@ body {
   gap: 10px;
 }
 
+#popup-container {
+  position: fixed;
+  bottom: 1.5rem; left: 1.5rem;
+  margin-right: 1.5rem;
+}
+
 /* MENU */
   .menu-button {
     width:auto;
