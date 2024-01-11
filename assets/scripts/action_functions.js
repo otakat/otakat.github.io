@@ -1,4 +1,3 @@
-this.isAvailable// THE ACTION CLASS
 class GameAction {
   constructor(id) {
       // Initialize properties
@@ -20,6 +19,7 @@ class GameAction {
 			this.container = document.getElementById(id);
 			this.elements = {
 				container: this.container,
+				actionLabel: this.container.querySelector('.action-label'),
 	      progressContainer: this.container.querySelector('.action-progress-container'),
 	      progressText: this.container.querySelector('.action-progress-text'),
 	      progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
@@ -30,9 +30,20 @@ class GameAction {
 			}
 
       // Add button effects
-      this.elements.buttonActivate.addEventListener('click', () => toggleAction(id));
-      this.elements.buttonQueue.addEventListener('click', () => queueAction(id));
+			// Initialize tooltips on the Elements.
+			this.tooltipTriggerList = [].slice.call(this.container.querySelectorAll('[data-bs-toggle="tooltip"]'))
+			this.tooltipList = this.tooltipTriggerList.map(function (tooltipTriggerEl) {
+				return new bootstrap.Tooltip(tooltipTriggerEl);
+			})
 
+			bootstrap.Tooltip.getInstance('.action-button').setContent({'.tooltip-inner': 'test'})
+
+			this.elements.actionLabel.addEventListener('show.bs.tooltip', () => {
+				const tooltip = bootstrap.Tooltip.getOrCreateInstance(this.elements.actionLabel)
+				tooltip.setContent({'.tooltip-inner': 'Completions: ' + this.progress.completions})
+			});
+
+			initializeSkills(this.data.skills);
       this.calculateTimeStart();
       this.update();
 			processActiveAndQueuedActions()
@@ -72,24 +83,15 @@ class GameAction {
 	}
 
   update(timeChange = 0) {
-    if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
-      this.progress.timeCurrent = 0;
-    }
-    if (typeof this.progress.timeStart !== 'number' || isNaN(this.progress.timeStart)) {
-      this.progress.timeStart = 0;
-    }
-
     if (this.progress.timeCurrent < this.progress.timeStart) {
       this.progress.timeCurrent = this.progress.timeStart;
     }
 
 		let newTimeChange = timeChange;
-		if (doSkillsExist(this.data.skills)) {
-			newTimeChange = multiplyTimeChangeBySkills(timeChange, this.data.skills);
-			this.data.skills.forEach(skill => {
-				updateSkill(skill, newTimeChange / this.data.skills.length);
-			});
-		}
+		newTimeChange = multiplyTimeChangeBySkills(timeChange, this.data.skills);
+		this.data.skills.forEach(skill => {
+			updateSkill(skill, newTimeChange / this.data.skills.length);
+		});
 
 		// Process time change
     this.progress.timeCurrent += newTimeChange;
@@ -100,16 +102,18 @@ class GameAction {
     }
 
     this.calculateTimeStart();
+		this.refreshProgressElements();
+  }
 
-    const currentPercentage = (this.progress.timeCurrent / this.data.length) * 100;
+	refreshProgressElements() {
+		const currentPercentage = (this.progress.timeCurrent / this.data.length) * 100;
     const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
     const label = masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
 
     this.elements.progressBarCurrent.style.width = currentPercentage + '%';
     this.elements.progressText.innerText = label;
     this.elements.progressBarMastery.style.width = masteryPercentage + '%';
-
-  }
+	}
 
   finish() {
     this.progress.completions += 1;
@@ -117,6 +121,10 @@ class GameAction {
     this.progress.timeCurrent = this.progress.timeStart;
     this.update();
     deactivateAction(this.id);
+		const boolRepeatLastAction = document.getElementById('repeat-action-checkbox').checked;
+		if (boolRepeatLastAction && gameState.actionsQueued.length === 0) {
+			activateAction(this.id);
+		}
 
     this.data.completionEffects.each(this.id);
 
@@ -140,10 +148,10 @@ class GameAction {
 			completions: 0
 		};
 
-		if (!(this.id in progress)) {
-			progress[this.id] = defaultProgress;
-		} else {
+		if (this.id in progress) {
 			progress[this.id] = aggregateObjectProperties(defaultProgress, progress[this.id]);
+		} else {
+			progress[this.id] = defaultProgress;
 		}
   }
 
@@ -167,10 +175,15 @@ class GameAction {
 
 // PROCEDURES
 function createNewAction(id) {
-  if (actionsConstructed.hasOwnProperty(id)) {
-    console.error('Action is already constructed:',id)
+  if (id in actionsConstructed) {
+    console.error('Action is already constructed:', id);
     return;
   }
+
+	if (!(id in book1_actions)) {
+		console.error('Action data does not exist:', id);
+		return;
+	}
 
   let label = book1_actions[id].label
 
@@ -180,11 +193,12 @@ function createNewAction(id) {
   container.className = 'action-container';
   container.innerHTML = `
     <div class="action-header">
-      <span class="action-label">${label}</span>
+      <span class="action-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Action Label">${label}</span>
       <span class="queue-list"></span>
       <span class="action-button-container">
-        <button class="action-button">⏵</button>
-        <button class="queue-button">⨮</button>
+        <button class="action-button" onClick="activateAction('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-trigger='hover' title="Start this action">⏵</button>
+				<button class="action-button" onClick="fullyDeactivateAction('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-trigger='hover' title="Stop this action">X</button>
+        <button class="action-button" onClick="queueAction('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-trigger='hover' title="Add this action to the end of the queue">⨮</button>
       </span>
     </div>
     <div class="action-progress-container">
@@ -200,7 +214,7 @@ function createNewAction(id) {
   //container.addEventListener('mouseout', hideTooltip);
 
   // Hide the container if the action is not currently available
-  if (gameState.actionsAvailable.includes(id) === false) {
+  if (!gameState.actionsAvailable.includes(id)) {
     container.style.display = "none";
   }
 
@@ -239,16 +253,10 @@ function makeActionAvailable(actionId) {
 }
 
 function makeActionUnavailable(actionId) {
+	fullyDeactivateAction(actionId);
   gameState.actionsAvailable = gameState.actionsAvailable.filter(
     value => value !== actionId
   )
-  gameState.actionsActive = gameState.actionsActive.filter(
-    value => value !== actionId
-  )
-  gameState.actionsQueued = gameState.actionsQueued.filter(
-    value => value !== actionId
-  )
-  processActiveAndQueuedActions();
 
   actionsConstructed[actionId].container.style.background = '#888'
   //removeAction(actionId);
@@ -263,21 +271,23 @@ function toggleAction(actionId) {
   }
 }
 
+function activateActionQueue() {
+	const newAction = gameState.actionsQueued.shift();
+	activateAction(newAction);
+}
+
 function activateAction(actionId) {
 	if (actionsConstructed[actionId] === undefined) {
 		console.error("No GameAction object constructed: ",actionId)
+		return false;
 	}
-	const startSuccessful = actionsConstructed[actionId].start();
-	console.log(startSuccessful);
 
+	const startSuccessful = actionsConstructed[actionId].start();
   if (startSuccessful) {
-      const index = gameState.actionsActive.indexOf(actionId);
-      if (index === 0) {return;}
-      if (index > 0) {gameState.actionsActive.splice(index, 1);}
-      gameState.actionsActive.unshift(actionId);
+    gameState.actionsActive.unshift(actionId);
   }
 
-  processActiveAndQueuedActions();
+	processActiveAndQueuedActions();
 }
 
 function deactivateAction(actionId) {
@@ -285,6 +295,16 @@ function deactivateAction(actionId) {
     value => value !== actionId
   )
   processActiveAndQueuedActions();
+}
+
+function fullyDeactivateAction(actionId) {
+	gameState.actionsActive = gameState.actionsActive.filter(
+		value => value !== actionId
+	)
+	gameState.actionsQueued = gameState.actionsQueued.filter(
+		value => value !== actionId
+	)
+	processActiveAndQueuedActions();
 }
 
 function queueAction(actionId) {

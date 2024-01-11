@@ -7,53 +7,66 @@ function sanitizeNumber(value, defaultValue = 0) {
   }
 }
 
-function doSkillsExist(skillOrSkills) {
-  // Define valid skills
-  const validSkills = skillList;
-
-  // Initialize skills in gameState if not present
-  if (!gameState.hasOwnProperty("skills")) {
-    gameState.skills = {};
+function initializeSkills(skills) {
+  if (!Array.isArray(skills)) {
+    skills = [skills];
   }
+  skills.forEach(skill => {
+    if (!skillList.includes(skill)) {
+      console.error('Skill is not in skill list:', skill);
+      return;
+    }
+    let gameData = gameState.skills;
+    const defaultSkill = {
+      current_level: 0,
+      current_progress: 0,
+      permanent_level: 0,
+      permanent_progress: 0
+    };
 
-  // Abort if no skills were provided
-  if (skillOrSkills === undefined) {return false;}
-
-  function checkAndInitSkill(skill) {
-    if (!validSkills.includes(skill)) {
-      return false;
+    if (skill in gameData) {
+      gameData[skill] = aggregateObjectProperties(defaultSkill, gameData[skill]);
     } else {
-      if (!gameState.skills.hasOwnProperty(skill)) {
-        gameState.skills[skill] = {
-          current_level: 0,
-          current_progress: 0,
-          permanent_level: 0,
-          permanent_progress: 0
-        };
-      }
-      return true;
+      gameData[skill] = defaultSkill;
     }
-  }
 
-  if (Array.isArray(skillOrSkills)) { // If an array was provided
-    for (let skill of skillOrSkills) {
-      if (!checkAndInitSkill(skill)) {return false;}
-    }
-    return true;
-  } else { // If single skill provided
-    return checkAndInitSkill(skillOrSkills);
+    refreshSkillElement(skill);
+  });
+}
+
+function refreshSkillElement(skill){
+  const toLevelCurrent = gameState.globalParameters.experienceToLevelCurrent;
+  const toLevelPermanent = gameState.globalParameters.experienceToLevelPermanent;
+  const skillData = gameState.skills[skill];
+
+  const currentPercentage = skillData.current_progress / toLevelCurrent * 100;
+  const permanentPercentage = skillData.permanent_progress / toLevelPermanent * 100;
+
+  const currentLevelElement = document.getElementById(skill + '-current-level');
+  currentLevelElement.innerText = 'Current Loop: ' + skillData.current_level;
+  const currentProgressElement = document.getElementById(skill + '-current-progress')
+  currentProgressElement.style.width = currentPercentage + '%';
+  const permanentLevelElement = document.getElementById(skill + '-permanent-level')
+  permanentLevelElement.innerText = 'Permanent: ' + skillData.permanent_level;
+  const permanentLevelProgress = document.getElementById(skill + '-permanent-progress')
+  permanentLevelProgress.style.width = permanentPercentage + '%';
+
+  if (Math.max(skillData.current_level, skillData.current_progress, skillData.permanent_level, skillData.permanent_progress) <= 0) {
+    document.getElementById(skill).classList.add('d-none');
+  } else {
+    document.getElementById(skill).classList.remove('d-none');
   }
 }
 
 function multiplyTimeChangeBySkills(timeChange, skills){
   // Abort if any skill is illegal
-  if (!doSkillsExist(skills)) {return timeChange;}
+  //if (!doSkillsExist(skills)) {return timeChange;}
 
   let multipliers = skills.map(skill => {
     currentLevel = gameState.skills[skill].current_level
     permanentLevel = gameState.skills[skill].permanent_level
 
-    return Math.pow(1.1, currentLevel) * Math.pow(1.01, permanentLevel);
+    return Math.pow(1.05, currentLevel + permanentLevel);
   });
 
   let sum = multipliers.reduce((accumulator, currentValue) =>
@@ -66,124 +79,126 @@ function multiplyTimeChangeBySkills(timeChange, skills){
 }
 
 function updateSkill(skill, timeChange) {
-  const currentExperienceToLevel = 3000;
-  const permanentExperienceToLevel = 3000;
-
-  if (!doSkillsExist(skill)) {return false;}
-
+  const toLevelCurrent = gameState.globalParameters.experienceToLevelCurrent;
+  const toLevelPermanent = gameState.globalParameters.experienceToLevelPermanent;
   let skill_to_update = gameState.skills[skill]
 
-
-
   skill_to_update.current_progress += timeChange;
-  if (skill_to_update.current_progress > currentExperienceToLevel) {
+  if (skill_to_update.current_progress > toLevelCurrent) {
     skill_to_update.current_level += 1;
 
-    skill_to_update.current_progress -= currentExperienceToLevel;
+    skill_to_update.current_progress -= toLevelCurrent;
   }
-  let currentProgressPercentage = skill_to_update.current_progress / currentExperienceToLevel * 100;
-
 
   skill_to_update.permanent_progress += timeChange;
-  if (skill_to_update.permanent_progress > permanentExperienceToLevel) {
+  if (skill_to_update.permanent_progress > toLevelPermanent) {
     skill_to_update.permanent_level += 1;
-    skill_to_update.permanent_progress -= permanentExperienceToLevel;
+    skill_to_update.permanent_progress -= toLevelPermanent;
   }
-  let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
 
-  document.getElementById(skill + '-current-level').innerText = 'Current Loop: ' + skill_to_update.current_level;
-  document.getElementById(skill + '-current-progress').style.width = currentProgressPercentage + '%';
-  document.getElementById(skill + '-permanent-level').innerText = 'Permanent: ' + skill_to_update.permanent_level;
-  document.getElementById(skill + '-permanent-progress').style.width = permanentProgressPercentage + '%';
-
-  if (Math.max(skill_to_update.current_level, skill_to_update.current_progress, skill_to_update.permanent_level, skill_to_update.permanent_progress) <= 0) {
-    document.getElementById(skill).classList.add('d-none');
-  } else {
-    document.getElementById(skill).classList.remove('d-none');
-  }
+  refreshSkillElement(skill);
 }
 
 function generateUniqueId() {
-    // Simple implementation (consider a more robust approach for a larger project)
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  return (Date.now() + sanitizeNumber(gameState.gameLog.length)).toString(36)
 }
 
 function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
-    //if (id === undefined) {
-    //  id = generateUniqueId();
-    //}
-    const currentDate = new Date(Date.now())
-    const timestamp = currentDate.toLocaleDateString('en-US');
+  const currentDate = new Date(Date.now())
 
-    const logEntry = {
-        id: id, // Implement this function to generate unique IDs
-        tag: tag,
-        text: text,
-        date: timestamp
-    };
-    gameState.gameLog.push(logEntry);
-    updateLogUI();
+  const logEntry = {
+      id: id,
+      tag: tag,
+      text: text,
+      date: currentDate.toLocaleDateString('en-US')
+  };
+  gameState.gameLog.push(logEntry);
+  appendLogEntryUI(logEntry);
 }
 
-function updateLogUI() {
+function appendLogEntryUI(logEntry) {
+    const logTab = document.getElementById('log-tab');
+    const log = document.getElementById('game-log');
+
+    // Check if the scrollbar is at the bottom before adding the new content
+    const isScrolledToBottom = logTab.scrollHeight - logTab.clientHeight <= logTab.scrollTop + 1;
+
+    // Create the new log entry text and append it
+    let entryText = logEntry.date + ' (' + logEntry.id + ', ' + logEntry.tag + ') ' + logEntry.text + '\n\n';
+    log.innerHTML += entryText;
+
+    // If the scrollbar was at the bottom, keep it at the bottom after the update
+    if (isScrolledToBottom) {
+      scrollBottomLogUI();
+    }
+}
+
+function refreshLogUI() {
+    // This function refreshes the whole log
+    const log = document.getElementById('game-log');
+    log.textContent = '';
+    gameState.gameLog.forEach(entry => appendLogEntryUI(entry));
+
+    scrollBottomLogUI();
+}
+
+function scrollBottomLogUI() {
   const logTab = document.getElementById('log-tab');
-  const log = document.getElementById('game-log');
-
-  // Check if the scrollbar is at the bottom before updating the content
-  const isScrolledToBottom = logTab.scrollHeight - logTab.clientHeight <= logTab.scrollTop + 1;
-
-  log.textContent = '';
-  gameState.gameLog.forEach(entry => {
-    log.textContent += entry.date + ' (';
-    log.textContent += entry.id + ', ';
-    log.textContent += entry.tag + ') '
-    log.textContent += entry.text + '\n\n';
-  })
-
-  // If the scrollbar was at the bottom, keep it at the bottom after the update
-  if (isScrolledToBottom) {
-    logTab.scrollTop = logTab.scrollHeight;
-  }
+  logTab.scrollTop = logTab.scrollHeight;
 }
 
 function createPopup(text, alertType = 'alert-primary') {
-    // Check alertType for legal entry, correct if applicable, or use default
-    fullType = alertType.startsWith('alert-') ? alertType : 'alert-' + alertType
-    const allAlertTypes = new Set(['alert-primary', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-warning', 'alert-info', 'alert-light', 'alert-dark'])
-    if (!allAlertTypes.has(fullType)) {
-      console.error('Illegal alert type: ', alertType);
-      fullType = 'alert-primary';
-    }
+  // Ensure valid alert type
+  const validAlertTypes = new Set(['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark']);
+  const sanitizedAlertType = validAlertTypes.has(alertType) ? 'alert-' + alertType : 'alert-primary';
 
+  // Find existing popup with the same text if exists
+  let popup = Array.from(document.getElementsByClassName('alert')).find(element => element.textContent.includes(text));
+
+  if (popup) {
+    // Update existing popup
+    const regex = /\((\d+)\)$/;
+    const textContent = popup.querySelector('.alert-text').textContent;
+    const match = textContent.match(regex);
+    const count = match ? parseInt(match[1]) + 1 : 2;
+    const newText = match ? textContent.replace(regex, `(${count})`) : `${text} (${count})`;
+
+    popup.querySelector('.alert-text').textContent = newText;
+    popup.remove();
+  } else {
     // Create alert div
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert ${fullType} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
+    popup = document.createElement('div');
+    popup.className = `alert ${sanitizedAlertType} alert-dismissible fade show`;
+    popup.style = 'width:fit-content';
+    popup.role = 'alert';
 
     // Add message and close button to alert
-    alertDiv.innerHTML = `
-        ${text}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        <div class="progress" style="height: 3px;">
-            <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
-        </div>`;
+    popup.innerHTML = `
+      <span class="alert-text">${text}</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="progress" style="height: 3px;">
+          <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+      </div>
+    `;
+  }
 
-    // Append alert to the popup-container
-    document.getElementById('popup-container').appendChild(alertDiv);
+  // Append alert to the popup-container
+  document.getElementById('popup-container').appendChild(popup);
 
-    // Calculate timeout duration based on message length (e.g., 5000ms + 100ms per word)
-    const duration = 3000 + text.split(' ').length * 100;
-    const progressBar = alertDiv.querySelector('.progress-bar');
+  // Animate the progress bar
+  const duration = 3000 + text.split(' ').length * 100
+  const progressBar = popup.querySelector('.progress-bar');
+  progressBar.style.transition = ''; // Reset any existing transition
+  progressBar.style.width = '100%'; // Set width to 100% to restart the animation
+  progressBar.offsetWidth; // Force browser reflow/repaint before setting the transition
+  progressBar.style.transition = `width ${duration}ms linear`;
+  progressBar.style.width = '0%';
 
-    // Animate progress bar
-    progressBar.style.transition = `width ${duration}ms linear`;
-    setTimeout(() => progressBar.style.width = '0%', 0);
-
-    // Set timeout to remove the alert
-    setTimeout(() => {
-        alertDiv.classList.remove('show');
-        setTimeout(() => alertDiv.remove(), 150); // Wait for fade out
-    }, duration);
+  if (popup.timeout) {clearTimeout(popup.timeout);}
+  popup.timeout = setTimeout(() => {
+      popup.classList.remove('show');
+      setTimeout(() => popup.remove(), 150); // Wait for fade out
+  }, duration);
 }
 
 function logPopupCombo(text, alertType, id, tag) {
@@ -191,21 +206,45 @@ function logPopupCombo(text, alertType, id, tag) {
   createPopup(text, alertType);
 }
 
+function createModal(text) {
+  const modalEl = document.getElementById('modal-popup');
+  const modalObj = new bootstrap.Modal(modalEl);
+  const modalTextEl = document.getElementById('modal-popup-text');
+
+  modalTextEl.innerHTML = text;
+
+  pauseFromModal(modalEl);
+  modalObj.show();
+}
+
+function pauseFromModal(modalElement) {
+  console.log(modalElement.classList);
+  if (!modalElement.classList.contains('modal')) {
+    console.error('Element is not a modal element:', modalElement);
+    return false;
+  }
+  addPauseState(pauseStates.MODAL);
+  modalElement.addEventListener('hidden.bs.modal', function (event) {
+    deletePauseState(pauseStates.MODAL);
+  })
+}
+
+function logModalCombo(text, id, tag) {
+  addLogEntry(text, id, tag);
+  createModal(text);
+}
+
 function updateFrameClock() {
   // Start the first item in the queue if nothing is active
-  if (gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive && gameState.actionsQueued.length >= 1 && gameState.paused !== pauseStates.HARD_PAUSE) {
-    let newAction = gameState.actionsQueued.shift()
-    activateAction(newAction)
+  if (gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive && gameState.actionsQueued.length >= 1 && !gameState.pausedReasons.includes(pauseStates.MANUAL)) {
+    activateActionQueue();
   }
 
-  // Soft pause the game if there are no active or queued actions
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0 && gameState.paused === pauseStates.NOT_PAUSED) {
-    setPauseState(pauseStates.SOFT_PAUSE);
-  }
-
-  // Unpause a soft paused game if there are any actions
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) > 0 && gameState.paused === pauseStates.SOFT_PAUSE) {
-    setPauseState(pauseStates.NOT_PAUSED);
+  // Process pausing due to no actions in active or queue
+  if ((gameState.actionsActive.length + gameState.actionsQueued.length) <= 0) {
+    addPauseState(pauseStates.INACTIVE);
+  } else {
+    deletePauseState(pauseStates.INACTIVE);
   }
 
   let currentTime = Date.now();
@@ -231,46 +270,56 @@ function updateFrameClock() {
 }
 
 function buttonPause() {
-  if (gameState.paused !== pauseStates.FULL_PAUSE) {
-    setPauseState(pauseStates.FULL_PAUSE, 'Paused (Manual)', 'Paused (Manual)')
+  if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
+    deletePauseState(pauseStates.MANUAL);
   } else {
-    setPauseState(pauseStates.NOT_PAUSED) // Frame clock will auto pause if needed
+    addPauseState(pauseStates.MANUAL);
   }
 }
 
-function setPauseState(newState, logText, buttonLabel) {
-  if ([pauseStates.NOT_PAUSED, pauseStates.SOFT_PAUSE, pauseStates.FULL_PAUSE].includes(newState)) {
-    gameState.paused = newState;
-
-    if (logText !== undefined) {
-      logPopupCombo(logText, 'secondary');
-    }
-    processPauseButton(buttonLabel);
-  } else {
-    console.error('Invalid pause state: ', newState)
+function addPauseState(newState) {
+  if (!Object.values(pauseStates).includes(newState)) {
+    console.error('Illegal pause state:', newState);
+  } else if (!gameState.pausedReasons.includes(newState)) {
+    gameState.pausedReasons.unshift(newState);
   }
+
+  processPauseButton();
 }
 
-function processPauseButton(buttonLabel) {
-  if (buttonLabel === undefined) {
-    if (gameState.paused === pauseStates.NOT_PAUSED) {
-      buttonLabel = 'Running (▶)';
-    } else if (gameState.paused === pauseStates.SOFT_PAUSE) {
-      buttonLabel = 'Paused (Auto)';
-    } else {
-      buttonLabel = 'Paused (Manual)';
-    }
+function deletePauseState(newState) {
+  if (newState === undefined) {
+    gameState.pausedReasons.clear()
+  } else if (!Object.values(pauseStates).includes(newState)) {
+    console.error('Illegal pause state:', newState)
+  } else if (gameState.pausedReasons.includes(newState)) {
+    gameState.pausedReasons = gameState.pausedReasons.filter(reason => reason !== newState);
   }
 
-  document.getElementById('pause-button').innerText = buttonLabel
+  processPauseButton();
+}
+
+function processPauseButton(manualLabel) {
+  let newLabel = '';
+  if (manualLabel !== undefined) {
+    newLabel = manualLabel;
+  } else if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
+    newLabel = pauseStates.MANUAL;
+  } else if (gameState.pausedReasons.includes(pauseStates.MODAL)) {
+    newLabel = pauseStates.MODAL;
+  } else if (gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
+    newLabel = pauseStates.INACTIVE;
+  } else if (gameState.pausedReasons.size >= 1) {
+    newLabel = 'Paused';
+  } else {
+    newLabel = 'Running';
+  }
+
+  document.getElementById('pause-button').innerText = newLabel;
 }
 
 function isGamePaused() {
-  if (gameState.paused === pauseStates.NOT_PAUSED) {
-    return false;
-  } else {
-    return true;
-  }
+  return gameState.pausedReasons.length >= 1;
 }
 
 function updateHealthBar(timeChange = 0) {
@@ -346,7 +395,8 @@ function hideTooltip() {
 }
 
 function resetGameState() {
-  gameState = JSON.parse(JSON.stringify(emptyGameState));
+  localStorage.removeItem('gameState');
+  gameState = aggregateObjectProperties(emptyGameState);
 
   Object.keys(actionsConstructed).forEach(action => {
     removeAction(action);
@@ -374,7 +424,10 @@ function aggregateObjectProperties(originalObject, newObject) {
   let aggregateObject = {...originalObject};
 
   for (let key in newObject) {
-    if (Array.isArray(newObject[key])) {
+    if (newObject[key] instanceof Set) {
+      // Directly assign the Set
+      aggregateObject[key] = new Set(newObject[key]);
+    } else if (Array.isArray(newObject[key])) {
         // If it's an array, replace it entirely from the saved state
         aggregateObject[key] = newObject[key];
     } else if (typeof newObject[key] === 'object' && newObject[key] !== null) {
@@ -406,7 +459,7 @@ function loadGame() {
 
 function initializeGame() {
   if (gameState.actionsAvailable.length === 0) {
-    logPopupCombo(storylines.book1_opener, 'info');
+    logModalCombo(storylines.book1_opener);
     gameState.actionsAvailable = ['book1_action1'];
   }
 
@@ -417,10 +470,6 @@ function initializeGame() {
   processPauseButton();
   processActiveAndQueuedActions();
   updateHealthBar();
-  updateSkill("courage", 0);
-  updateSkill("creativity", 0);
-  updateSkill("curiosity", 0);
-  updateSkill("integrity", 0);
-  updateSkill("perseverance", 0);
-  updateSkill("resourcefulness", 0);
+  initializeSkills(skillList);
+  refreshLogUI();
 }

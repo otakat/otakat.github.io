@@ -197,6 +197,12 @@ body {
         }
 
   /* ACTIONS */
+  .checkbox-container {
+    width: fit-content;
+    background: rgba(255,255,255,0.6);
+    border-radius: 5px;
+  }
+
   #all-actions-container {
     min-height: 100%;
     display:flex;
@@ -245,7 +251,7 @@ body {
           gap: 2px;
         }
 
-          .action-button, .queue-button {
+          .action-button {
             flex: 0 0 25px;
             height: 25px;
             width: 25px;
@@ -349,18 +355,6 @@ body {
   white-space: pre-line; /* Ensures formatting and line breaks are respected */
   line-height: 1.1;
 }
-
-.tooltip {
-  display: none;
-  position: absolute;
-  background-color: black;
-  color: white;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 0.8em;
-  z-index: 1000; /* Ensure it's above other elements */
-}
-
 
 /* MOBILE-SPECIFIC STYLE */
 @media only screen and (max-width: 768px) {
