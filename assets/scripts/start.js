@@ -48,5 +48,5 @@ let lastUpdateTime = Date.now();
 
 //openTab('actions-tab');
 window.requestAnimationFrame(updateFrameClock);
-window.onload = loadGame();
-setInterval(saveGame(), 10000);
+window.onload = loadGame;
+setInterval(saveGame, 10000);
