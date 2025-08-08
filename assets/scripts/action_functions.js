@@ -1,4 +1,4 @@
-this.isAvailable// THE ACTION CLASS
+// THE ACTION CLASS
 class GameAction {
   constructor(id) {
       // Initialize properties
