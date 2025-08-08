@@ -17,6 +17,7 @@ const emptyGameState = {
   paused: pauseStates.NOT_PAUSED,
   gameLog: [],
   skills: {},
+  artifacts: {},
   globalParameters: {
     masteryMaxRatio: 0.9,
     masteryGrowthRate: 5e-6,

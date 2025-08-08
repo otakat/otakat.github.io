@@ -209,6 +209,22 @@ body {
           z-index: 1;
         }
 
+  /* ARTIFACTS */
+  .artifact-container {
+    background-color: rgba(255,255,255,0.6);
+    border-radius: 5px;
+    padding: 5px;
+    margin-bottom: 5px;
+  }
+
+    .artifact-name {
+      font-weight: bold;
+    }
+
+    .artifact-description {
+      font-size: 0.8em;
+    }
+
         .skill-current-bar {
           background-color: #000055;
         }

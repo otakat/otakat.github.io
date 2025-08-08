@@ -111,6 +111,57 @@ function generateUniqueId() {
 let startingPermanentLevels = {};
 let gameOver = false;
 
+function updateArtifactsUI() {
+  const container = document.getElementById('artifact-list');
+  if (!container) {return;}
+  container.innerHTML = '';
+  const unlocked = Object.keys(gameState.artifacts || {}).filter(id => gameState.artifacts[id]);
+  if (unlocked.length === 0) {
+    const div = document.createElement('div');
+    div.textContent = 'No artifacts discovered yet.';
+    container.appendChild(div);
+    return;
+  }
+  unlocked.forEach(id => {
+    const art = artifactData[id];
+    if (!art) {return;}
+    const div = document.createElement('div');
+    div.className = 'artifact-container';
+    const name = document.createElement('div');
+    name.className = 'artifact-name';
+    name.textContent = art.label;
+    const desc = document.createElement('div');
+    desc.className = 'artifact-description';
+    desc.textContent = art.description;
+    div.appendChild(name);
+    div.appendChild(desc);
+    container.appendChild(div);
+  });
+}
+
+function applyArtifactEffects(id) {
+  if (id === 'skillbook') {
+    const skillsTab = document.getElementById('skills-tab');
+    if (skillsTab) {
+      skillsTab.classList.add('d-md-block');
+      skillsTab.classList.remove('d-none');
+    }
+    const skillsButton = document.getElementById('skills-button');
+    if (skillsButton) {skillsButton.classList.remove('d-none');}
+  }
+}
+
+function unlockArtifact(id) {
+  if (!artifactData.hasOwnProperty(id)) {return;}
+  if (!gameState.artifacts[id]) {
+    gameState.artifacts[id] = true;
+    updateArtifactsUI();
+    applyArtifactEffects(id);
+    logPopupCombo('You discovered ' + artifactData[id].label + '!', 'primary');
+    saveGame();
+  }
+}
+
 function recordStartingPermanentLevels() {
   startingPermanentLevels = {};
   skillList.forEach(skill => {
@@ -394,6 +445,7 @@ function showResetPopup(){
   });
 
   document.getElementById('reset-popup').classList.remove('d-none');
+  if (!gameState.artifacts.skillbook) {unlockArtifact('skillbook');}
 }
 
 function restartGame(){
@@ -438,6 +490,11 @@ function resetGameState() {
     removeAction(action);
   })
   actionsConstructed = {};
+
+  const skillsTab = document.getElementById('skills-tab');
+  if (skillsTab) {skillsTab.classList.add('d-none'); skillsTab.classList.remove('d-md-block');}
+  const skillsButton = document.getElementById('skills-button');
+  if (skillsButton) {skillsButton.classList.add('d-none');}
 
   initializeGame();
 }
@@ -510,4 +567,8 @@ function initializeGame() {
   updateSkill("perseverance", 0);
   updateSkill("resourcefulness", 0);
   recordStartingPermanentLevels();
+  Object.keys(gameState.artifacts).forEach(id => {
+    if (gameState.artifacts[id]) {applyArtifactEffects(id);}
+  });
+  updateArtifactsUI();
 }

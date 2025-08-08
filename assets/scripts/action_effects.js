@@ -1,5 +1,12 @@
 const skillList = ["courage", "creativity", "curiosity", "integrity", "perseverance", "resourcefulness"];
 
+const artifactData = {
+  skillbook: {
+    label: "Ancient Skillbook",
+    description: "Reveals the skills menu."
+  }
+};
+
 const default_action = {
   label: "Default Action Name",
   length: 5000,
