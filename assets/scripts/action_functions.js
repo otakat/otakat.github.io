@@ -256,7 +256,7 @@ function makeActionUnavailable(actionId) {
 
 function toggleAction(actionId) {
   const index = gameState.actionsActive.indexOf(actionId);
-  if (index === 0) {
+  if (index !== -1) {
     deactivateAction(actionId);
   } else {
     activateAction(actionId);
