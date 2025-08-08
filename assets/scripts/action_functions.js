@@ -17,21 +17,29 @@ class GameAction {
 				}
 			});
 
-			this.container = document.getElementById(id);
-			this.elements = {
-				container: this.container,
-	      progressContainer: this.container.querySelector('.action-progress-container'),
-	      progressText: this.container.querySelector('.action-progress-text'),
-	      progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
-	      progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
-	      buttonActivate: this.container.querySelector('.action-button'),
-	      buttonQueue: this.container.querySelector('.queue-button'),
-	      queueList: this.container.querySelector('.queue-list')
-			}
+                        this.container = document.getElementById(id);
+                        this.elements = {
+                                container: this.container,
+              progressContainer: this.container.querySelector('.action-progress-container'),
+              progressText: this.container.querySelector('.action-progress-text'),
+              progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
+              progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
+              buttonActivate: this.container.querySelector('.action-button'),
+              buttonQueue: this.container.querySelector('.queue-button'),
+              queueList: this.container.querySelector('.queue-list')
+                        }
+      // Allow clicking anywhere on the action body to toggle the action
+      this.container.addEventListener('click', () => toggleAction(id));
 
       // Add button effects
-      this.elements.buttonActivate.addEventListener('click', () => toggleAction(id));
-      this.elements.buttonQueue.addEventListener('click', () => queueAction(id));
+      this.elements.buttonActivate.addEventListener('click', (event) => {
+        event.stopPropagation();
+        toggleAction(id);
+      });
+      this.elements.buttonQueue.addEventListener('click', (event) => {
+        event.stopPropagation();
+        queueAction(id);
+      });
 
       this.calculateTimeStart();
       this.update();
