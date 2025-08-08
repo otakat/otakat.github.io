@@ -111,6 +111,9 @@ function generateUniqueId() {
 let startingPermanentLevels = {};
 let gameOver = false;
 
+const tabOrder = ['actions-tab', 'skills-tab'];
+let currentTabIndex = 0;
+
 function recordStartingPermanentLevels() {
   startingPermanentLevels = {};
   skillList.forEach(skill => {
@@ -140,24 +143,30 @@ function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
 }
 
 function updateLogUI() {
-  const logTab = document.getElementById('log-tab');
-  const log = document.getElementById('game-log');
+  const logPreview = document.getElementById('log-preview');
+  const fullLog = document.getElementById('game-log');
+  if (!logPreview || !fullLog) { return; }
 
-  // Check if the scrollbar is at the bottom before updating the content
-  const isScrolledToBottom = logTab.scrollHeight - logTab.clientHeight <= logTab.scrollTop + 1;
+  const isScrolledToBottom = fullLog.scrollHeight - fullLog.clientHeight <= fullLog.scrollTop + 1;
 
-  log.textContent = '';
+  fullLog.textContent = '';
+  logPreview.textContent = '';
+
   gameState.gameLog.forEach(entry => {
-    log.textContent += entry.date + ' (';
-    log.textContent += entry.id + ', ';
-    log.textContent += entry.tag + ') '
-    log.textContent += entry.text + '\n\n';
-  })
+    const line = `${entry.date} (${entry.id}, ${entry.tag}) ${entry.text}\n\n`;
+    fullLog.textContent += line;
+  });
 
-  // If the scrollbar was at the bottom, keep it at the bottom after the update
+  const previewEntries = gameState.gameLog.slice(-5);
+  previewEntries.forEach(entry => {
+    const line = `${entry.date} (${entry.id}, ${entry.tag}) ${entry.text}\n\n`;
+    logPreview.textContent += line;
+  });
+
   if (isScrolledToBottom) {
-    logTab.scrollTop = logTab.scrollHeight;
+    fullLog.scrollTop = fullLog.scrollHeight;
   }
+  logPreview.scrollTop = logPreview.scrollHeight;
 }
 
 function createPopup(text, alertType = 'alert-primary') {
@@ -353,10 +362,37 @@ function openTab(tabId = 'None') {
     }
 
     // Show the specific tab content
-    if (tabId !== 'None') {
+  if (tabId !== 'None') {
       document.getElementById(tabId).classList.remove('d-none');
+      const idx = tabOrder.indexOf(tabId);
+      if (idx !== -1) { currentTabIndex = idx; }
     }
 }
+
+const mainPane = document.getElementById('main-pane');
+let touchStartX = null;
+
+function handleSwipe(startX, endX) {
+  const threshold = 50;
+  if (Math.abs(endX - startX) > threshold) {
+    if (endX < startX) {
+      const next = (currentTabIndex + 1) % tabOrder.length;
+      openTab(tabOrder[next]);
+    } else {
+      const prev = (currentTabIndex - 1 + tabOrder.length) % tabOrder.length;
+      openTab(tabOrder[prev]);
+    }
+  }
+}
+
+mainPane.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+mainPane.addEventListener('touchend', e => {
+  handleSwipe(touchStartX, e.changedTouches[0].screenX);
+  touchStartX = null;
+});
 
 function showTooltip(event, text = 'Default') {
   if (window.matchMedia('(pointer: coarse)').matches) {return;}

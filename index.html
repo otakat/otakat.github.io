@@ -23,13 +23,25 @@
           </div>
         </div>
 
-        <!-- Row for menu buttons -->
-        <div class="row px-3">
-            <button class="menu-button" onclick="openTab('actions-tab')">Main</button>
-            <button class="menu-button" onclick="openTab('settings-tab')">Options</button>
-            <button class="menu-button" onclick="saveGame(true)">Save</button>
-            <button class="menu-button" onclick="resetGameState()">Reset</button>
-            <button class="menu-button" id="pause-button" onclick="buttonPause()">Pause</button>
+        <!-- Mobile-friendly menu toggle -->
+        <nav class="navbar bg-transparent">
+          <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu" aria-controls="mainMenu" id="menu-toggle">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </nav>
+
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="mainMenu" aria-labelledby="mainMenuLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mainMenuLabel">Menu</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <button class="menu-button" onclick="openTab('actions-tab')" data-bs-dismiss="offcanvas">Main</button>
+            <button class="menu-button" onclick="openTab('settings-tab')" data-bs-dismiss="offcanvas">Options</button>
+            <button class="menu-button" onclick="saveGame(true)" data-bs-dismiss="offcanvas">Save</button>
+            <button class="menu-button" onclick="resetGameState()" data-bs-dismiss="offcanvas">Reset</button>
+            <button class="menu-button" id="pause-button" onclick="buttonPause()" data-bs-dismiss="offcanvas">Pause</button>
+          </div>
         </div>
         <!-- Row for health bar -->
         <div class="row">
@@ -49,7 +61,6 @@
             <span class="tab-button-container">
               <button class="tab-button" onClick="openTab('actions-tab')">A</button>
               <button class="tab-button" onClick="openTab('skills-tab')">S</button>
-              <button class="tab-button" onClick="openTab('log-tab')">L</button>
             </span>
           </div>
         </div>
@@ -136,16 +147,32 @@
                 </div>
               </div>
             </div>
-            <!-- Actions and Game Log -->
-            <div class="row row-col-1 row-col-md-2 row-fix">
+            <!-- Actions with embedded log preview -->
+            <div class="row row-col-1 row-fix">
               <div id="actions-tab" class="mobile-tab col d-md-block full-height scroll">
                 <div id="all-actions-container" class="col full-height scroll"></div>
-              </div>
-              <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 full-height scroll">
-                  <div id="game-log" class="game-log"></div>
+                <div id="log-preview" class="log-preview"></div>
+                <div class="text-end">
+                  <a href="#" data-bs-toggle="modal" data-bs-target="#log-modal">Expand log</a>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full log modal -->
+  <div class="modal fade" id="log-modal" tabindex="-1" aria-labelledby="logModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logModalLabel">Game Log</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="game-log" class="game-log"></div>
         </div>
       </div>
     </div>
