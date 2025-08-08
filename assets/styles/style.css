@@ -76,6 +76,26 @@ body {
   margin-right: 1.5rem;
 }
 
+#reset-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+  #reset-popup .reset-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 300px;
+  }
+
 /* MENU */
   .menu-button {
     width:auto;
