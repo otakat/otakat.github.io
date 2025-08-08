@@ -108,6 +108,20 @@ function generateUniqueId() {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
+let startingPermanentLevels = {};
+let gameOver = false;
+
+function recordStartingPermanentLevels() {
+  startingPermanentLevels = {};
+  skillList.forEach(skill => {
+    if (gameState.skills.hasOwnProperty(skill)) {
+      startingPermanentLevels[skill] = gameState.skills[skill].permanent_level;
+    } else {
+      startingPermanentLevels[skill] = 0;
+    }
+  });
+}
+
 function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
     //if (id === undefined) {
     //  id = generateUniqueId();
@@ -275,9 +289,9 @@ function isGamePaused() {
 
 function updateHealthBar(timeChange = 0) {
     gameState.health.current -= timeChange;
-    if (gameState.health.current <= 0) {
-        endLoop();
-        // Reset or other logic when progress bar reaches 0
+    if (gameState.health.current <= 0 && !gameOver) {
+        gameState.health.current = 0;
+        showResetPopup();
     }
     percentHealth = gameState.health.current / gameState.health.max * 100;
     document.getElementById('health-bar').style.width = percentHealth + '%';
@@ -313,8 +327,33 @@ function showTooltip(event, text = 'Default') {
   tooltip.style.top = (event.clientY + scrollY) + 'px';
 }
 
-function endLoop(){
-  logPopupCombo("You run has ended. Restarting...", 'danger');
+function showResetPopup(){
+  gameOver = true;
+  setPauseState(pauseStates.FULL_PAUSE, undefined, 'Paused (Manual)');
+  document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = true);
+
+  const summaryList = document.getElementById('reset-summary');
+  summaryList.innerHTML = '';
+  skillList.forEach(skill => {
+    if (!gameState.skills.hasOwnProperty(skill)) {return;}
+    const startLevel = startingPermanentLevels[skill] || 0;
+    const permGain = gameState.skills[skill].permanent_level - startLevel;
+    const loopLevel = gameState.skills[skill].current_level;
+    const li = document.createElement('li');
+    let parts = [];
+    if (permGain !== 0) {parts.push('+' + permGain + ' permanent');}
+    if (loopLevel !== 0) {parts.push('Level ' + loopLevel + ' this loop');}
+    if (parts.length === 0) {parts.push('No change');}
+    li.textContent = skill.charAt(0).toUpperCase() + skill.slice(1) + ': ' + parts.join(', ');
+    summaryList.appendChild(li);
+  });
+
+  document.getElementById('reset-popup').classList.remove('d-none');
+}
+
+function restartGame(){
+  document.getElementById('reset-popup').classList.add('d-none');
+  document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = false);
 
   gameState.health.current = gameState.health.max;
   skillList.forEach(skill => {
@@ -337,7 +376,9 @@ function endLoop(){
     action.timeCurrent = 0;
   })
 
+  gameOver = false;
   initializeGame();
+  setPauseState(pauseStates.NOT_PAUSED);
 }
 
 function hideTooltip() {
@@ -423,4 +464,5 @@ function initializeGame() {
   updateSkill("integrity", 0);
   updateSkill("perseverance", 0);
   updateSkill("resourcefulness", 0);
+  recordStartingPermanentLevels();
 }
