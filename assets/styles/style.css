@@ -74,6 +74,7 @@ body {
   position: fixed;
   bottom: 1.5rem; left: 1.5rem;
   margin-right: 1.5rem;
+  z-index: 1000;
 }
 
 #reset-popup {
