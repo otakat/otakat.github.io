@@ -25,101 +25,105 @@ const default_action = {
 
 const book1_actions = {
   book1_action1: {
-    label: "Action1: Curiosity x2 + Perseverance",
+    label: "Follow the Whispering Trail",
     length: 5000,
-    skills: ["curiosity", "curiosity", "perseverance"],
-    completionMax: 5,
-    startEffects: {
-      each: function(actionId) {
-        if (gameState.health.current < gameState.health.max / 2) {
-          logPopupCombo('You are too tired to attempt this action.', 'danger')
-          return false;
-        }
-        return true;
-      },
-    },
+    skills: ["curiosity", "perseverance"],
+    completionMax: 1,
     completionEffects: {
-      1: function (actionId) {
-        logPopupCombo('You unlocked ' + book1_actions['book1_action2'].label + '.', 'primary');
+      1: function(actionId) {
+        logPopupCombo('The trail leads you to a moonlit glade.', 'success');
+        logPopupCombo('Unlocked: ' + book1_actions['book1_action2'].label + '.', 'primary');
         makeActionAvailable('book1_action2');
       },
     }
   },
   book1_action2: {
-    label: "Action2: Courage",
+    label: "Brew the Lantern of Dawn",
     length: 6000,
-    skills: ["curiosity", "curiosity", "perseverance"],
-    completionMax: 5,
+    skills: ["creativity", "resourcefulness"],
+    completionMax: 1,
     completionEffects: {
-      1: function (actionId) {
-        logPopupCombo('You unlocked ' + book1_actions['book1_action3'].label + '.', 'primary');
+      1: function(actionId) {
+        logPopupCombo('The Lantern of Dawn warms your hands.', 'success');
+        logPopupCombo('Unlocked: ' + book1_actions['book1_action3'].label + '.', 'primary');
         makeActionAvailable('book1_action3');
       },
     }
   },
   book1_action3: {
-    label: "Action3: Integrity + Resourcefulness",
+    label: "Aid the Silent Knight",
     length: 7000,
-    skills: ["integrity", "resourcefulness"],
-    completionMax: 5,
+    skills: ["courage", "integrity"],
+    completionMax: 1,
     completionEffects: {
-      1: function (actionId) {
-        logPopupCombo('You unlocked ' + book1_actions['book1_action4'].label + '.', 'primary');
+      1: function(actionId) {
+        logPopupCombo("The knight's voice returns in a rush of light.", 'success');
+        logPopupCombo('Unlocked: ' + book1_actions['book1_action4'].label + '.', 'primary');
         makeActionAvailable('book1_action4');
       },
     }
   },
   book1_action4: {
-    label: "Action4: Creativity x3 + Courage",
+    label: "Cross the Echoing Bridge",
     length: 8000,
-    skills: ["creativity", "creativity", "creativity", "courage"],
-    completionMax: 5,
+    skills: ["courage", "perseverance"],
+    completionMax: 1,
     completionEffects: {
-      1: function (actionId) {
-        logPopupCombo('You unlocked ' + book1_actions['book1_action5'].label + '.', 'primary');
+      1: function(actionId) {
+        logPopupCombo('You silence the chasm and cross safely.', 'success');
+        logPopupCombo('Unlocked: ' + book1_actions['book1_action5'].label + '.', 'primary');
         makeActionAvailable('book1_action5');
       },
     }
   },
   book1_action5: {
-    label: "Action5: Courage, Creativity, Curiosity, Integrity, Perseverance",
+    label: "Meet the Dreamspinner",
     length: 9000,
-    skills: ["courage", "creativity", "curiosity", "integrity", "perseverance"],
-    completionMax: 5,
+    skills: ["creativity", "curiosity"],
+    completionMax: 1,
     completionEffects: {
-      1: function (actionId) {
-        logPopupCombo('You unlocked ' + book1_actions['book1_action6'].label + '.', 'primary');
+      1: function(actionId) {
+        logPopupCombo('The Dreamspinner weaves a doorway from your lullaby.', 'success');
+        logPopupCombo('Unlocked: ' + book1_actions['book1_action6'].label + '.', 'primary');
         makeActionAvailable('book1_action6');
       },
     }
   },
   book1_action6: {
-    label: "Action6: Resourcefulness Part 1",
+    label: "Face the Mirror Tyrant",
     length: 10000,
-    skills: ["resourcefulness"],
-    completionMax: 5,
+    skills: ["courage", "integrity", "resourcefulness"],
+    completionMax: 1,
     completionEffects: {
-      1: function (actionId) {
-        logPopupCombo('You unlocked ' + book1_actions['book1_action7'].label + '.', 'primary');
+      1: function(actionId) {
+        logPopupCombo('The Mirror Tyrant shatters into a prism heart.', 'success');
+        logPopupCombo('Unlocked: ' + book1_actions['book1_action7'].label + '.', 'primary');
         makeActionAvailable('book1_action7');
       },
     }
   },
   book1_action7: {
-    label: "Action7: Resourcefulness Part 2",
+    label: "Awaken the Kingdom",
     length: 11000,
-    skills: ["resourcefulness"],
-    completionMax: 5,
+    skills: ["courage", "creativity", "curiosity", "integrity", "perseverance", "resourcefulness"],
+    completionMax: 1,
+    completionEffects: {
+      1: function(actionId) {
+        logPopupCombo('The kingdom stirs; dawn breaks anew.', 'success');
+        logPopupCombo('You have completed every task.', 'warning');
+        makeActionUnavailable(actionId);
+      }
+    }
   }
 }
 
 const storylines = {
-  book1_opener: 'Once upon a time, in a quaint village nestled among lush green hills and meandering streams, there lived a young girl named Goldilocks. Known for her radiant locks that shimmered like spun gold in the sunlight, she was as spirited as she was curious. On this particular day, Goldilocks had been entrusted with an important errand by her mother. With a small basket tucked under her arm, she set out early in the morning, the dew still fresh on the grass and the air filled with the sweet chorus of birds.',
-  book1_action1_complete: 'You have completed ' + book1_actions.book1_action1.label + ' and have unlocked ' + book1_actions.book1_action2.label + '.',
-  book2_action1_complete: 'You have completed ' + book1_actions.book1_action2.label + ' and have unlocked ' + book1_actions.book1_action3.label + '.',
-  book3_action1_complete: 'You have completed ' + book1_actions.book1_action3.label + ' and have unlocked ' + book1_actions.book1_action4.label + '.',
-  book4_action1_complete: 'You have completed ' + book1_actions.book1_action4.label + ' and have unlocked ' + book1_actions.book1_action5.label + '.',
-  book5_action1_complete: 'You have completed ' + book1_actions.book1_action5.label + ' and have unlocked ' + book1_actions.book1_action6.label + '.',
-  book6_action1_complete: 'You have completed ' + book1_actions.book1_action6.label + ' and have unlocked ' + book1_actions.book1_action7.label + '.',
-  book7_action1_complete: 'You have completed ' + book1_actions.book1_action7.label + ' and have unlocked ' + 'nothing.'
+  book1_opener: 'You awaken at the edge of the Hemlock Forest, moonlight tracing silver across the leaves.',
+  book1_action1_complete: 'The trail leads you to a quiet glade.',
+  book2_action1_complete: 'A lantern of pure dawnlight hangs from your belt.',
+  book3_action1_complete: 'The Silent Knight rises, voice restored.',
+  book4_action1_complete: 'The Echoing Bridge lies silent behind you.',
+  book5_action1_complete: 'The Dreamspinner opens a doorway to the tower.',
+  book6_action1_complete: 'The Mirror Tyrant collapses into glittering dust.',
+  book7_action1_complete: 'Statues breathe again as the kingdom awakens.'
 }
