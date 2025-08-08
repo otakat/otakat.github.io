@@ -205,43 +205,88 @@ function logPopupCombo(text, alertType, id, tag) {
   createPopup(text, alertType);
 }
 
-function updateFrameClock() {
+let scheduledEvents = [];
+
+function scheduleEvent(delay, callback) {
+  delay = sanitizeNumber(delay, 0);
+  if (typeof callback !== 'function') {
+    console.error('scheduleEvent requires a callback function');
+    return;
+  }
+  scheduledEvents.push({ time: timeTotal + delay, callback });
+}
+
+function processScheduledEvents() {
+  scheduledEvents = scheduledEvents.filter(event => {
+    if (event.time <= timeTotal) {
+      try {
+        event.callback();
+      } catch (e) {
+        console.error('Scheduled event error:', e);
+      }
+      return false;
+    }
+    return true;
+  });
+}
+
+function updateFrameClock(currentTime) {
   // Start the first item in the queue if nothing is active
-  if (gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive && gameState.actionsQueued.length >= 1 && gameState.paused !== pauseStates.HARD_PAUSE) {
-    let newAction = gameState.actionsQueued.shift()
-    activateAction(newAction)
+  if (
+    gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive &&
+    gameState.actionsQueued.length >= 1 &&
+    gameState.paused !== pauseStates.FULL_PAUSE
+  ) {
+    let newAction = gameState.actionsQueued.shift();
+    activateAction(newAction);
   }
 
   // Soft pause the game if there are no active or queued actions
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0 && gameState.paused === pauseStates.NOT_PAUSED) {
+  if (
+    (gameState.actionsActive.length + gameState.actionsQueued.length) === 0 &&
+    gameState.paused === pauseStates.NOT_PAUSED
+  ) {
     setPauseState(pauseStates.SOFT_PAUSE);
   }
 
   // Unpause a soft paused game if there are any actions
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) > 0 && gameState.paused === pauseStates.SOFT_PAUSE) {
+  if (
+    (gameState.actionsActive.length + gameState.actionsQueued.length) > 0 &&
+    gameState.paused === pauseStates.SOFT_PAUSE
+  ) {
     setPauseState(pauseStates.NOT_PAUSED);
   }
 
-  let currentTime = Date.now();
-  let timeElapsed = (currentTime - lastUpdateTime) * timeDilation;
+  if (currentTime === undefined) {
+    currentTime = performance.now();
+  }
 
-  if (timeElapsed >= frameDuration) {
-    framesTotal += timeElapsed / frameDuration;
-    let fps = 1000 / timeElapsed;
+  accumulatedTime += (currentTime - lastUpdateTime) * timeDilation;
+  lastUpdateTime = currentTime;
+
+  const maxAccumulatedTime = frameDuration * 5;
+  if (accumulatedTime > maxAccumulatedTime) {
+    accumulatedTime = maxAccumulatedTime;
+  }
+
+  while (accumulatedTime >= frameDuration) {
+    framesTotal += 1;
 
     if (!isGamePaused()) {
-      timeTotal += timeElapsed;
+      timeTotal += frameDuration;
 
       gameState.actionsActive.forEach(actionId => {
-        actionsConstructed[actionId].update(timeElapsed)
-      })
+        actionsConstructed[actionId].update(frameDuration);
+      });
 
-      updateHealthBar(timeElapsed);
+      updateHealthBar(frameDuration);
+      processScheduledEvents();
     }
 
-    lastUpdateTime = currentTime;
+    accumulatedTime -= frameDuration;
   }
-  window.requestAnimationFrame(updateFrameClock)
+
+  window.requestAnimationFrame(updateFrameClock);
 }
 
 function buttonPause() {

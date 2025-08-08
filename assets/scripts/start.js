@@ -38,7 +38,8 @@ let gameState = JSON.parse(JSON.stringify(emptyGameState));
 let frameDuration = 1000 / frameRate;
 let framesTotal = 0;
 let timeTotal = 0;
-let lastUpdateTime = Date.now();
+let lastUpdateTime = performance.now();
+let accumulatedTime = 0;
 
 
 
