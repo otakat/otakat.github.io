@@ -382,19 +382,8 @@ function processScheduledEvents() {
 }
 
 function runGameTick(stepMs) {
-  // Start first queued action when clock ticks and slot open
-  if (
-    gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive &&
-    gameState.actionsQueued.length >= 1 &&
-    !gameState.pausedReasons.includes(pauseStates.MANUAL) &&
-    !gameState.pausedReasons.includes(pauseStates.MODAL)
-  ) {
-    const newAction = gameState.actionsQueued.shift();
-    activateAction(newAction);
-  }
-
   // Auto pause when no actions remain
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0) {
+  if (gameState.actionsActive.length === 0) {
     addPauseState(pauseStates.INACTIVE);
   } else {
     deletePauseState(pauseStates.INACTIVE);
@@ -512,7 +501,6 @@ function restartGame(){
   })
 
   gameState.actionsActive = [];
-  gameState.actionsQueued = [];
   gameState.actionsAvailable = ["book1_action1"];
 
   Object.values(gameState.actionsProgress).forEach(action => {
