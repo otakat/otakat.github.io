@@ -31,7 +31,7 @@ The game unfolds interface elements gradually as part of the narrative (“unfol
    - Introduced gradually; skill checks can block actions until trained.
 
 ## Implementation Notes
-- Actions have `timeCost` (seconds or minutes), default = 30s.
+- Actions have `timeCost` (milliseconds)
 - UI rendering should respect minimalism; avoid clutter.
 - Revisit text for a location should be shorter and acknowledge prior visits.
 - Narrative thresholds for timeRemaining (50%, 25%) should trigger flavor text once per loop if stopwatch UI is hidden.
