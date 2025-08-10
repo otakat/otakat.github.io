@@ -60,6 +60,9 @@ function multiplyTimeChangeBySkills(timeChange, skills){
     accumulator + currentValue,
   );
   let averageMultiplier = sum / multipliers.length;
+  if (gameState.artifacts?.timeCharm) {
+    averageMultiplier *= 1.1;
+  }
 
   const newTimeChange = timeChange * averageMultiplier
   return newTimeChange;
@@ -106,6 +109,107 @@ function updateSkill(skill, timeChange) {
 function generateUniqueId() {
     // Simple implementation (consider a more robust approach for a larger project)
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+function cmpGE(actual, min) { return actual >= min; }
+function cmpEQ(actual, expected) { return actual === expected; }
+
+const requirementEvaluators = {
+  skill(req) {
+    const s = gameState.skills?.[req.key];
+    const lvl = Math.max(s?.current_level || 0, s?.permanent_level || 0);
+    return { ok: cmpGE(lvl, req.min ?? 0), actual: lvl };
+  },
+  artifact(req) {
+    const owned = !!gameState.artifacts?.[req.id];
+    return { ok: req.owned ? owned : !owned, actual: owned };
+  },
+  actionCompleted(req) {
+    const prog = gameState.actionsProgress?.[req.id]?.completions || 0;
+    return { ok: cmpGE(prog, req.min ?? 1), actual: prog };
+  },
+  health(req) {
+    const cur = gameState.health?.current || 0;
+    return { ok: cmpGE(cur, req.min ?? 0), actual: cur };
+  },
+  flag(req) {
+    const cur = gameState.flags?.[req.key];
+    return { ok: cmpEQ(cur, req.equals), actual: cur };
+  },
+  mastery(req) {
+    const p = gameState.actionsProgress?.[req.id];
+    const ratio = p ? (p.timeStart / (book1_actions[req.id]?.length || 1)) : 0;
+    return { ok: cmpGE(ratio, req.minRatio ?? 0), actual: ratio };
+  },
+  book(req) {
+    const cur = gameState.currentBook || 'book1';
+    return { ok: cmpEQ(cur, req.id), actual: cur };
+  },
+  custom(req) {
+    const fn = customRequirementFns[req.fn];
+    return fn ? fn(req, gameState) : { ok: false, actual: null };
+  }
+};
+
+const customRequirementFns = {};
+
+function evaluateRequirementClause(clause) {
+  const fn = requirementEvaluators[clause.type];
+  if (!fn) return { ok: false, actual: null };
+  return fn(clause);
+}
+
+function evaluateRequirements(req) {
+  if (!req || !Array.isArray(req.clauses) || req.clauses.length === 0) {
+    return { ok: true, unmet: [] };
+  }
+  const modeAll = (req.mode || 'all') === 'all';
+  const unmet = [];
+  let passCount = 0;
+
+  for (const c of req.clauses) {
+    if (c.mode) {
+      const r = evaluateRequirements(c);
+      if (r.ok) passCount++;
+      else unmet.push({ clause: c, detail: r.unmet });
+      continue;
+    }
+    const r = evaluateRequirementClause(c);
+    if (r.ok) passCount++;
+    else unmet.push({ clause: c, actual: r.actual });
+  }
+
+  const ok = modeAll ? unmet.length === 0 : passCount > 0;
+  return { ok, unmet };
+}
+
+function humanizeClause(c) {
+  const cl = c.clause || c;
+  switch (cl.type) {
+    case 'skill': return `Requires ${cl.key} ${cl.min}+`;
+    case 'artifact': return cl.owned ? `Requires artifact: ${artifactData[cl.id]?.label || cl.id}` 
+                                     : `Artifact must be absent: ${cl.id}`;
+    case 'actionCompleted': return `Complete ${book1_actions[cl.id]?.label || cl.id} ×${cl.min}`;
+    case 'health': return `Health ≥ ${cl.min}`;
+    case 'flag': return `${cl.key} = ${String(cl.equals)}`;
+    case 'mastery': return `Mastery of ${book1_actions[cl.id]?.label || cl.id} ≥ ${(cl.minRatio*100)|0}%`;
+    case 'book': return `Be in ${cl.id}`;
+    case 'custom': return `Special condition: ${cl.fn}`;
+    default: return `Requirement not met`;
+  }
+}
+
+function buildRequirementsMessage(unmet) {
+  const flat = [];
+  (function collect(arr) {
+    for (const u of arr) {
+      if (u.detail) collect(u.detail);
+      else flat.push(u);
+    }
+  })(unmet);
+
+  const parts = flat.map(humanizeClause);
+  return parts.length === 1 ? parts[0] : `Requirements not met:\n• ` + parts.join('\n• ');
 }
 
 let startingPermanentLevels = {};
@@ -330,9 +434,14 @@ function updateFrameClock(currentTime) {
         actionsConstructed[actionId].update(frameDuration);
       });
 
-      updateHealthBar(frameDuration);
-      processScheduledEvents();
-    }
+        let totalDrain = 0;
+        gameState.actionsActive.forEach(actionId => {
+          const a = actionsConstructed[actionId];
+          totalDrain += (a?.data?.healthCostMultiplier ?? 1) * frameDuration;
+        });
+        updateHealthBar(totalDrain);
+        processScheduledEvents();
+      }
 
     accumulatedTime -= frameDuration;
   }

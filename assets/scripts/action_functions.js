@@ -50,14 +50,21 @@ class GameAction {
 	get isActive() {return gameState.actionsActive.includes(this.id);}
 	get isQueued() {return gameState.actionsQueued.includes(this.id);}
 
-	start() {
-		if (!this.data || !this.progress) {
+        start() {
+                if (!this.data || !this.progress) {
         console.error('Invalid action data');
         return false;
     }
+                const req = this.data.requirements;
+                const res = evaluateRequirements(req);
+                if (!res.ok) {
+                  const msg = buildRequirementsMessage(res.unmet);
+                  logPopupCombo(msg, 'warning');
+                  return false;
+                }
 
-		const effects = this.data.startEffects;
-		const completions = this.progress.completions;
+                const effects = this.data.startEffects;
+                const completions = this.progress.completions;
 
 		// Execute the unavailable effect (and usually halt start)
 		if ('unavailable' in effects && !this.isAvailable) {
@@ -92,14 +99,20 @@ class GameAction {
     }
 
 		let newTimeChange = timeChange;
-		if (doSkillsExist(this.data.skills)) {
-			newTimeChange = multiplyTimeChangeBySkills(timeChange, this.data.skills);
-			this.data.skills.forEach(skill => {
-				updateSkill(skill, newTimeChange / this.data.skills.length);
-			});
-		}
+                if (doSkillsExist(this.data.skills)) {
+                        newTimeChange = multiplyTimeChangeBySkills(timeChange, this.data.skills);
+                        this.data.skills.forEach(skill => {
+                                updateSkill(skill, newTimeChange / this.data.skills.length);
+                        });
+                }
 
-		// Process time change
+                const mods = challengeMods[this.data.challengeType];
+                if (mods) {
+                  newTimeChange *= mods.speedMult ?? 1;
+                  this.data.healthCostMultiplier = mods.healthCostMultiplier ?? this.data.healthCostMultiplier;
+                }
+
+                // Process time change
     this.progress.timeCurrent += newTimeChange;
     this.progress.mastery += newTimeChange;
 

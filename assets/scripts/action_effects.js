@@ -3,7 +3,11 @@ const skillList = ["courage", "creativity", "curiosity", "integrity", "persevera
 const artifactData = {
   skillbook: {
     label: "Ancient Skillbook",
-    description: "Reveals the skills menu."
+    description: "Reveals the skills menu.",
+  },
+  timeCharm: {
+    label: "Time Charm",
+    description: "Increases all action speed by 10%."
   }
 };
 
@@ -11,6 +15,8 @@ const default_action = {
   label: "Default Action Name",
   length: 5000,
   skills: skillList,
+  healthCostMultiplier: 1.0,
+  challengeType: 'generic',
   startEffects: {
     each: function(actionId) {return true;},
     unavailable: function(actionId) {
@@ -30,11 +36,20 @@ const default_action = {
   }
 }
 
+const challengeMods = {
+  combat:   { speedMult: 1.0, healthCostMultiplier: 2.0 },
+  explore:  { speedMult: 1.1, healthCostMultiplier: 1.0 },
+  puzzle:   { speedMult: 0.9, healthCostMultiplier: 0.5 },
+  resource: { speedMult: 1.0, healthCostMultiplier: 0.8 }
+};
+
 const book1_actions = {
   book1_action1: {
     label: "Follow the Whispering Trail",
     length: 5000,
     skills: ["curiosity", "perseverance"],
+    challengeType: 'explore',
+    healthCostMultiplier: 0.5,
     completionMax: 1,
     completionEffects: {
       1: function(actionId) {
@@ -61,6 +76,15 @@ const book1_actions = {
     label: "Aid the Silent Knight",
     length: 7000,
     skills: ["courage", "integrity"],
+    requirements: {
+      mode: 'any',
+      clauses: [
+        { type: 'skill', key: 'courage', min: 2 },
+        { type: 'artifact', id: 'braveryAmulet', owned: true }
+      ]
+    },
+    challengeType: 'combat',
+    healthCostMultiplier: 2.0,
     completionMax: 1,
     completionEffects: {
       1: function(actionId) {
