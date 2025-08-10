@@ -35,24 +35,10 @@ function processPauseButton(label) {
   if (el) el.innerText = text;
 }
 
-// Backwards compatibility helpers
-function addPauseReason(state, _logText, label) {
-  addPauseState(state);
-  if (label !== undefined) {
-    processPauseButton(label);
-  }
-}
-
-function removePauseReason(state, _logText, label) {
-  deletePauseState(state);
-  if (label !== undefined) {
-    processPauseButton(label);
-  }
-}
-
-function clearPauseReasons() {
-  deletePauseState();
-}
+// Backwards compatibility aliases
+const addPauseReason = addPauseState;
+const removePauseReason = deletePauseState;
+const clearPauseReasons = deletePauseState;
 
 // Optional property shim for old `gameState.paused` checks
 window.addEventListener('load', () => {
