@@ -15,6 +15,7 @@ const emptyGameState = {
   pausedReasons: [pauseStates.INACTIVE],
   gameLog: [],
   skills: {},
+  artifacts: {},
   globalParameters: {
     logicHz: 30,        // Gameplay logic ticks per second
     renderHz: 30,       // UI refresh rate in ticks per second

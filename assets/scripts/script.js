@@ -514,7 +514,7 @@ function showResetPopup(){
   });
 
   document.getElementById('reset-popup').classList.remove('d-none');
-  if (!gameState.artifacts.skillbook) {unlockArtifact('skillbook');}
+  if (!gameState.artifacts?.skillbook) {unlockArtifact('skillbook');}
 }
 
 function restartGame(){
