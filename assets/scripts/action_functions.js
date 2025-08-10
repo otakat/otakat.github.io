@@ -25,9 +25,7 @@ class GameAction {
               progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
               progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
               buttonActivate: this.container.querySelector('#start-button'),
-              buttonStop: this.container.querySelector('#stop-button'),
-              buttonQueue: this.container.querySelector('#queue-button'),
-              queueList: this.container.querySelector('.queue-list')
+              buttonStop: this.container.querySelector('#stop-button')
                         }
       // Allow clicking anywhere on the action body to toggle the action
       this.container.addEventListener('click', () => toggleAction(id));
@@ -41,10 +39,6 @@ class GameAction {
         event.stopPropagation();
         fullyDeactivateAction(id);
       });
-      this.elements.buttonQueue.addEventListener('click', (event) => {
-        event.stopPropagation();
-        queueAction(id);
-      });
 
       this.calculateTimeStart();
       this.update();
@@ -53,7 +47,6 @@ class GameAction {
 
         get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
         get isActive() {return gameState.actionsActive.includes(this.id);}
-        get isQueued() {return gameState.actionsQueued.includes(this.id);}
 
         canStart() {
                 if (!this.data || !this.progress) {return false;}
@@ -220,12 +213,10 @@ function createNewAction(id) {
   container.innerHTML = `
     <div class="action-header">
       <span class="action-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Action Label">${label}</span>
-      <span class="queue-list"></span>
       <span class="action-button-container">
 
         <button id="start-button" class="action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Start">⏵</button>
         <button id="stop-button" class="action-button stop-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Stop">X</button>
-        <button id="queue-button" class="action-button queue-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to queue">⨮</button>
 
       </span>
     </div>
@@ -267,7 +258,6 @@ function removeAction(actionId) {
     delete actionsConstructed[actionId];
     gameState.actionsAvailable = gameState.actionsAvailable.filter(id => id !== actionId);
     gameState.actionsActive = gameState.actionsActive.filter(id => id !== actionId);
-    gameState.actionsQueued = gameState.actionsQueued.filter(id => id !== actionId);
     processActiveAndQueuedActions();
 
     // Any additional cleanup...
@@ -302,18 +292,6 @@ function toggleAction(actionId) {
   }
 }
 
-// Activate actions from the queue until one succeeds
-function activateActionQueue() {
-  // Skip invalid or unavailable ids until we find a good one or run out
-  while (gameState.actionsQueued.length > 0) {
-    const next = gameState.actionsQueued.shift();
-    if (!next) continue;
-    if (!hasActionData(next)) { console.error('Queue contained unknown action:', next); continue; }
-    if (activateAction(next)) return true;
-  }
-  return false;
-}
-
 // Start an action and add it to the active list
 function activateAction(actionId) {
   const a = getAction(actionId);
@@ -344,44 +322,16 @@ function deactivateAction(actionId) {
   processActiveAndQueuedActions();
 }
 
-// Stop an action and clear it from both active and queued lists
+// Stop an action and remove it from the active list
 function fullyDeactivateAction(actionId) {
   const a = getAction(actionId);
   if (a) a.stop();
 
   gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
-  gameState.actionsQueued = gameState.actionsQueued.filter(x => x !== actionId);
-  processActiveAndQueuedActions();
-}
-
-// Add an action to the queue; optionally prevent duplicates
-function queueAction(actionId, dedup = false) {
-  if (!hasActionData(actionId)) { console.error('Cannot queue unknown action:', actionId); return; }
-  if (dedup && gameState.actionsQueued.includes(actionId)) return;
-
-  gameState.actionsQueued.push(actionId);
   processActiveAndQueuedActions();
 }
 
 function processActiveAndQueuedActions() {
-  // Transfer excess actions from active to the front of the queue
-  if (gameState.actionsActive.length > gameState.globalParameters.actionsMaxActive) {
-    let excessNumber = gameState.actionsActive.length - gameState.globalParameters.actionsMaxActive;
-    let excessActions = gameState.actionsActive.splice(gameState.globalParameters.actionsMaxActive, excessNumber);
-    gameState.actionsQueued.unshift(...excessActions);
-  }
-
-  const queueExtrasThreshold = 3;
-
-  const queuedPositionsMap = {};
-  gameState.actionsQueued.forEach((queuedActionId, index) => {
-    if (queuedPositionsMap[queuedActionId]) {
-      queuedPositionsMap[queuedActionId].push(index);
-    } else {
-      queuedPositionsMap[queuedActionId] = [index];
-    }
-  });
-
   Object.values(actionsConstructed).forEach(actionObject => {
     if (actionObject.progress.completions >= actionObject.data.completionMax && !gameState.debugMode) {
       actionObject.container.style.display = 'none';
@@ -400,23 +350,5 @@ function processActiveAndQueuedActions() {
       actionObject.elements.progressContainer.style.border = '2px solid black';
       actionObject.elements.progressBarCurrent.classList.remove('active');
     }
-
-    // Build the queue text for each action
-    actionObject.elements.queueList.innerText = '';
-
-    let queueText = '';
-    const positions = queuedPositionsMap[actionObject.id] || [];
-    const queueCount = positions.length;
-
-    positions.slice(0, queueExtrasThreshold).forEach(pos => {
-      queueText += ' ' + (pos + 1);
-    });
-
-    if (queueCount > queueExtrasThreshold) {
-      queueText += ' (+' + (queueCount - queueExtrasThreshold) + ')';
-    }
-
-    if (queueText !== ''){queueText = 'Queue:'+queueText;}
-    actionObject.elements.queueList.innerText = queueText;
   })
 }
