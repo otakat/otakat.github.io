@@ -62,8 +62,8 @@ const book1_actions = {
   book1_action2: {
     label: "Brew the Lantern of Dawn",
     length: 6000,
-    skills: ["creativity", "resourcefulness"],
-    completionMax: 1,
+    skills: ["creativity", "resourcefulness", "courage"],
+    completionMax: 10,
     completionEffects: {
       1: function(actionId) {
         logPopupCombo('The Lantern of Dawn warms your hands.', 'success');
