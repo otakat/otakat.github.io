@@ -121,12 +121,12 @@ class GameAction {
                 const mods = challengeMods[this.data.challengeType];
                 if (mods) {
                   newTimeChange *= mods.speedMult ?? 1;
-                  this.data.healthCostMultiplier = mods.healthCostMultiplier ?? this.data.healthCostMultiplier;
                 }
 
                 // Process time change
     this.progress.timeCurrent += newTimeChange;
     this.progress.mastery += newTimeChange;
+    if (newTimeChange > 0) consumeTime(newTimeChange / 1000);
 
     if (this.progress.timeCurrent >= this.data.length) {
       this.finish();
@@ -302,6 +302,7 @@ function activateAction(actionId) {
     a.start();
     processActiveAndQueuedActions();
     return true;
+  }
 
   const ok = a.start();
   if (!ok) return false;
