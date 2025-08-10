@@ -1,8 +1,5 @@
 /// INITIALIZATION ///
 
-let gameActive = true;
-let manualPause = false;
-let frameRate = 60;
 // Initialize legacy timeDilation variable from base game state
 let timeDilation = emptyGameState.globalParameters.timeDilation;
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
@@ -72,4 +69,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Kickoff at clock zero
-window.onload = loadGame;
+window.addEventListener('load', loadGame);
