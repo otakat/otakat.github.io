@@ -120,10 +120,6 @@ const requirementEvaluators = {
     const prog = gameState.actionsProgress?.[req.id]?.completions || 0;
     return { ok: cmpGE(prog, req.min ?? 1), actual: prog };
   },
-  health(req) {
-    const cur = gameState.health?.current || 0;
-    return { ok: cmpGE(cur, req.min ?? 0), actual: cur };
-  },
   flag(req) {
     const cur = gameState.flags?.[req.key];
     return { ok: cmpEQ(cur, req.equals), actual: cur };
@@ -182,7 +178,6 @@ function humanizeClause(c) {
     case 'artifact': return cl.owned ? `Requires artifact: ${artifactData[cl.id]?.label || cl.id}` 
                                      : `Artifact must be absent: ${cl.id}`;
     case 'actionCompleted': return `Complete ${book1_actions[cl.id]?.label || cl.id} ×${cl.min}`;
-    case 'health': return `Health ≥ ${cl.min}`;
     case 'flag': return `${cl.key} = ${String(cl.equals)}`;
     case 'mastery': return `Mastery of ${book1_actions[cl.id]?.label || cl.id} ≥ ${(cl.minRatio*100)|0}%`;
     case 'book': return `Be in ${cl.id}`;
@@ -256,6 +251,11 @@ function unlockArtifact(id) {
   if (!artifactData.hasOwnProperty(id)) {return;}
   if (!gameState.artifacts[id]) {
     gameState.artifacts[id] = true;
+    if (id === 'pocketwatch') {
+      hasPocketWatch = true;
+      gameState.hasPocketWatch = true;
+      updateTimerUI();
+    }
     updateArtifactsUI();
     applyArtifactEffects(id);
     logPopupCombo('You discovered ' + artifactData[id].label + '!', 'primary');
@@ -395,12 +395,6 @@ function runGameTick(stepMs) {
     gameState.actionsActive.forEach(actionId => {
       actionsConstructed[actionId].update(stepMs);
     });
-    let totalDrain = 0;
-    gameState.actionsActive.forEach(actionId => {
-      const a = actionsConstructed[actionId];
-      totalDrain += (a?.data?.healthCostMultiplier ?? 1) * stepMs;
-    });
-    updateHealthBar(totalDrain);
     processScheduledEvents();
   }
 }
@@ -416,17 +410,53 @@ function buttonPause() {
   }
 }
 
-function updateHealthBar(timeChange = 0) {
-    gameState.health.current -= timeChange;
-    if (gameState.health.current <= 0 && !gameOver) {
-        gameState.health.current = 0;
-        showResetPopup();
-    }
-    percentHealth = gameState.health.current / gameState.health.max * 100;
-    document.getElementById('health-bar').style.width = percentHealth + '%';
+function updateTimerVisibility() {
+  const container = document.getElementById('timer-container');
+  if (!container) return;
+  if (hasPocketWatch) container.classList.remove('d-none');
+  else container.classList.add('d-none');
+}
 
-    innerText = gameState.health.current.toFixed(0) + ' / ' + gameState.health.max;
-    document.getElementById('health-bar-text').innerText = innerText;
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function updateTimerUI() {
+  updateTimerVisibility();
+  if (!hasPocketWatch) return;
+  const el = document.getElementById('time-remaining');
+  if (el) el.innerText = formatTime(timeRemaining);
+}
+
+function checkTimeWarnings() {
+  const fraction = timeRemaining / timeMax;
+  if (timeRemaining <= 0 && !gameOver) {
+    timeRemaining = 0;
+    gameState.timeRemaining = 0;
+    showResetPopup();
+    return;
+  }
+  if (!hasPocketWatch) {
+    if (fraction <= 0.25 && !timeWarnings.quarter) {
+      logPopupCombo('Your vision swims; the world feels less steady.', 'warning');
+      timeWarnings.quarter = true;
+    } else if (fraction <= 0.5 && !timeWarnings.half) {
+      logPopupCombo('You feel a strange heaviness in your limbs.', 'warning');
+      timeWarnings.half = true;
+    }
+  }
+}
+
+function consumeTime(cost) {
+  const c = Number(cost) || 0;
+  timeRemaining -= c;
+  if (timeRemaining < 0) timeRemaining = 0;
+  gameState.timeRemaining = timeRemaining;
+  checkTimeWarnings();
+  gameState.timeWarnings = { ...timeWarnings };
+  updateTimerUI();
 }
 
 function openTab(tabId = 'None') {
@@ -488,7 +518,11 @@ function restartGame(){
   if (modal) {modal.hide();}
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = false);
 
-  gameState.health.current = gameState.health.max;
+  timeRemaining = timeMax;
+  gameState.timeRemaining = timeRemaining;
+  timeWarnings = { half: false, quarter: false };
+  gameState.timeWarnings = { ...timeWarnings };
+  gameState.timeMax = timeMax;
   skillList.forEach(skill => {
     if (gameState.skills.hasOwnProperty(skill)) {
       gameState.skills[skill].current_level = 0;
@@ -511,6 +545,7 @@ function restartGame(){
   gameOver = false;
   initializeGame();
   deletePauseState(pauseStates.MODAL); // clock resumes
+  updateTimerUI();
 }
 
 function resetGameState() {
@@ -542,6 +577,16 @@ function resetGameState() {
   })
   actionsConstructed = {};
 
+  timeMax = defaultLoopTime;
+  timeRemaining = timeMax;
+  hasPocketWatch = false;
+  timeWarnings = { half: false, quarter: false };
+  gameState.timeRemaining = timeRemaining;
+  gameState.timeMax = timeMax;
+  gameState.hasPocketWatch = hasPocketWatch;
+  gameState.timeWarnings = { ...timeWarnings };
+  updateTimerUI();
+
   const skillsTab = document.getElementById('skills-tab');
   if (skillsTab) {skillsTab.classList.add('d-none'); skillsTab.classList.remove('d-md-block');}
   const skillsButton = document.getElementById('skills-button');
@@ -572,12 +617,18 @@ function loadGame() {
     // This ensures new variables in emptyGameState are initialized properly
     gameState = aggregateObjectProperties(emptyGameState, savedGameState);
 
+    timeMax = gameState.timeMax ?? gameState.timeStart ?? defaultLoopTime;
+    timeRemaining = gameState.timeRemaining ?? timeMax;
+    hasPocketWatch = gameState.hasPocketWatch ?? false;
+    timeWarnings = gameState.timeWarnings || { half: false, quarter: false };
+    gameState.timeMax = timeMax;
 
     logPopupCombo('Data Loaded', 'secondary');
   }
 
   updateDebugToggle();
   initializeGame();
+  updateTimerUI();
 }
 
 function initializeGame() {
@@ -592,7 +643,7 @@ function initializeGame() {
 
   processPauseButton();
   processActiveAndQueuedActions();
-  updateHealthBar();
+  updateTimerUI();
   updateSkill("courage", 0);
   updateSkill("creativity", 0);
   updateSkill("curiosity", 0);
@@ -605,6 +656,17 @@ function initializeGame() {
   });
   updateArtifactsUI();
 }
+
+// Debug helpers
+function givePocketWatch() { unlockArtifact('pocketwatch'); }
+function setTimeRemaining(x) {
+  timeRemaining = Math.max(0, Math.min(timeMax, Number(x)));
+  gameState.timeRemaining = timeRemaining;
+  checkTimeWarnings();
+  gameState.timeWarnings = { ...timeWarnings };
+  updateTimerUI();
+}
+function showTimeRemaining() { console.log('Time remaining:', timeRemaining + '/' + timeMax); }
 
 /* ===== Time Dilation API (non-destructive) =====
    Lets gameplay and debug stack multiple multipliers.

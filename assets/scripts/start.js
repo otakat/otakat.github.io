@@ -8,6 +8,10 @@ let timeDilation = emptyGameState.globalParameters.timeDilation;
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
 let framesTotal = 0;    // Counts clock ticks since load
 let timeTotal = 0;      // Accumulates clock ms for scheduling
+let timeRemaining = defaultLoopTime; // seconds left in loop
+let timeMax = defaultLoopTime;       // maximum loop time in seconds
+let hasPocketWatch = false;
+let timeWarnings = { half: false, quarter: false };
 
 function updateDebugToggle() {
   const debugToggle = document.getElementById('debug-toggle');

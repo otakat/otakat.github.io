@@ -121,7 +121,6 @@ class GameAction {
                 const mods = challengeMods[this.data.challengeType];
                 if (mods) {
                   newTimeChange *= mods.speedMult ?? 1;
-                  this.data.healthCostMultiplier = mods.healthCostMultiplier ?? this.data.healthCostMultiplier;
                 }
 
                 // Process time change
@@ -302,9 +301,13 @@ function activateAction(actionId) {
     a.start();
     processActiveAndQueuedActions();
     return true;
+  }
 
   const ok = a.start();
   if (!ok) return false;
+
+  consumeTime((a.data.length ?? 0) / 1000);
+  if (timeRemaining <= 0) { return false; }
 
   const maxActive = gameState.globalParameters.actionsMaxActive;
   if (gameState.actionsActive.length >= maxActive) {

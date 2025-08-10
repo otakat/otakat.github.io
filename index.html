@@ -37,15 +37,11 @@
             <button class="menu-button" onclick="resetGameState()" data-bs-toggle="tooltip" data-bs-title="Erase progress">Reset</button>
             <button class="menu-button" id="pause-button" onclick="buttonPause()" data-bs-toggle="tooltip" data-bs-title="Toggle clock pause">Pause</button>
         </div>
-        <!-- Row for health bar -->
+        <!-- Row for loop timer -->
         <div class="row">
           <div class="col col-md-8 text-center">
-            <div id="health-container">
-              <span class="d-none d-md-block">Health</span>
-              <div id="health-bar-container">
-                  <div id="health-bar-text"># / #</div>
-                  <div id="health-bar"></div>
-              </div>
+            <div id="timer-container" class="d-none">
+              <div id="timer-display"><span id="timer-icon">&#x23F1;</span> <span id="time-remaining">00:00</span></div>
             </div>
             <div id="debug-overlay" style="display:none;"></div>
           </div>

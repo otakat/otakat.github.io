@@ -5,16 +5,23 @@ const pauseStates = {
   MODAL: 'Paused (Dialog Open)',
 };
 
+// Default loop time in seconds
+const defaultLoopTime = 600;
+
 const emptyGameState = {
   debugMode: false,
   actionsAvailable: ['book1_action1'],
   actionsActive: [],
   actionsProgress: {},
-  health: { current: 25000, max: 25000 },
+  // Countdown timer replaces health mechanic
+  timeRemaining: defaultLoopTime,
+  timeMax: defaultLoopTime,
+  hasPocketWatch: false,
   pausedReasons: [pauseStates.INACTIVE],
   gameLog: [],
   skills: {},
   artifacts: {},
+  timeWarnings: { half: false, quarter: false },
   globalParameters: {
     logicHz: 30,        // Gameplay logic ticks per second
     renderHz: 30,       // UI refresh rate in ticks per second
