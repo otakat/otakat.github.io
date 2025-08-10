@@ -48,7 +48,9 @@ class GameAction {
 
       this.calculateTimeStart();
       this.update();
-			processActiveAndQueuedActions()
+                        processActiveAndQueuedActions()
+      // Flag to avoid duplicate finish calls when progress completes
+      this.finishing = false;
   }
 
         get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
@@ -135,8 +137,10 @@ class GameAction {
     this.progress.timeCurrent += newTimeChange;
     this.progress.mastery += newTimeChange;
 
+    let completed = false;
     if (this.progress.timeCurrent >= this.data.length) {
-      this.finish();
+      this.progress.timeCurrent = this.data.length;
+      completed = true;
     }
 
     this.calculateTimeStart();
@@ -148,6 +152,16 @@ class GameAction {
     this.elements.progressBarCurrent.style.width = currentPercentage + '%';
     this.elements.progressText.innerText = label;
     this.elements.progressBarMastery.style.width = masteryPercentage + '%';
+
+    if (completed && !this.finishing) {
+      this.finishing = true;
+      // Delay finish until the next frame so 100% progress renders
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => this.finish());
+      } else {
+        setTimeout(() => this.finish(), 0);
+      }
+    }
 
   }
 
@@ -170,6 +184,8 @@ class GameAction {
     }
 
     console.log(this.id);
+    // Allow future completions
+    this.finishing = false;
   }
 
   initializeActionProgress() {
