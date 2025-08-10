@@ -558,7 +558,28 @@ function hideTooltip() {
 }
 
 function resetGameState() {
+  // Preserve base time dilation before wiping state
+  const base =
+    gameState?.globalParameters?.timeDilationBase ??
+    gameState?.globalParameters?.timeDilation ??
+    1;
+
+  // Remove all time dilation modifiers but keep base multiplier
+  if (window.TimeDilationAPI?.clearMods) {
+    TimeDilationAPI.clearMods();
+  }
+
+  // Reset game state
   gameState = JSON.parse(JSON.stringify(emptyGameState));
+
+  // Restore preserved base dilation
+  if (window.TimeDilationAPI?.setBase) {
+    TimeDilationAPI.setBase(base);
+  } else {
+    if (!gameState.globalParameters) gameState.globalParameters = {};
+    gameState.globalParameters.timeDilation = base;
+    try { timeDilation = base; } catch (_e) { /* ignore */ }
+  }
 
   Object.keys(actionsConstructed).forEach(action => {
     removeAction(action);
@@ -571,6 +592,7 @@ function resetGameState() {
   if (skillsButton) {skillsButton.classList.add('d-none');}
 
   initializeGame();
+  if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
 }
 
 function saveGame(isManualSave = false) {
@@ -672,6 +694,11 @@ function initializeGame() {
       return apply();
     }
 
+    function clearMods() {
+      mods.clear();
+      return apply();
+    }
+
     function getEffective() {
       const product =
         Array.from(mods.values()).reduce((a, b) => a * b, 1);
@@ -707,7 +734,7 @@ function initializeGame() {
 
     return {
       // public
-      setBase, addMod, removeMod, getEffective, apply,
+      setBase, addMod, removeMod, clearMods, getEffective, apply,
       // exposed for debugging/inspection (read-only usage recommended)
       _mods: mods
     };
@@ -719,6 +746,7 @@ function initializeGame() {
   if (!window.setTimeDilation) window.setTimeDilation = (x) => api.setBase(x);
   if (!window.addTimeDilationMod) window.addTimeDilationMod = (k, m) => api.addMod(k, m);
   if (!window.removeTimeDilationMod) window.removeTimeDilationMod = (k) => api.removeMod(k);
+  if (!window.clearTimeDilationMods) window.clearTimeDilationMods = () => api.clearMods();
   if (!window.setLogicHz) window.setLogicHz = (hz) => window.gameClock?.setLogicHz?.(hz);
   if (!window.setRenderHz) window.setRenderHz = (hz) => window.gameClock?.setRenderHz?.(hz);
 
