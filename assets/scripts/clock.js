@@ -83,6 +83,26 @@ class GlobalClock {
   }
 }
 
+let totalTicks = 0;
+
+document.addEventListener('heartbeat', () => {
+  totalTicks += 1;
+  const overlay = document.getElementById('debug-overlay');
+  if (!overlay) return;
+
+  if (gameState.debugMode) {
+    const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
+    overlay.style.display = 'block';
+    overlay.innerText =
+      `Render Hz: ${gameState.globalParameters.renderHz}\n` +
+      `Logic Hz: ${gameState.globalParameters.logicHz}\n` +
+      `Total Ticks: ${totalTicks}\n` +
+      `Paused: ${paused}`;
+  } else {
+    overlay.style.display = 'none';
+  }
+});
+
 window.addEventListener('load', () => {
   window.gameClock = new GlobalClock();
 });
