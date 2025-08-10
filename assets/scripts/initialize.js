@@ -9,7 +9,6 @@ const emptyGameState = {
   debugMode: false,
   actionsAvailable: ['book1_action1'],
   actionsActive: [],
-  actionsQueued: [],
   actionsProgress: {},
   health: { current: 25000, max: 25000 },
   pausedReasons: [pauseStates.INACTIVE],

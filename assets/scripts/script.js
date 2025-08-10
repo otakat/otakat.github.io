@@ -37,12 +37,9 @@ function doSkillsExist(skillOrSkills) {
 }
 
 function multiplyTimeChangeBySkills(timeChange, skills){
-  // Abort if any skill is illegal
-  if (!doSkillsExist(skills)) {return timeChange;}
-
   let multipliers = skills.map(skill => {
-    currentLevel = gameState.skills[skill].current_level
-    permanentLevel = gameState.skills[skill].permanent_level
+    const currentLevel = gameState.skills[skill].current_level
+    const permanentLevel = gameState.skills[skill].permanent_level
 
     return Math.pow(1.1, currentLevel) * Math.pow(1.01, permanentLevel);
   });
@@ -59,18 +56,22 @@ function multiplyTimeChangeBySkills(timeChange, skills){
   return newTimeChange;
 }
 
-function updateSkill(skill, timeChange) {
-  const currentExperienceToLevel = 3000;
-  const permanentExperienceToLevel = 3000;
+const currentExperienceToLevel = 3000;
+const permanentExperienceToLevel = 3000;
 
+function updateSkill(skill, timeChange) {
   if (!doSkillsExist(skill)) {return false;}
 
   let skill_to_update = gameState.skills[skill]
 
-
+  const skillEl = document.getElementById(skill);
+  const currentLevelEl = document.getElementById(skill + '-current-level');
+  const currentProgressEl = document.getElementById(skill + '-current-progress');
+  const permanentLevelEl = document.getElementById(skill + '-permanent-level');
+  const permanentProgressEl = document.getElementById(skill + '-permanent-progress');
 
   skill_to_update.current_progress += timeChange;
-  if (skill_to_update.current_progress > currentExperienceToLevel) {
+  if (skill_to_update.current_progress >= currentExperienceToLevel) {
     skill_to_update.current_level += 1;
 
     skill_to_update.current_progress -= currentExperienceToLevel;
@@ -79,21 +80,21 @@ function updateSkill(skill, timeChange) {
 
 
   skill_to_update.permanent_progress += timeChange;
-  if (skill_to_update.permanent_progress > permanentExperienceToLevel) {
+  if (skill_to_update.permanent_progress >= permanentExperienceToLevel) {
     skill_to_update.permanent_level += 1;
     skill_to_update.permanent_progress -= permanentExperienceToLevel;
   }
   let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
 
-  document.getElementById(skill + '-current-level').innerText = 'Current Loop: ' + skill_to_update.current_level;
-  document.getElementById(skill + '-current-progress').style.width = currentProgressPercentage + '%';
-  document.getElementById(skill + '-permanent-level').innerText = 'Permanent: ' + skill_to_update.permanent_level;
-  document.getElementById(skill + '-permanent-progress').style.width = permanentProgressPercentage + '%';
+  currentLevelEl.innerText = 'Current Loop: ' + skill_to_update.current_level;
+  currentProgressEl.style.width = currentProgressPercentage + '%';
+  permanentLevelEl.innerText = 'Permanent: ' + skill_to_update.permanent_level;
+  permanentProgressEl.style.width = permanentProgressPercentage + '%';
 
   if (Math.max(skill_to_update.current_level, skill_to_update.current_progress, skill_to_update.permanent_level, skill_to_update.permanent_progress) <= 0) {
-    document.getElementById(skill).classList.add('d-none');
+    skillEl.classList.add('d-none');
   } else {
-    document.getElementById(skill).classList.remove('d-none');
+    skillEl.classList.remove('d-none');
   }
 }
 
@@ -258,7 +259,6 @@ function unlockArtifact(id) {
     updateArtifactsUI();
     applyArtifactEffects(id);
     logPopupCombo('You discovered ' + artifactData[id].label + '!', 'primary');
-    saveGame();
   }
 }
 
@@ -381,61 +381,32 @@ function processScheduledEvents() {
   });
 }
 
-function updateFrameClock(currentTime) {
-  // Start the first item in the queue if nothing is active
-  if (
-    gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive &&
-    gameState.actionsQueued.length >= 1 &&
-    !gameState.pausedReasons.includes(pauseStates.MANUAL) &&
-    !gameState.pausedReasons.includes(pauseStates.MODAL)
-  ) {
-    let newAction = gameState.actionsQueued.shift();
-    activateAction(newAction);
-  }
-
-  // Auto pause when there are no actions, unpause when there are any
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0) {
+function runGameTick(stepMs) {
+  // Auto pause when no actions remain
+  if (gameState.actionsActive.length === 0) {
     addPauseState(pauseStates.INACTIVE);
   } else {
     deletePauseState(pauseStates.INACTIVE);
   }
 
-  if (currentTime === undefined) {
-    currentTime = performance.now();
+  framesTotal += 1;
+  if (!isGamePaused()) {
+    timeTotal += stepMs;
+    gameState.actionsActive.forEach(actionId => {
+      actionsConstructed[actionId].update(stepMs);
+    });
+    let totalDrain = 0;
+    gameState.actionsActive.forEach(actionId => {
+      const a = actionsConstructed[actionId];
+      totalDrain += (a?.data?.healthCostMultiplier ?? 1) * stepMs;
+    });
+    updateHealthBar(totalDrain);
+    processScheduledEvents();
   }
-
-  accumulatedTime += (currentTime - lastUpdateTime) * timeDilation;
-  lastUpdateTime = currentTime;
-
-  const maxAccumulatedTime = frameDuration * 5;
-  if (accumulatedTime > maxAccumulatedTime) {
-    accumulatedTime = maxAccumulatedTime;
-  }
-
-  while (accumulatedTime >= frameDuration) {
-    framesTotal += 1;
-
-    if (!isGamePaused()) {
-      timeTotal += frameDuration;
-
-      gameState.actionsActive.forEach(actionId => {
-        actionsConstructed[actionId].update(frameDuration);
-      });
-
-        let totalDrain = 0;
-        gameState.actionsActive.forEach(actionId => {
-          const a = actionsConstructed[actionId];
-          totalDrain += (a?.data?.healthCostMultiplier ?? 1) * frameDuration;
-        });
-        updateHealthBar(totalDrain);
-        processScheduledEvents();
-      }
-
-    accumulatedTime -= frameDuration;
-  }
-
-  window.requestAnimationFrame(updateFrameClock);
 }
+
+// Listen for each fixed clock beat
+document.addEventListener('tick-fixed', e => runGameTick(e.detail.stepMs));
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
@@ -483,24 +454,13 @@ function openTab(tabId = 'None') {
     }
 }
 
-function showTooltip(event, text = 'Default') {
-  if (window.matchMedia('(pointer: coarse)').matches) {return;}
-
-  let tooltip = document.getElementById('tooltip');
-  tooltip.innerHTML = text;
-  tooltip.style.display = 'block';
-
-  let scrollX = window.scrollX || document.documentElement.scrollLeft;
-  let scrollY = window.scrollY || document.documentElement.scrollTop;
-
-  tooltip.style.left = (event.clientX + scrollX + 20) + 'px';
-  tooltip.style.top = (event.clientY + scrollY) + 'px';
-}
-
 function showResetPopup(){
+  // Halt clock and display results
   gameOver = true;
-  addPauseState(pauseStates.MANUAL);
+  addPauseState(pauseStates.MODAL);
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = true);
+  const restartBtn = document.querySelector('#resetModal button');
+  if (restartBtn) {restartBtn.disabled = false;}
 
   const summaryList = document.getElementById('reset-summary');
   summaryList.innerHTML = '';
@@ -518,12 +478,14 @@ function showResetPopup(){
     summaryList.appendChild(li);
   });
 
-  document.getElementById('reset-popup').classList.remove('d-none');
+  const modal = new bootstrap.Modal(document.getElementById('resetModal'));
+  modal.show();
   if (!gameState.artifacts?.skillbook) {unlockArtifact('skillbook');}
 }
 
 function restartGame(){
-  document.getElementById('reset-popup').classList.add('d-none');
+  const modal = bootstrap.Modal.getInstance(document.getElementById('resetModal'));
+  if (modal) {modal.hide();}
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = false);
 
   gameState.health.current = gameState.health.max;
@@ -539,7 +501,6 @@ function restartGame(){
   })
 
   gameState.actionsActive = [];
-  gameState.actionsQueued = [];
   gameState.actionsAvailable = ["book1_action1"];
 
   Object.values(gameState.actionsProgress).forEach(action => {
@@ -549,16 +510,32 @@ function restartGame(){
 
   gameOver = false;
   initializeGame();
-  deletePauseState(pauseStates.MANUAL);
-}
-
-function hideTooltip() {
-    let tooltip = document.getElementById('tooltip');
-    tooltip.style.display = 'none';
+  deletePauseState(pauseStates.MODAL); // clock resumes
 }
 
 function resetGameState() {
+  // Preserve base time dilation before wiping state
+  const base =
+    gameState?.globalParameters?.timeDilationBase ??
+    gameState?.globalParameters?.timeDilation ??
+    1;
+
+  // Remove all time dilation modifiers but keep base multiplier
+  if (window.TimeDilationAPI?.clearMods) {
+    TimeDilationAPI.clearMods();
+  }
+
+  // Reset game state
   gameState = JSON.parse(JSON.stringify(emptyGameState));
+
+  // Restore preserved base dilation
+  if (window.TimeDilationAPI?.setBase) {
+    TimeDilationAPI.setBase(base);
+  } else {
+    if (!gameState.globalParameters) gameState.globalParameters = {};
+    gameState.globalParameters.timeDilation = base;
+    try { timeDilation = base; } catch (_e) { /* ignore */ }
+  }
 
   Object.keys(actionsConstructed).forEach(action => {
     removeAction(action);
@@ -571,6 +548,7 @@ function resetGameState() {
   if (skillsButton) {skillsButton.classList.add('d-none');}
 
   initializeGame();
+  if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
 }
 
 function saveGame(isManualSave = false) {
@@ -627,3 +605,115 @@ function initializeGame() {
   });
   updateArtifactsUI();
 }
+
+/* ===== Time Dilation API (non-destructive) =====
+   Lets gameplay and debug stack multiple multipliers.
+   - Base dilation comes from gameState.globalParameters.timeDilationBase (or timeDilation, else 1).
+   - Effective dilation = base * product(modifiers).
+   - If GlobalClock.setTimeDilation exists, we call it; else we set gameState.globalParameters.timeDilation and emit an event.
+*/
+(function () {
+  if (window.TimeDilationAPI) return; // already installed
+
+  function clamp01to100(x, def = 1) {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return def;
+    return Math.min(Math.max(n, 0.05), 100);
+  }
+
+  const api = (function () {
+    const mods = new Map(); // key -> multiplier (number)
+
+    function getBase() {
+      const gp = (window.gameState && gameState.globalParameters) || {};
+      if (Number.isFinite(gp.timeDilationBase)) return gp.timeDilationBase;
+      if (Number.isFinite(gp.timeDilation)) return gp.timeDilation; // backward compat
+      return 1;
+    }
+
+    function setBase(x) {
+      const clamped = clamp01to100(x, 1);
+      if (!window.gameState) window.gameState = { globalParameters: {} };
+      if (!gameState.globalParameters) gameState.globalParameters = {};
+      gameState.globalParameters.timeDilationBase = clamped;
+      return apply();
+    }
+
+    function addMod(key, mult) {
+      if (!key) return false;
+      mods.set(String(key), clamp01to100(mult, 1));
+      return apply();
+    }
+
+    function removeMod(key) {
+      mods.delete(String(key));
+      return apply();
+    }
+
+    function clearMods() {
+      mods.clear();
+      return apply();
+    }
+
+    function getEffective() {
+      const product =
+        Array.from(mods.values()).reduce((a, b) => a * b, 1);
+      return getBase() * product;
+    }
+
+    function apply() {
+      const eff = getEffective();
+
+      // Maintain compatibility with legacy global variable if present
+      if (typeof timeDilation !== 'undefined') {
+        try {
+          timeDilation = eff;
+        } catch (_e) { /* ignore */ }
+      }
+
+      // Prefer GlobalClock API if present
+      if (window.gameClock && typeof gameClock.setTimeDilation === 'function') {
+        gameClock.setTimeDilation(eff);
+      } else {
+        // Fallback: set param and emit event so listeners can react
+        if (window.gameState && gameState.globalParameters) {
+          gameState.globalParameters.timeDilation = eff;
+        }
+        try {
+          document.dispatchEvent(
+            new CustomEvent('time-dilation-changed', { detail: { timeDilation: eff } })
+          );
+        } catch (_e) { /* ignore */ }
+      }
+      return eff;
+    }
+
+    return {
+      // public
+      setBase, addMod, removeMod, clearMods, getEffective, apply,
+      // exposed for debugging/inspection (read-only usage recommended)
+      _mods: mods
+    };
+  })();
+
+  window.TimeDilationAPI = api;
+
+  // Convenience debug hooks (safe no-ops if methods missing)
+  if (!window.setTimeDilation) window.setTimeDilation = (x) => api.setBase(x);
+  if (!window.addTimeDilationMod) window.addTimeDilationMod = (k, m) => api.addMod(k, m);
+  if (!window.removeTimeDilationMod) window.removeTimeDilationMod = (k) => api.removeMod(k);
+  if (!window.clearTimeDilationMods) window.clearTimeDilationMods = () => api.clearMods();
+  if (!window.setLogicHz) window.setLogicHz = (hz) => window.gameClock?.setLogicHz?.(hz);
+  if (!window.setRenderHz) window.setRenderHz = (hz) => window.gameClock?.setRenderHz?.(hz);
+
+  // Optional: lightweight console trace when dilation changes (only attach once)
+  if (!window.__td_logger_attached__) {
+    document.addEventListener('time-dilation-changed', (e) => {
+      if (e?.detail?.timeDilation != null) {
+        console.debug('[TimeDilation] effective =', e.detail.timeDilation);
+      }
+    });
+    window.__td_logger_attached__ = true;
+  }
+})();
+

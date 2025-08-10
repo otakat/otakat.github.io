@@ -268,13 +268,6 @@ body {
           font-size: 1.2em;
         }
 
-        .queue-list {
-          min-width: 60px;
-          text-align: center;
-          color: #555;
-          font-size: 0.9em;
-        }
-
         .action-button-container {
           flex: 0 0 auto;
           display: flex;
@@ -283,7 +276,7 @@ body {
           gap: 2px;
         }
 
-          .action-button, .queue-button {
+          .action-button {
             flex: 0 0 25px;
             height: 25px;
             width: 25px;
@@ -323,6 +316,7 @@ body {
           height: 100%;
           width: 0%;
           line-height: 20px; /* Match the height of the progress bar container */
+          transition: none !important;
         }
 
         .action-progress-bar-current {
