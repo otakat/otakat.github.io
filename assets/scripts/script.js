@@ -37,12 +37,9 @@ function doSkillsExist(skillOrSkills) {
 }
 
 function multiplyTimeChangeBySkills(timeChange, skills){
-  // Abort if any skill is illegal
-  if (!doSkillsExist(skills)) {return timeChange;}
-
   let multipliers = skills.map(skill => {
-    currentLevel = gameState.skills[skill].current_level
-    permanentLevel = gameState.skills[skill].permanent_level
+    const currentLevel = gameState.skills[skill].current_level
+    const permanentLevel = gameState.skills[skill].permanent_level
 
     return Math.pow(1.1, currentLevel) * Math.pow(1.01, permanentLevel);
   });
