@@ -6,6 +6,7 @@ const pauseStates = {
 }
 
 const emptyGameState = {
+  debugMode: false,
   actionsAvailable: ["book1_action1"],
   actionsActive: [],
   actionsQueued: [],
