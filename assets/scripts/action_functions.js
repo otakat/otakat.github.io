@@ -126,6 +126,7 @@ class GameAction {
                 // Process time change
     this.progress.timeCurrent += newTimeChange;
     this.progress.mastery += newTimeChange;
+    if (newTimeChange > 0) consumeTime(newTimeChange / 1000);
 
     if (this.progress.timeCurrent >= this.data.length) {
       this.finish();
@@ -305,9 +306,6 @@ function activateAction(actionId) {
 
   const ok = a.start();
   if (!ok) return false;
-
-  consumeTime((a.data.length ?? 0) / 1000);
-  if (timeRemaining <= 0) { return false; }
 
   const maxActive = gameState.globalParameters.actionsMaxActive;
   if (gameState.actionsActive.length >= maxActive) {
