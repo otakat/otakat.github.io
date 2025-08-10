@@ -149,7 +149,7 @@ const book1_actions = {
 }
 
 const storylines = {
-  book1_opener: 'You awaken at the edge of the Hemlock Forest, moonlight tracing silver across the leaves.',
+  book1_opener: 'You boot up at the edge of Hemlock Forest, neon dawn flickering through the branches.',
   book1_action1_complete: 'The trail leads you to a quiet glade.',
   book2_action1_complete: 'A lantern of pure dawnlight hangs from your belt.',
   book3_action1_complete: 'The Silent Knight rises, voice restored.',

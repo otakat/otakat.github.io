@@ -222,9 +222,11 @@ function createNewAction(id) {
       <span class="action-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Action Label">${label}</span>
       <span class="queue-list"></span>
       <span class="action-button-container">
+
         <button id="start-button" class="action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Start">⏵</button>
         <button id="stop-button" class="action-button stop-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Stop">X</button>
         <button id="queue-button" class="action-button queue-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to queue">⨮</button>
+
       </span>
     </div>
     <div class="action-progress-container">
@@ -234,6 +236,8 @@ function createNewAction(id) {
     </div>
   `;
   document.getElementById('all-actions-container').appendChild(container);
+  const tooltipButtons = container.querySelectorAll('[data-bs-toggle="tooltip"]');
+  tooltipButtons.forEach(el => new bootstrap.Tooltip(el));
 
   if (!gameState.actionsAvailable.includes(id)) {
     container.style.display = 'none';
