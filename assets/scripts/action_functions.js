@@ -56,25 +56,24 @@ class GameAction {
         get isQueued() {return gameState.actionsQueued.includes(this.id);}
 
         canStart() {
-                if (!this.data || !this.progress) {return false;}
-                if (!this.isAvailable) {return false;}
-                if (this.progress.completions >= this.data.completionMax) {return false;}
+                if (!this.data || !this.progress) {return {ok: false};}
+                if (!this.isAvailable) {return {ok: false};}
+                if (this.progress.completions >= this.data.completionMax) {return {ok: false};}
                 const req = this.data.requirements;
                 const res = evaluateRequirements(req);
-                return res.ok;
+                return res;
         }
 
         start() {
-                if (!this.data || !this.progress) {
-        console.error('Invalid action data');
-        return false;
-    }
-                const req = this.data.requirements;
-                const res = evaluateRequirements(req);
+                const res = this.canStart();
                 if (!res.ok) {
-                  const msg = buildRequirementsMessage(res.unmet);
-                  logPopupCombo(msg, 'warning');
-                  return false;
+                        if (res.unmet) {
+                                const msg = buildRequirementsMessage(res.unmet);
+                                logPopupCombo(msg, 'warning');
+                        } else {
+                                console.error('Invalid action data');
+                        }
+                        return false;
                 }
 
                 const effects = this.data.startEffects;
@@ -383,7 +382,7 @@ function processActiveAndQueuedActions() {
     if (gameState.actionsActive.includes(actionObject.id)) {
       actionObject.elements.progressContainer.style.border = '2px solid blue';
       actionObject.elements.progressBarCurrent.classList.add('active');
-    } else if (!actionObject.canStart()) {
+    } else if (!actionObject.canStart().ok) {
       actionObject.elements.progressContainer.style.border = '2px solid red';
       actionObject.elements.progressBarCurrent.classList.remove('active');
     } else {
