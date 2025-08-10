@@ -70,7 +70,7 @@ function updateSkill(skill, timeChange) {
 
 
   skill_to_update.current_progress += timeChange;
-  if (skill_to_update.current_progress > currentExperienceToLevel) {
+  if (skill_to_update.current_progress >= currentExperienceToLevel) {
     skill_to_update.current_level += 1;
 
     skill_to_update.current_progress -= currentExperienceToLevel;
@@ -79,7 +79,7 @@ function updateSkill(skill, timeChange) {
 
 
   skill_to_update.permanent_progress += timeChange;
-  if (skill_to_update.permanent_progress > permanentExperienceToLevel) {
+  if (skill_to_update.permanent_progress >= permanentExperienceToLevel) {
     skill_to_update.permanent_level += 1;
     skill_to_update.permanent_progress -= permanentExperienceToLevel;
   }
