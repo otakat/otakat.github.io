@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     debugToggle.addEventListener('change', e => {
       gameState.debugMode = e.target.checked;
       saveGame();
+      if (typeof processActiveAndQueuedActions === 'function') {
+        processActiveAndQueuedActions();
+      }
     });
   }
   updateDebugToggle();
