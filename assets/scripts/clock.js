@@ -85,4 +85,7 @@ class GlobalClock {
 
 window.addEventListener('load', () => {
   window.gameClock = new GlobalClock();
+  document.addEventListener('heartbeat', () => {
+    if (gameState.debugMode) console.log('Tick!');
+  });
 });
