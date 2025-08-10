@@ -372,6 +372,16 @@ function processActiveAndQueuedActions() {
   }
 
   const queueExtrasThreshold = 3;
+
+  const queuedPositionsMap = {};
+  gameState.actionsQueued.forEach((queuedActionId, index) => {
+    if (queuedPositionsMap[queuedActionId]) {
+      queuedPositionsMap[queuedActionId].push(index);
+    } else {
+      queuedPositionsMap[queuedActionId] = [index];
+    }
+  });
+
   Object.values(actionsConstructed).forEach(actionObject => {
     if (actionObject.progress.completions >= actionObject.data.completionMax && !gameState.debugMode) {
       actionObject.container.style.display = 'none';
@@ -395,15 +405,11 @@ function processActiveAndQueuedActions() {
     actionObject.elements.queueList.innerText = '';
 
     let queueText = '';
-    let queueCount = 0;
+    const positions = queuedPositionsMap[actionObject.id] || [];
+    const queueCount = positions.length;
 
-    gameState.actionsQueued.forEach((queuedActionId, index) => {
-      if (queuedActionId === actionObject.id) {
-        queueCount += 1;
-        if (index < queueExtrasThreshold) {
-          queueText += ' ' + (index + 1);
-        }
-      }
+    positions.slice(0, queueExtrasThreshold).forEach(pos => {
+      queueText += ' ' + (pos + 1);
     });
 
     if (queueCount > queueExtrasThreshold) {
