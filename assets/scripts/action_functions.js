@@ -24,8 +24,9 @@ class GameAction {
               progressText: this.container.querySelector('.action-progress-text'),
               progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
               progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
-              buttonActivate: this.container.querySelector('.action-button'),
-              buttonQueue: this.container.querySelector('.queue-button'),
+              buttonActivate: this.container.querySelector('#start-button'),
+              buttonStop: this.container.querySelector('#stop-button'),
+              buttonQueue: this.container.querySelector('#queue-button'),
               queueList: this.container.querySelector('.queue-list')
                         }
       // Allow clicking anywhere on the action body to toggle the action
@@ -34,7 +35,11 @@ class GameAction {
       // Add button effects
       this.elements.buttonActivate.addEventListener('click', (event) => {
         event.stopPropagation();
-        toggleAction(id);
+        activateAction(id);
+      });
+      this.elements.buttonStop.addEventListener('click', (event) => {
+        event.stopPropagation();
+        fullyDeactivateAction(id);
       });
       this.elements.buttonQueue.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -93,6 +98,11 @@ class GameAction {
                 }
                 if (gameState.debugMode) console.log(`Action ${this.id} started`);
                 return true;
+        }
+
+        stop() {
+                // Placeholder for any future stop logic
+                if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
         }
 
   update(timeChange = 0) {
@@ -197,50 +207,53 @@ class GameAction {
 }
 
 // PROCEDURES
+// Build DOM for a new action and initialize its GameAction instance
 function createNewAction(id) {
-  if (actionsConstructed.hasOwnProperty(id)) {
-    console.error('Action is already constructed:',id)
-    return;
-  }
+  if (id in actionsConstructed) { console.error('Action already constructed:', id); return; }
+  if (!hasActionData(id)) { console.error('Action data does not exist:', id); return; }
 
-  let label = book1_actions[id].label
+  const label = book1_actions[id].label;
 
-  // Create the HTML structure for the action container
   const container = document.createElement('div');
   container.id = id;
   container.className = 'action-container';
   container.innerHTML = `
     <div class="action-header">
-      <span class="action-label">${label}</span>
+      <span class="action-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Action Label">${label}</span>
       <span class="queue-list"></span>
       <span class="action-button-container">
-        <button class="action-button">⏵</button>
-        <button class="queue-button">⨮</button>
+
+        <button id="start-button" class="action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Start">⏵</button>
+        <button id="stop-button" class="action-button stop-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Stop">X</button>
+        <button id="queue-button" class="action-button queue-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to queue">⨮</button>
+
       </span>
     </div>
     <div class="action-progress-container">
       <div class="action-progress-text">0% Mastery + 0% Current</div>
-      <div class="action-progress-bar-mastery"></div>
-      <div class="action-progress-bar-current"></div>
+      <div class="action-progress-bar-mastery progress-bar"></div>
+      <div class="action-progress-bar-current progress-bar"></div>
     </div>
   `;
-
-  // Add the new container to the game
   document.getElementById('all-actions-container').appendChild(container);
-  //container.addEventListener('mouseover', (event) => showTooltip(event, id))
-  //container.addEventListener('mouseout', hideTooltip);
+  const tooltipButtons = container.querySelectorAll('[data-bs-toggle="tooltip"]');
+  tooltipButtons.forEach(el => new bootstrap.Tooltip(el));
 
-  // Hide the container if the action is not currently available
-  if (gameState.actionsAvailable.includes(id) === false) {
-    container.style.display = "none";
+  if (!gameState.actionsAvailable.includes(id)) {
+    container.style.display = 'none';
   }
 
-  // Initialize the GameAction for this container
   actionsConstructed[id] = new GameAction(id);
 }
 
-function getAction(actionId) {
-	return actionsConstructed.hasOwnProperty(actionId) ? actionsConstructed[actionId] : false;
+// Access a constructed GameAction safely
+function getAction(id) {
+  return actionsConstructed[id];
+}
+
+// Check for existence of action data
+function hasActionData(id) {
+  return (id in book1_actions);
 }
 
 function removeAction(actionId) {
@@ -270,19 +283,14 @@ function makeActionAvailable(actionId) {
 }
 
 function makeActionUnavailable(actionId) {
-  gameState.actionsAvailable = gameState.actionsAvailable.filter(
-    value => value !== actionId
-  )
-  gameState.actionsActive = gameState.actionsActive.filter(
-    value => value !== actionId
-  )
-  gameState.actionsQueued = gameState.actionsQueued.filter(
-    value => value !== actionId
-  )
-  processActiveAndQueuedActions();
+  fullyDeactivateAction(actionId);
+  gameState.actionsAvailable = gameState.actionsAvailable.filter(v => v !== actionId);
 
-  actionsConstructed[actionId].container.style.background = '#888'
-  //removeAction(actionId);
+  if (actionsConstructed[actionId]) {
+    actionsConstructed[actionId].container.style.background = '#888';
+    // Optionally hide:
+    // actionsConstructed[actionId].container.style.display = 'none';
+  }
 }
 
 function toggleAction(actionId) {
@@ -294,31 +302,63 @@ function toggleAction(actionId) {
   }
 }
 
-function activateAction(actionId) {
-	if (actionsConstructed[actionId] === undefined) {
-		console.error("No GameAction object constructed: ",actionId)
-	}
-	const startSuccessful = actionsConstructed[actionId].start();
-	console.log(startSuccessful);
+// Activate actions from the queue until one succeeds
+function activateActionQueue() {
+  // Skip invalid or unavailable ids until we find a good one or run out
+  while (gameState.actionsQueued.length > 0) {
+    const next = gameState.actionsQueued.shift();
+    if (!next) continue;
+    if (!hasActionData(next)) { console.error('Queue contained unknown action:', next); continue; }
+    if (activateAction(next)) return true;
+  }
+  return false;
+}
 
-  if (startSuccessful) {
-      const index = gameState.actionsActive.indexOf(actionId);
-      if (index === 0) {return;}
-      if (index > 0) {gameState.actionsActive.splice(index, 1);}
-      gameState.actionsActive.unshift(actionId);
+// Start an action and add it to the active list
+function activateAction(actionId) {
+  const a = getAction(actionId);
+  if (!a) { console.error('No GameAction constructed:', actionId); return false; }
+
+  // Don’t add the same id twice to active
+  if (gameState.actionsActive.includes(actionId)) {
+    // Ensure listener is on, just in case
+    a.start();
+    processActiveAndQueuedActions();
+    return true;
   }
 
+  const ok = a.start();
+  if (!ok) return false;
+
+  gameState.actionsActive.unshift(actionId);
   processActiveAndQueuedActions();
+  return true;
 }
 
+// Stop an action and remove it from the active list
 function deactivateAction(actionId) {
-  gameState.actionsActive = gameState.actionsActive.filter(
-    value => value !== actionId
-  )
+  const a = getAction(actionId);
+  if (a) a.stop();
+
+  gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
   processActiveAndQueuedActions();
 }
 
-function queueAction(actionId) {
+// Stop an action and clear it from both active and queued lists
+function fullyDeactivateAction(actionId) {
+  const a = getAction(actionId);
+  if (a) a.stop();
+
+  gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
+  gameState.actionsQueued = gameState.actionsQueued.filter(x => x !== actionId);
+  processActiveAndQueuedActions();
+}
+
+// Add an action to the queue; optionally prevent duplicates
+function queueAction(actionId, dedup = false) {
+  if (!hasActionData(actionId)) { console.error('Cannot queue unknown action:', actionId); return; }
+  if (dedup && gameState.actionsQueued.includes(actionId)) return;
+
   gameState.actionsQueued.push(actionId);
   processActiveAndQueuedActions();
 }

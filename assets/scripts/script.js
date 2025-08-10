@@ -258,7 +258,6 @@ function unlockArtifact(id) {
     updateArtifactsUI();
     applyArtifactEffects(id);
     logPopupCombo('You discovered ' + artifactData[id].label + '!', 'primary');
-    saveGame();
   }
 }
 
@@ -381,61 +380,43 @@ function processScheduledEvents() {
   });
 }
 
-function updateFrameClock(currentTime) {
-  // Start the first item in the queue if nothing is active
+function runGameTick(stepMs) {
+  // Start first queued action when clock ticks and slot open
   if (
     gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive &&
     gameState.actionsQueued.length >= 1 &&
     !gameState.pausedReasons.includes(pauseStates.MANUAL) &&
     !gameState.pausedReasons.includes(pauseStates.MODAL)
   ) {
-    let newAction = gameState.actionsQueued.shift();
+    const newAction = gameState.actionsQueued.shift();
     activateAction(newAction);
   }
 
-  // Auto pause when there are no actions, unpause when there are any
+  // Auto pause when no actions remain
   if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0) {
     addPauseState(pauseStates.INACTIVE);
   } else {
     deletePauseState(pauseStates.INACTIVE);
   }
 
-  if (currentTime === undefined) {
-    currentTime = performance.now();
+  framesTotal += 1;
+  if (!isGamePaused()) {
+    timeTotal += stepMs;
+    gameState.actionsActive.forEach(actionId => {
+      actionsConstructed[actionId].update(stepMs);
+    });
+    let totalDrain = 0;
+    gameState.actionsActive.forEach(actionId => {
+      const a = actionsConstructed[actionId];
+      totalDrain += (a?.data?.healthCostMultiplier ?? 1) * stepMs;
+    });
+    updateHealthBar(totalDrain);
+    processScheduledEvents();
   }
-
-  accumulatedTime += (currentTime - lastUpdateTime) * timeDilation;
-  lastUpdateTime = currentTime;
-
-  const maxAccumulatedTime = frameDuration * 5;
-  if (accumulatedTime > maxAccumulatedTime) {
-    accumulatedTime = maxAccumulatedTime;
-  }
-
-  while (accumulatedTime >= frameDuration) {
-    framesTotal += 1;
-
-    if (!isGamePaused()) {
-      timeTotal += frameDuration;
-
-      gameState.actionsActive.forEach(actionId => {
-        actionsConstructed[actionId].update(frameDuration);
-      });
-
-        let totalDrain = 0;
-        gameState.actionsActive.forEach(actionId => {
-          const a = actionsConstructed[actionId];
-          totalDrain += (a?.data?.healthCostMultiplier ?? 1) * frameDuration;
-        });
-        updateHealthBar(totalDrain);
-        processScheduledEvents();
-      }
-
-    accumulatedTime -= frameDuration;
-  }
-
-  window.requestAnimationFrame(updateFrameClock);
 }
+
+// Listen for each fixed clock beat
+document.addEventListener('tick-fixed', e => runGameTick(e.detail.stepMs));
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
@@ -483,24 +464,13 @@ function openTab(tabId = 'None') {
     }
 }
 
-function showTooltip(event, text = 'Default') {
-  if (window.matchMedia('(pointer: coarse)').matches) {return;}
-
-  let tooltip = document.getElementById('tooltip');
-  tooltip.innerHTML = text;
-  tooltip.style.display = 'block';
-
-  let scrollX = window.scrollX || document.documentElement.scrollLeft;
-  let scrollY = window.scrollY || document.documentElement.scrollTop;
-
-  tooltip.style.left = (event.clientX + scrollX + 20) + 'px';
-  tooltip.style.top = (event.clientY + scrollY) + 'px';
-}
-
 function showResetPopup(){
+  // Halt clock and display results
   gameOver = true;
-  addPauseState(pauseStates.MANUAL);
+  addPauseState(pauseStates.MODAL);
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = true);
+  const restartBtn = document.querySelector('#resetModal button');
+  if (restartBtn) {restartBtn.disabled = false;}
 
   const summaryList = document.getElementById('reset-summary');
   summaryList.innerHTML = '';
@@ -518,12 +488,14 @@ function showResetPopup(){
     summaryList.appendChild(li);
   });
 
-  document.getElementById('reset-popup').classList.remove('d-none');
+  const modal = new bootstrap.Modal(document.getElementById('resetModal'));
+  modal.show();
   if (!gameState.artifacts?.skillbook) {unlockArtifact('skillbook');}
 }
 
 function restartGame(){
-  document.getElementById('reset-popup').classList.add('d-none');
+  const modal = bootstrap.Modal.getInstance(document.getElementById('resetModal'));
+  if (modal) {modal.hide();}
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = false);
 
   gameState.health.current = gameState.health.max;
@@ -549,12 +521,7 @@ function restartGame(){
 
   gameOver = false;
   initializeGame();
-  deletePauseState(pauseStates.MANUAL);
-}
-
-function hideTooltip() {
-    let tooltip = document.getElementById('tooltip');
-    tooltip.style.display = 'none';
+  deletePauseState(pauseStates.MODAL); // clock resumes
 }
 
 function resetGameState() {

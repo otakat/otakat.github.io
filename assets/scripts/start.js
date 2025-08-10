@@ -1,10 +1,13 @@
 /// INITIALIZATION ///
+
 let gameActive = true;
 let manualPause = false;
 let frameRate = 60;
 // Initialize legacy timeDilation variable from base game state
 let timeDilation = emptyGameState.globalParameters.timeDilation;
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
+let framesTotal = 0;    // Counts clock ticks since load
+let timeTotal = 0;      // Accumulates clock ms for scheduling
 
 function updateDebugToggle() {
   const debugToggle = document.getElementById('debug-toggle');
@@ -40,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (debugToggle) {
     debugToggle.addEventListener('change', e => {
       gameState.debugMode = e.target.checked;
-      saveGame();
       if (typeof processActiveAndQueuedActions === 'function') {
         processActiveAndQueuedActions();
       }
@@ -64,25 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateTimeDilationDisplay();
   });
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipTriggerList].forEach(el => new bootstrap.Tooltip(el));
   updateDebugToggle();
 });
 
-
-
-// Initialize clock variables
-let frameDuration = 1000 / frameRate;
-let framesTotal = 0;
-let timeTotal = 0;
-let lastUpdateTime = performance.now();
-let accumulatedTime = 0;
-
-
-
-// Initialize an action
-//createNewAction('action1', 'Pull Weeds', 5000, book1_pull_weeds, 'Test1');
-//createNewAction('action2', 'Talk to Mom', 5000, book1_talk_mom, 'Test2');
-
-//openTab('actions-tab');
-window.requestAnimationFrame(updateFrameClock);
+// Kickoff at clock zero
 window.onload = loadGame;
-setInterval(saveGame, 10000);
