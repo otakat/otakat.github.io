@@ -46,9 +46,18 @@ class GameAction {
 			processActiveAndQueuedActions()
   }
 
-	get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
-	get isActive() {return gameState.actionsActive.includes(this.id);}
-	get isQueued() {return gameState.actionsQueued.includes(this.id);}
+        get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
+        get isActive() {return gameState.actionsActive.includes(this.id);}
+        get isQueued() {return gameState.actionsQueued.includes(this.id);}
+
+        canStart() {
+                if (!this.data || !this.progress) {return false;}
+                if (!this.isAvailable) {return false;}
+                if (this.progress.completions >= this.data.completionMax) {return false;}
+                const req = this.data.requirements;
+                const res = evaluateRequirements(req);
+                return res.ok;
+        }
 
         start() {
                 if (!this.data || !this.progress) {
@@ -324,10 +333,19 @@ function processActiveAndQueuedActions() {
 
   const queueExtrasThreshold = 3;
   Object.values(actionsConstructed).forEach(actionObject => {
-    // Color each active action blue, otherwise black
-    if (gameState.actionsActive.includes(actionObject.id) === true) {
+    if (actionObject.progress.completions >= actionObject.data.completionMax && !gameState.debugMode) {
+      actionObject.container.style.display = 'none';
+      return;
+    } else {
+      actionObject.container.style.display = 'block';
+    }
+
+    if (gameState.actionsActive.includes(actionObject.id)) {
       actionObject.elements.progressContainer.style.border = '2px solid blue';
       actionObject.elements.progressBarCurrent.classList.add('active');
+    } else if (!actionObject.canStart()) {
+      actionObject.elements.progressContainer.style.border = '2px solid red';
+      actionObject.elements.progressBarCurrent.classList.remove('active');
     } else {
       actionObject.elements.progressContainer.style.border = '2px solid black';
       actionObject.elements.progressBarCurrent.classList.remove('active');
