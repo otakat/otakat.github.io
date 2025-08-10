@@ -1,3 +1,4 @@
+// States allowed for gameState.paused
 const pauseStates = {
   MANUAL: 'Paused (Manual)',
   INACTIVE: 'Paused (No Actions)',
