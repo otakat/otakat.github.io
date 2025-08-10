@@ -155,11 +155,12 @@ class GameAction {
 
     if (completed && !this.finishing) {
       this.finishing = true;
-      // Delay finish until the next frame so 100% progress renders
-      if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => this.finish());
+      // Wait two frames before finishing so the bar paints at 100%
+      const finalize = () => this.finish();
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => requestAnimationFrame(finalize));
       } else {
-        setTimeout(() => this.finish(), 0);
+        setTimeout(finalize, 0);
       }
     }
 
