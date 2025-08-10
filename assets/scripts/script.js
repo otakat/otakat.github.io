@@ -627,3 +627,102 @@ function initializeGame() {
   });
   updateArtifactsUI();
 }
+
+/* ===== Time Dilation API (non-destructive) =====
+   Lets gameplay and debug stack multiple multipliers.
+   - Base dilation comes from gameState.globalParameters.timeDilationBase (or timeDilation, else 1).
+   - Effective dilation = base * product(modifiers).
+   - If GlobalClock.setTimeDilation exists, we call it; else we set gameState.globalParameters.timeDilation and emit an event.
+*/
+(function () {
+  if (window.TimeDilationAPI) return; // already installed
+
+  function clamp01to100(x, def = 1) {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return def;
+    return Math.min(Math.max(n, 0.05), 100);
+  }
+
+  const api = (function () {
+    const mods = new Map(); // key -> multiplier (number)
+
+    function getBase() {
+      const gp = (window.gameState && gameState.globalParameters) || {};
+      if (Number.isFinite(gp.timeDilationBase)) return gp.timeDilationBase;
+      if (Number.isFinite(gp.timeDilation)) return gp.timeDilation; // backward compat
+      return 1;
+    }
+
+    function setBase(x) {
+      const clamped = clamp01to100(x, 1);
+      if (!window.gameState) window.gameState = { globalParameters: {} };
+      if (!gameState.globalParameters) gameState.globalParameters = {};
+      gameState.globalParameters.timeDilationBase = clamped;
+      return apply();
+    }
+
+    function addMod(key, mult) {
+      if (!key) return false;
+      mods.set(String(key), clamp01to100(mult, 1));
+      return apply();
+    }
+
+    function removeMod(key) {
+      mods.delete(String(key));
+      return apply();
+    }
+
+    function getEffective() {
+      const product =
+        Array.from(mods.values()).reduce((a, b) => a * b, 1);
+      return getBase() * product;
+    }
+
+    function apply() {
+      const eff = getEffective();
+
+      // Prefer GlobalClock API if present
+      if (window.gameClock && typeof gameClock.setTimeDilation === 'function') {
+        gameClock.setTimeDilation(eff);
+      } else {
+        // Fallback: set param and emit event so listeners can react
+        if (window.gameState && gameState.globalParameters) {
+          gameState.globalParameters.timeDilation = eff;
+        }
+        try {
+          document.dispatchEvent(
+            new CustomEvent('time-dilation-changed', { detail: { timeDilation: eff } })
+          );
+        } catch (_e) { /* ignore */ }
+      }
+      return eff;
+    }
+
+    return {
+      // public
+      setBase, addMod, removeMod, getEffective, apply,
+      // exposed for debugging/inspection (read-only usage recommended)
+      _mods: mods
+    };
+  })();
+
+  window.TimeDilationAPI = api;
+
+  // Convenience debug hooks (safe no-ops if methods missing)
+  if (!window.setTimeDilation) window.setTimeDilation = (x) => api.setBase(x);
+  if (!window.addTimeDilationMod) window.addTimeDilationMod = (k, m) => api.addMod(k, m);
+  if (!window.removeTimeDilationMod) window.removeTimeDilationMod = (k) => api.removeMod(k);
+  if (!window.setLogicHz) window.setLogicHz = (hz) => window.gameClock?.setLogicHz?.(hz);
+  if (!window.setRenderHz) window.setRenderHz = (hz) => window.gameClock?.setRenderHz?.(hz);
+
+  // Optional: lightweight console trace when dilation changes (only attach once)
+  if (!window.__td_logger_attached__) {
+    document.addEventListener('time-dilation-changed', (e) => {
+      if (e?.detail?.timeDilation != null) {
+        console.debug('[TimeDilation] effective =', e.detail.timeDilation);
+      }
+    });
+    window.__td_logger_attached__ = true;
+  }
+})();
+
