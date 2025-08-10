@@ -78,13 +78,13 @@ class GameAction {
 			if (!continueAfterCompletions)	{return false};
 		}
 
-		if ('each' in effects) {
-			const continueAfterEach = effects.each(this.id);
-			if (!continueAfterEach) {return false;}
-		}
-
-		return true;
-	}
+                if ('each' in effects) {
+                        const continueAfterEach = effects.each(this.id);
+                        if (!continueAfterEach) {return false;}
+                }
+                if (gameState.debugMode) console.log(`Action ${this.id} started`);
+                return true;
+        }
 
   update(timeChange = 0) {
     if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
@@ -132,12 +132,13 @@ class GameAction {
 
   }
 
-  finish() {
-    this.progress.completions += 1;
-    this.calculateTimeStart();
-    this.progress.timeCurrent = this.progress.timeStart;
-    this.update();
-    deactivateAction(this.id);
+    finish() {
+      this.progress.completions += 1;
+      if (gameState.debugMode) console.log(`Action ${this.id} finished`);
+      this.calculateTimeStart();
+      this.progress.timeCurrent = this.progress.timeStart;
+      this.update();
+      deactivateAction(this.id);
 
     this.data.completionEffects.each(this.id);
 
