@@ -280,6 +280,13 @@ function queueAction(actionId) {
 }
 
 function processActiveAndQueuedActions() {
+  // Toggle paused state based on active actions
+  if (gameState.actionsActive.length === 0) {
+    addPauseState(pauseStates.INACTIVE);
+  } else {
+    deletePauseState(pauseStates.INACTIVE);
+  }
+
   // Transfer excess actions from active to the front of the queue
   if (gameState.actionsActive.length > gameState.globalParameters.actionsMaxActive) {
     const excessNumber = gameState.actionsActive.length - gameState.globalParameters.actionsMaxActive;
