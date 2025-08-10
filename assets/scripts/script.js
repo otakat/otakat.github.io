@@ -381,61 +381,7 @@ function processScheduledEvents() {
   });
 }
 
-function updateFrameClock(currentTime) {
-  // Start the first item in the queue if nothing is active
-  if (
-    gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive &&
-    gameState.actionsQueued.length >= 1 &&
-    !gameState.pausedReasons.includes(pauseStates.MANUAL) &&
-    !gameState.pausedReasons.includes(pauseStates.MODAL)
-  ) {
-    let newAction = gameState.actionsQueued.shift();
-    activateAction(newAction);
-  }
-
-  // Auto pause when there are no actions, unpause when there are any
-  if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0) {
-    addPauseState(pauseStates.INACTIVE);
-  } else {
-    deletePauseState(pauseStates.INACTIVE);
-  }
-
-  if (currentTime === undefined) {
-    currentTime = performance.now();
-  }
-
-  accumulatedTime += (currentTime - lastUpdateTime) * timeDilation;
-  lastUpdateTime = currentTime;
-
-  const maxAccumulatedTime = frameDuration * 5;
-  if (accumulatedTime > maxAccumulatedTime) {
-    accumulatedTime = maxAccumulatedTime;
-  }
-
-  while (accumulatedTime >= frameDuration) {
-    framesTotal += 1;
-
-    if (!isGamePaused()) {
-      timeTotal += frameDuration;
-
-      gameState.actionsActive.forEach(actionId => {
-        actionsConstructed[actionId].update(frameDuration);
-      });
-
-        let totalDrain = 0;
-        gameState.actionsActive.forEach(actionId => {
-          const a = actionsConstructed[actionId];
-          totalDrain += (a?.data?.healthCostMultiplier ?? 1) * frameDuration;
-        });
-        updateHealthBar(totalDrain);
-        processScheduledEvents();
-      }
-
-    accumulatedTime -= frameDuration;
-  }
-
-  window.requestAnimationFrame(updateFrameClock);
-}
+// Legacy per-frame updater removed; actions now progress via 'tick' events.
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {

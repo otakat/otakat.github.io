@@ -42,6 +42,5 @@ let accumulatedTime = 0;
 //createNewAction('action2', 'Talk to Mom', 5000, book1_talk_mom, 'Test2');
 
 //openTab('actions-tab');
-window.requestAnimationFrame(updateFrameClock);
 window.onload = loadGame;
 setInterval(saveGame, 10000);
