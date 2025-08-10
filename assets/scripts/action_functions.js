@@ -26,6 +26,7 @@ class GameAction {
               progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
               buttonActivate: this.container.querySelector('#start-button'),
               buttonStop: this.container.querySelector('#stop-button')
+                          
                         }
       // Allow clicking anywhere on the action body to toggle the action
       this.container.addEventListener('click', () => toggleAction(id));
@@ -216,7 +217,6 @@ function createNewAction(id) {
 
         <button id="start-button" class="action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Start">⏵</button>
         <button id="stop-button" class="action-button stop-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Stop">X</button>
-
       </span>
     </div>
     <div class="action-progress-container">
@@ -302,7 +302,6 @@ function activateAction(actionId) {
     a.start();
     processActiveAndQueuedActions();
     return true;
-  }
 
   const ok = a.start();
   if (!ok) return false;
@@ -327,7 +326,9 @@ function deactivateAction(actionId) {
   processActiveAndQueuedActions();
 }
 
+
 // Stop an action and remove it from the active list
+
 function fullyDeactivateAction(actionId) {
   const a = getAction(actionId);
   if (a) a.stop();
