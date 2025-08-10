@@ -390,9 +390,9 @@ function updateFrameClock(currentTime) {
 
   // Auto pause when there are no actions, unpause when there are any
   if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0) {
-    addPauseReason(pauseStates.INACTIVE);
+    addPauseState(pauseStates.INACTIVE);
   } else {
-    removePauseReason(pauseStates.INACTIVE);
+    deletePauseState(pauseStates.INACTIVE);
   }
 
   if (currentTime === undefined) {
@@ -434,56 +434,10 @@ function updateFrameClock(currentTime) {
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
-    removePauseReason(pauseStates.MANUAL);
+    deletePauseState(pauseStates.MANUAL);
   } else {
-    addPauseReason(pauseStates.MANUAL, pauseStates.MANUAL, pauseStates.MANUAL);
+    addPauseState(pauseStates.MANUAL);
   }
-}
-
-function addPauseReason(reason, logText, buttonLabel) {
-  if (!gameState.pausedReasons.includes(reason)) {
-    gameState.pausedReasons.push(reason);
-    if (logText !== undefined) {
-      logPopupCombo(logText, 'secondary');
-    }
-  }
-  processPauseButton(buttonLabel);
-}
-
-function removePauseReason(reason, logText, buttonLabel) {
-  const index = gameState.pausedReasons.indexOf(reason);
-  if (index !== -1) {
-    gameState.pausedReasons.splice(index, 1);
-    if (logText !== undefined) {
-      logPopupCombo(logText, 'secondary');
-    }
-  }
-  processPauseButton(buttonLabel);
-}
-
-function clearPauseReasons() {
-  gameState.pausedReasons = [];
-  processPauseButton();
-}
-
-function processPauseButton(buttonLabel) {
-  if (buttonLabel === undefined) {
-    if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
-      buttonLabel = pauseStates.MANUAL;
-    } else if (gameState.pausedReasons.includes(pauseStates.MODAL)) {
-      buttonLabel = pauseStates.MODAL;
-    } else if (gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
-      buttonLabel = pauseStates.INACTIVE;
-    } else {
-      buttonLabel = 'Running (▶)';
-    }
-  }
-
-  document.getElementById('pause-button').innerText = buttonLabel
-}
-
-function isGamePaused() {
-  return gameState.pausedReasons.length > 0;
 }
 
 function updateHealthBar(timeChange = 0) {
@@ -528,7 +482,7 @@ function showTooltip(event, text = 'Default') {
 
 function showResetPopup(){
   gameOver = true;
-  addPauseReason(pauseStates.MANUAL, undefined, pauseStates.MANUAL);
+  addPauseState(pauseStates.MANUAL);
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = true);
 
   const summaryList = document.getElementById('reset-summary');
@@ -578,7 +532,7 @@ function restartGame(){
 
   gameOver = false;
   initializeGame();
-  removePauseReason(pauseStates.MANUAL);
+  deletePauseState(pauseStates.MANUAL);
 }
 
 function hideTooltip() {
