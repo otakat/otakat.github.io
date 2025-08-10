@@ -460,9 +460,21 @@ function openTab(tabId = 'None') {
         tabContents[i].classList.add('d-none');
     }
 
-    // Show the specific tab content
-    if (tabId !== 'None') {
-      document.getElementById(tabId).classList.remove('d-none');
+    // Hide both main and settings panes
+    var settingsPane = document.getElementById('settings-pane');
+    var mainPane = document.getElementById('main-pane');
+    if (settingsPane) settingsPane.classList.add('d-none');
+    if (mainPane) mainPane.classList.add('d-none');
+
+    // Show the specific pane/tab
+    if (tabId === 'settings-pane') {
+        if (settingsPane) settingsPane.classList.remove('d-none');
+    } else {
+        if (mainPane) mainPane.classList.remove('d-none');
+        if (tabId !== 'None') {
+            var tab = document.getElementById(tabId);
+            if (tab) tab.classList.remove('d-none');
+        }
     }
 }
 
