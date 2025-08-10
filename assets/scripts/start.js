@@ -43,7 +43,6 @@ let gameActive = true;
 let manualPause = false;
 let frameRate = 60;
 let timeDilation = 2;
-let actionsConstructed = {};
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
 
 

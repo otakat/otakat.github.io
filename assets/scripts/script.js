@@ -1,12 +1,3 @@
-function sanitizeNumber(value, defaultValue = 0) {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  } else {
-    console.error("Value (" + value + ") is not a number, using default (" + defaultValue + ")");
-    return defaultValue;
-  }
-}
-
 function doSkillsExist(skillOrSkills) {
   // Define valid skills
   const validSkills = skillList;
@@ -390,26 +381,18 @@ function updateFrameClock(currentTime) {
   if (
     gameState.actionsActive.length < gameState.globalParameters.actionsMaxActive &&
     gameState.actionsQueued.length >= 1 &&
-    gameState.paused !== pauseStates.FULL_PAUSE
+    !gameState.pausedReasons.includes(pauseStates.MANUAL) &&
+    !gameState.pausedReasons.includes(pauseStates.MODAL)
   ) {
     let newAction = gameState.actionsQueued.shift();
     activateAction(newAction);
   }
 
-  // Soft pause the game if there are no active or queued actions
-  if (
-    (gameState.actionsActive.length + gameState.actionsQueued.length) === 0 &&
-    gameState.paused === pauseStates.NOT_PAUSED
-  ) {
-    setPauseState(pauseStates.SOFT_PAUSE);
-  }
-
-  // Unpause a soft paused game if there are any actions
-  if (
-    (gameState.actionsActive.length + gameState.actionsQueued.length) > 0 &&
-    gameState.paused === pauseStates.SOFT_PAUSE
-  ) {
-    setPauseState(pauseStates.NOT_PAUSED);
+  // Auto pause when there are no actions, unpause when there are any
+  if ((gameState.actionsActive.length + gameState.actionsQueued.length) === 0) {
+    addPauseReason(pauseStates.INACTIVE);
+  } else {
+    removePauseReason(pauseStates.INACTIVE);
   }
 
   if (currentTime === undefined) {
@@ -450,34 +433,49 @@ function updateFrameClock(currentTime) {
 }
 
 function buttonPause() {
-  if (gameState.paused !== pauseStates.FULL_PAUSE) {
-    setPauseState(pauseStates.FULL_PAUSE, 'Paused (Manual)', 'Paused (Manual)')
+  if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
+    removePauseReason(pauseStates.MANUAL);
   } else {
-    setPauseState(pauseStates.NOT_PAUSED) // Frame clock will auto pause if needed
+    addPauseReason(pauseStates.MANUAL, pauseStates.MANUAL, pauseStates.MANUAL);
   }
 }
 
-function setPauseState(newState, logText, buttonLabel) {
-  if ([pauseStates.NOT_PAUSED, pauseStates.SOFT_PAUSE, pauseStates.FULL_PAUSE].includes(newState)) {
-    gameState.paused = newState;
-
+function addPauseReason(reason, logText, buttonLabel) {
+  if (!gameState.pausedReasons.includes(reason)) {
+    gameState.pausedReasons.push(reason);
     if (logText !== undefined) {
       logPopupCombo(logText, 'secondary');
     }
-    processPauseButton(buttonLabel);
-  } else {
-    console.error('Invalid pause state: ', newState)
   }
+  processPauseButton(buttonLabel);
+}
+
+function removePauseReason(reason, logText, buttonLabel) {
+  const index = gameState.pausedReasons.indexOf(reason);
+  if (index !== -1) {
+    gameState.pausedReasons.splice(index, 1);
+    if (logText !== undefined) {
+      logPopupCombo(logText, 'secondary');
+    }
+  }
+  processPauseButton(buttonLabel);
+}
+
+function clearPauseReasons() {
+  gameState.pausedReasons = [];
+  processPauseButton();
 }
 
 function processPauseButton(buttonLabel) {
   if (buttonLabel === undefined) {
-    if (gameState.paused === pauseStates.NOT_PAUSED) {
-      buttonLabel = 'Running (▶)';
-    } else if (gameState.paused === pauseStates.SOFT_PAUSE) {
-      buttonLabel = 'Paused (Auto)';
+    if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
+      buttonLabel = pauseStates.MANUAL;
+    } else if (gameState.pausedReasons.includes(pauseStates.MODAL)) {
+      buttonLabel = pauseStates.MODAL;
+    } else if (gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
+      buttonLabel = pauseStates.INACTIVE;
     } else {
-      buttonLabel = 'Paused (Manual)';
+      buttonLabel = 'Running (▶)';
     }
   }
 
@@ -485,11 +483,7 @@ function processPauseButton(buttonLabel) {
 }
 
 function isGamePaused() {
-  if (gameState.paused === pauseStates.NOT_PAUSED) {
-    return false;
-  } else {
-    return true;
-  }
+  return gameState.pausedReasons.length > 0;
 }
 
 function updateHealthBar(timeChange = 0) {
@@ -534,7 +528,7 @@ function showTooltip(event, text = 'Default') {
 
 function showResetPopup(){
   gameOver = true;
-  setPauseState(pauseStates.FULL_PAUSE, undefined, 'Paused (Manual)');
+  addPauseReason(pauseStates.MANUAL, undefined, pauseStates.MANUAL);
   document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = true);
 
   const summaryList = document.getElementById('reset-summary');
@@ -584,7 +578,7 @@ function restartGame(){
 
   gameOver = false;
   initializeGame();
-  setPauseState(pauseStates.NOT_PAUSED);
+  removePauseReason(pauseStates.MANUAL);
 }
 
 function hideTooltip() {
@@ -618,26 +612,6 @@ function saveGame(isManualSave = false) {
       console.error(errorMessage);
     }
 
-}
-
-function aggregateObjectProperties(originalObject, newObject) {
-  // The new object take precedence;
-
-  let aggregateObject = {...originalObject};
-
-  for (let key in newObject) {
-    if (Array.isArray(newObject[key])) {
-        // If it's an array, replace it entirely from the saved state
-        aggregateObject[key] = newObject[key];
-    } else if (typeof newObject[key] === 'object' && newObject[key] !== null) {
-        // For objects, do a deep merge
-        aggregateObject[key] = {...originalObject[key], ...newObject[key]};
-    } else {
-        // For primitive types, just assign the saved state value
-        aggregateObject[key] = newObject[key];
-    }
-  }
-  return aggregateObject;
 }
 
 function loadGame() {
