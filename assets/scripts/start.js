@@ -2,7 +2,8 @@
 let gameActive = true;
 let manualPause = false;
 let frameRate = 60;
-let timeDilation = 2;
+// Initialize legacy timeDilation variable from base game state
+let timeDilation = emptyGameState.globalParameters.timeDilation;
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
 
 function updateDebugToggle() {
@@ -55,6 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
       updateTimeDilationDisplay();
     });
   }
+  document.addEventListener('time-dilation-changed', () => {
+    const slider = document.getElementById('time-dilation-slider');
+    if (slider) {
+      const base = gameState?.globalParameters?.timeDilationBase ?? gameState?.globalParameters?.timeDilation ?? 1;
+      slider.value = base;
+    }
+    updateTimeDilationDisplay();
+  });
   updateDebugToggle();
 });
 

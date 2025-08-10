@@ -681,6 +681,13 @@ function initializeGame() {
     function apply() {
       const eff = getEffective();
 
+      // Maintain compatibility with legacy global variable if present
+      if (typeof timeDilation !== 'undefined') {
+        try {
+          timeDilation = eff;
+        } catch (_e) { /* ignore */ }
+      }
+
       // Prefer GlobalClock API if present
       if (window.gameClock && typeof gameClock.setTimeDilation === 'function') {
         gameClock.setTimeDilation(eff);
