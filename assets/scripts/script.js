@@ -581,6 +581,7 @@ function loadGame() {
     logPopupCombo('Data Loaded', 'secondary');
   }
 
+  updateDebugToggle();
   initializeGame();
 }
 

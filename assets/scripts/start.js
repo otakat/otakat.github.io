@@ -46,6 +46,24 @@ let frameRate = 60;
 let timeDilation = 2;
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
 
+function updateDebugToggle() {
+  const debugToggle = document.getElementById('debug-toggle');
+  if (debugToggle) {
+    debugToggle.checked = gameState.debugMode;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const debugToggle = document.getElementById('debug-toggle');
+  if (debugToggle) {
+    debugToggle.addEventListener('change', e => {
+      gameState.debugMode = e.target.checked;
+      saveGame();
+    });
+  }
+  updateDebugToggle();
+});
+
 
 
 // Initialize clock variables
