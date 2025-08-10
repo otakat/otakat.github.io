@@ -151,6 +151,11 @@ class GameAction {
   }
 }
 
+function initializeSkills(skills) {
+  // Ensure skills exist in gameState
+  doSkillsExist(skills);
+}
+
 // PROCEDURES
 function createNewAction(id) {
   if (!(id in book1_actions)) {
