@@ -21,7 +21,20 @@ const emptyGameState = {
   globalParameters: {
     masteryMaxRatio: 0.9,
     masteryGrowthRate: 5e-6,
-    actionsMaxActive: 1
+    actionsMaxActive: 1,
+    renderHz: 60,
+    logicHz: 20,
+    timeDilation: 1
+  },
+  clock: {
+    totalClockTimeAll: 0,
+    totalGameTimeAll: 0,
+    totalClockTimeLoop: 0,
+    totalGameTimeLoop: 0,
+    unpausedClockTimeAll: 0,
+    unpausedGameTimeAll: 0,
+    unpausedClockTimeLoop: 0,
+    unpausedGameTimeLoop: 0
   }
 }
 
