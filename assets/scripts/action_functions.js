@@ -214,8 +214,8 @@ function createNewAction(id) {
       <span class="action-label">${label}</span>
       <span class="queue-list"></span>
       <span class="action-button-container">
-        <button class="action-button">⏵</button>
-        <button class="queue-button">⨮</button>
+        <button class="action-button" data-bs-toggle="tooltip" data-bs-title="Start">⏵</button>
+        <button class="queue-button" data-bs-toggle="tooltip" data-bs-title="Queue">⨮</button>
       </span>
     </div>
     <div class="action-progress-container">
@@ -227,8 +227,8 @@ function createNewAction(id) {
 
   // Add the new container to the game
   document.getElementById('all-actions-container').appendChild(container);
-  //container.addEventListener('mouseover', (event) => showTooltip(event, id))
-  //container.addEventListener('mouseout', hideTooltip);
+  const tooltipButtons = container.querySelectorAll('[data-bs-toggle="tooltip"]');
+  tooltipButtons.forEach(el => new bootstrap.Tooltip(el));
 
   // Hide the container if the action is not currently available
   if (gameState.actionsAvailable.includes(id) === false) {

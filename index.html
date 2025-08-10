@@ -9,17 +9,23 @@
     <link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 <body>
-  <div id="tooltip" class="tooltip">Tooltip</div>
-
   <div class="container-fluid m-0 p-0">
     <div class="row">
       <div class="container m-0 game-wrapper p-3">
         <div id="popup-container"></div>
-        <div id="reset-popup" class="d-none">
-          <div class="reset-content text-center">
-            <h3>Run Over</h3>
-            <ul id="reset-summary" class="text-start"></ul>
-            <button class="menu-button" onclick="restartGame()">Restart</button>
+        <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center">
+              <div class="modal-header">
+                <h5 class="modal-title" id="resetModalLabel">Run Over</h5>
+              </div>
+              <div class="modal-body">
+                <ul id="reset-summary" class="text-start"></ul>
+              </div>
+              <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" onclick="restartGame()">Restart</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -27,9 +33,9 @@
         <div class="row px-3">
             <button class="menu-button" onclick="openTab('actions-tab')">Main</button>
             <button class="menu-button" onclick="openTab('settings-pane')">Options</button>
-            <button class="menu-button" onclick="saveGame(true)">Save</button>
-            <button class="menu-button" onclick="resetGameState()">Reset</button>
-            <button class="menu-button" id="pause-button" onclick="buttonPause()">Pause</button>
+            <button class="menu-button" onclick="saveGame(true)" data-bs-toggle="tooltip" data-bs-title="Store progress">Save</button>
+            <button class="menu-button" onclick="resetGameState()" data-bs-toggle="tooltip" data-bs-title="Erase progress">Reset</button>
+            <button class="menu-button" id="pause-button" onclick="buttonPause()" data-bs-toggle="tooltip" data-bs-title="Toggle clock pause">Pause</button>
         </div>
         <!-- Row for health bar -->
         <div class="row">
