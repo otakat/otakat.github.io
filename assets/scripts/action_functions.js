@@ -308,6 +308,12 @@ function activateAction(actionId) {
   const ok = a.start();
   if (!ok) return false;
 
+  const maxActive = gameState.globalParameters.actionsMaxActive;
+  if (gameState.actionsActive.length >= maxActive) {
+    const oldest = gameState.actionsActive[gameState.actionsActive.length - 1];
+    deactivateAction(oldest);
+  }
+
   gameState.actionsActive.unshift(actionId);
   processActiveAndQueuedActions();
   return true;
