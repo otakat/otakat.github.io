@@ -208,15 +208,20 @@ let gameOver = false;
 
 function updateArtifactsUI() {
   const container = document.getElementById('artifact-list');
-  if (!container) {return;}
+  const tab = document.getElementById('artifacts-tab');
+  const button = document.getElementById('artifacts-button');
+  if (!container || !tab || !button) {return;}
   container.innerHTML = '';
   const unlocked = Object.keys(gameState.artifacts || {}).filter(id => gameState.artifacts[id]);
   if (unlocked.length === 0) {
-    const div = document.createElement('div');
-    div.textContent = 'No artifacts discovered yet.';
-    container.appendChild(div);
+    tab.classList.add('d-none');
+    tab.classList.remove('d-md-block');
+    button.classList.add('d-none');
     return;
   }
+  tab.classList.add('d-md-block');
+  tab.classList.remove('d-none');
+  button.classList.remove('d-none');
   unlocked.forEach(id => {
     const art = artifactData[id];
     if (!art) {return;}
