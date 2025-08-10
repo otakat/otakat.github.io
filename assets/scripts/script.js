@@ -56,15 +56,19 @@ function multiplyTimeChangeBySkills(timeChange, skills){
   return newTimeChange;
 }
 
-function updateSkill(skill, timeChange) {
-  const currentExperienceToLevel = 3000;
-  const permanentExperienceToLevel = 3000;
+const currentExperienceToLevel = 3000;
+const permanentExperienceToLevel = 3000;
 
+function updateSkill(skill, timeChange) {
   if (!doSkillsExist(skill)) {return false;}
 
   let skill_to_update = gameState.skills[skill]
 
-
+  const skillEl = document.getElementById(skill);
+  const currentLevelEl = document.getElementById(skill + '-current-level');
+  const currentProgressEl = document.getElementById(skill + '-current-progress');
+  const permanentLevelEl = document.getElementById(skill + '-permanent-level');
+  const permanentProgressEl = document.getElementById(skill + '-permanent-progress');
 
   skill_to_update.current_progress += timeChange;
   if (skill_to_update.current_progress >= currentExperienceToLevel) {
@@ -82,15 +86,15 @@ function updateSkill(skill, timeChange) {
   }
   let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
 
-  document.getElementById(skill + '-current-level').innerText = 'Current Loop: ' + skill_to_update.current_level;
-  document.getElementById(skill + '-current-progress').style.width = currentProgressPercentage + '%';
-  document.getElementById(skill + '-permanent-level').innerText = 'Permanent: ' + skill_to_update.permanent_level;
-  document.getElementById(skill + '-permanent-progress').style.width = permanentProgressPercentage + '%';
+  currentLevelEl.innerText = 'Current Loop: ' + skill_to_update.current_level;
+  currentProgressEl.style.width = currentProgressPercentage + '%';
+  permanentLevelEl.innerText = 'Permanent: ' + skill_to_update.permanent_level;
+  permanentProgressEl.style.width = permanentProgressPercentage + '%';
 
   if (Math.max(skill_to_update.current_level, skill_to_update.current_progress, skill_to_update.permanent_level, skill_to_update.permanent_progress) <= 0) {
-    document.getElementById(skill).classList.add('d-none');
+    skillEl.classList.add('d-none');
   } else {
-    document.getElementById(skill).classList.remove('d-none');
+    skillEl.classList.remove('d-none');
   }
 }
 
