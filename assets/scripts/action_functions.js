@@ -169,7 +169,7 @@ class GameAction {
       this.data.completionEffects.last(this.id);
     }
 
-    console.log(this.id);
+    if (gameState.debugMode) console.log(this.id);
   }
 
   initializeActionProgress() {
