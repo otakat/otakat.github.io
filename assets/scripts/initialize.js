@@ -21,6 +21,12 @@ const emptyGameState = {
   gameLog: [],
   skills: {},
   artifacts: {},
+  flags: {},
+  inventory: {},
+  companions: [],
+  loopFlags: {},
+  statuses: {},
+  locationId: '',
   timeWarnings: { half: false, quarter: false },
   globalParameters: {
     logicHz: 30,        // Gameplay logic ticks per second
