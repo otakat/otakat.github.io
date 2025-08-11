@@ -10,7 +10,7 @@ const defaultLoopTime = 600;
 
 const emptyGameState = {
   debugMode: false,
-  actionsAvailable: ['book1_action1'],
+  actionsAvailable: [],
   actionsActive: [],
   actionsProgress: {},
   // Countdown timer replaces health mechanic

@@ -126,7 +126,8 @@ const requirementEvaluators = {
   },
   mastery(req) {
     const p = gameState.actionsProgress?.[req.id];
-    const ratio = p ? (p.timeStart / (book1_actions[req.id]?.length || 1)) : 0;
+    const base = getActionConfig(req.id)?.length || 1;
+    const ratio = p ? (p.timeStart / base) : 0;
     return { ok: cmpGE(ratio, req.minRatio ?? 0), actual: ratio };
   },
   book(req) {
@@ -177,9 +178,9 @@ function humanizeClause(c) {
     case 'skill': return `Requires ${cl.key} ${cl.min}+`;
     case 'artifact': return cl.owned ? `Requires artifact: ${artifactData[cl.id]?.label || cl.id}` 
                                      : `Artifact must be absent: ${cl.id}`;
-    case 'actionCompleted': return `Complete ${book1_actions[cl.id]?.label || cl.id} ×${cl.min}`;
+    case 'actionCompleted': return `Complete ${getActionConfig(cl.id)?.label || cl.id} ×${cl.min}`;
     case 'flag': return `${cl.key} = ${String(cl.equals)}`;
-    case 'mastery': return `Mastery of ${book1_actions[cl.id]?.label || cl.id} ≥ ${(cl.minRatio*100)|0}%`;
+    case 'mastery': return `Mastery of ${getActionConfig(cl.id)?.label || cl.id} ≥ ${(cl.minRatio*100)|0}%`;
     case 'book': return `Be in ${cl.id}`;
     case 'custom': return `Special condition: ${cl.fn}`;
     default: return `Requirement not met`;
@@ -535,7 +536,7 @@ function restartGame(){
   })
 
   gameState.actionsActive = [];
-  gameState.actionsAvailable = ["book1_action1"];
+  gameState.actionsAvailable = ["book1.hemlockForest.followWhisperingTrail"];
 
   Object.values(gameState.actionsProgress).forEach(action => {
     action.completions = 0;
@@ -633,8 +634,9 @@ function loadGame() {
 
 function initializeGame() {
   if (gameState.actionsAvailable.length === 0) {
-    logPopupCombo(storylines.book1_opener, 'info');
-    gameState.actionsAvailable = ['book1_action1'];
+    const opener = getLocationMeta('book1.hemlockForest.followWhisperingTrail').opener;
+    logPopupCombo(opener, 'info');
+    gameState.actionsAvailable = ['book1.hemlockForest.followWhisperingTrail'];
   }
 
   gameState.actionsAvailable.forEach(actionId => {

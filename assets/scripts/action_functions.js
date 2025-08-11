@@ -5,7 +5,7 @@ class GameAction {
       this.id = id;
 
 			// For static properties
-			this.data = aggregateObjectProperties(default_action, book1_actions[id]);
+                        this.data = getActionData(id);
 
 			// For progress-based properties
 			this.initializeActionProgress();
@@ -47,7 +47,7 @@ class GameAction {
   }
 
         get isAvailable() {
-                const cond = book1_actions[this.id]?.conditions;
+                const cond = getActionConfig(this.id)?.conditions;
                 return gameState.actionsAvailable.includes(this.id) && evaluate(cond, gameState);
         }
         get isActive() {return gameState.actionsActive.includes(this.id);}
@@ -113,27 +113,7 @@ class GameAction {
       this.progress.timeCurrent = this.progress.timeStart;
     }
 
-		let newTimeChange = timeChange;
-                if (doSkillsExist(this.data.skills)) {
-                        newTimeChange = multiplyTimeChangeBySkills(timeChange, this.data.skills);
-                        this.data.skills.forEach(skill => {
-                                updateSkill(skill, newTimeChange / this.data.skills.length);
-                        });
-                }
-
-                const mods = challengeMods[this.data.challengeType];
-                if (mods) {
-                  newTimeChange *= mods.speedMult ?? 1;
-                }
-
-                // Process time change
-    this.progress.timeCurrent += newTimeChange;
-    this.progress.mastery += newTimeChange;
-    if (newTimeChange > 0) consumeTime(newTimeChange / 1000);
-
-    if (this.progress.timeCurrent >= this.data.length) {
-      this.finish();
-    }
+    runActionTick(this, timeChange);
 
     this.calculateTimeStart();
 
@@ -208,7 +188,7 @@ function createNewAction(id) {
   if (id in actionsConstructed) { console.error('Action already constructed:', id); return; }
   if (!hasActionData(id)) { console.error('Action data does not exist:', id); return; }
 
-  const label = book1_actions[id].label;
+  const label = getActionData(id).label;
 
   const container = document.createElement('div');
   container.id = id;
@@ -232,7 +212,7 @@ function createNewAction(id) {
   const tooltipButtons = container.querySelectorAll('[data-bs-toggle="tooltip"]');
   tooltipButtons.forEach(el => new bootstrap.Tooltip(el));
 
-  const cond = book1_actions[id]?.conditions;
+  const cond = getActionConfig(id)?.conditions;
   if (!gameState.actionsAvailable.includes(id) || !evaluate(cond, gameState)) {
     container.style.display = 'none';
   }
@@ -247,7 +227,7 @@ function getAction(id) {
 
 // Check for existence of action data
 function hasActionData(id) {
-  return (id in book1_actions);
+  return !!getActionConfig(id);
 }
 
 function removeAction(actionId) {
@@ -267,7 +247,7 @@ function removeAction(actionId) {
 }
 
 function makeActionAvailable(actionId) {
-  const cond = book1_actions[actionId]?.conditions;
+  const cond = getActionConfig(actionId)?.conditions;
   if (gameState.actionsAvailable.includes(actionId)) {
     if (evaluate(cond, gameState)) {
       actionsConstructed[actionId].container.style.display = 'block';
