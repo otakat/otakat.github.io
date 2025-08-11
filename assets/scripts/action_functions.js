@@ -46,7 +46,10 @@ class GameAction {
 			processActiveAndQueuedActions()
   }
 
-        get isAvailable() {return gameState.actionsAvailable.includes(this.id);}
+        get isAvailable() {
+                const cond = book1_actions[this.id]?.conditions;
+                return gameState.actionsAvailable.includes(this.id) && evaluate(cond, gameState);
+        }
         get isActive() {return gameState.actionsActive.includes(this.id);}
 
         canStart() {
@@ -229,7 +232,8 @@ function createNewAction(id) {
   const tooltipButtons = container.querySelectorAll('[data-bs-toggle="tooltip"]');
   tooltipButtons.forEach(el => new bootstrap.Tooltip(el));
 
-  if (!gameState.actionsAvailable.includes(id)) {
+  const cond = book1_actions[id]?.conditions;
+  if (!gameState.actionsAvailable.includes(id) || !evaluate(cond, gameState)) {
     container.style.display = 'none';
   }
 
@@ -263,11 +267,17 @@ function removeAction(actionId) {
 }
 
 function makeActionAvailable(actionId) {
+  const cond = book1_actions[actionId]?.conditions;
   if (gameState.actionsAvailable.includes(actionId)) {
-    actionsConstructed[actionId].container.style.display = 'block';
+    if (evaluate(cond, gameState)) {
+      actionsConstructed[actionId].container.style.display = 'block';
+    }
   } else {
-    gameState.actionsAvailable.push(actionId)
-    createNewAction(actionId)
+    gameState.actionsAvailable.push(actionId);
+    createNewAction(actionId);
+    if (!evaluate(cond, gameState)) {
+      actionsConstructed[actionId].container.style.display = 'none';
+    }
   }
 }
 
