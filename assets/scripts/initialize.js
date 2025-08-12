@@ -1,4 +1,13 @@
-window.eventBus = new Emittery();
+if (window.Emittery) {
+  window.eventBus = new window.Emittery();
+} else {
+  console.error('Emittery not loaded; using no-op event bus');
+  window.eventBus = {
+    on() {},
+    off() {},
+    emit: async () => {}
+  };
+}
 
 // States allowed for gameState.paused
 const pauseStates = {
