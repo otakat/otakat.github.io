@@ -135,4 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Kickoff at clock zero
-window.addEventListener('load', loadGame);
+window.addEventListener('load', async () => {
+  try {
+    await loadGame();
+  } catch (error) {
+    console.error(error);
+  }
+});
