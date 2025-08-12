@@ -29,6 +29,69 @@ function updateDebugToggle() {
     slider.value = base;
     updateTimeDilationDisplay();
   }
+
+  if (gameState.debugMode) {
+    window.DEBUG = {
+      giveArtifact(id) {
+        console.log('[DEBUG] giveArtifact', id);
+        if (typeof unlockArtifact === 'function') {
+          unlockArtifact(id);
+        } else {
+          gameState.artifacts[id] = true;
+        }
+      },
+      giveItem(id, qty = 1) {
+        console.log('[DEBUG] giveItem', id, qty);
+        if (!gameState.inventory[id]) {
+          gameState.inventory[id] = 0;
+        }
+        gameState.inventory[id] += Number(qty);
+      },
+      setTime(seconds) {
+        console.log('[DEBUG] setTime', seconds);
+        if (typeof setTimeRemaining === 'function') {
+          setTimeRemaining(seconds);
+        } else {
+          timeRemaining = Math.max(0, Number(seconds));
+        }
+      },
+      tp(id) {
+        console.log('[DEBUG] tp', id);
+        gameState.locationId = id;
+      },
+      setSkill(skill, level = 1) {
+        console.log('[DEBUG] setSkill', skill, level);
+        if (typeof doSkillsExist === 'function' && doSkillsExist(skill)) {
+          gameState.skills[skill].current_level = Number(level);
+          gameState.skills[skill].permanent_level = Number(level);
+          gameState.skills[skill].current_progress = 0;
+          gameState.skills[skill].permanent_progress = 0;
+          if (typeof updateSkill === 'function') {
+            updateSkill(skill, 0);
+          }
+        }
+      },
+      discoverAll() {
+        console.log('[DEBUG] discoverAll');
+        if (typeof artifactData === 'object') {
+          Object.keys(artifactData).forEach(id => {
+            if (typeof unlockArtifact === 'function') {
+              unlockArtifact(id);
+            }
+          });
+        }
+        if (typeof book1_actions === 'object') {
+          Object.keys(book1_actions).forEach(id => {
+            if (typeof makeActionAvailable === 'function') {
+              makeActionAvailable(id);
+            }
+          });
+        }
+      }
+    };
+  } else {
+    delete window.DEBUG;
+  }
 }
 
 function updateTimeDilationDisplay() {
