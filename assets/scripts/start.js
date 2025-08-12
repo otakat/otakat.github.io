@@ -130,10 +130,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateTimeDilationDisplay();
   });
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  [...tooltipTriggerList].forEach(el => new bootstrap.Tooltip(el));
+  tippy('[data-tippy-content]', { animation: 'shift-away', touch: true });
   updateDebugToggle();
 });
 
 // Kickoff at clock zero
-window.addEventListener('load', loadGame);
+window.addEventListener('load', async () => {
+  try {
+    await loadGame();
+  } catch (error) {
+    console.error(error);
+  }
+});
