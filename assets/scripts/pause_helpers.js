@@ -42,8 +42,9 @@ const clearPauseReasons = deletePauseState;
 
 // Optional property shim for old `gameState.paused` checks
 window.addEventListener('load', () => {
-  if (typeof gameState === 'object' && !Object.getOwnPropertyDescriptor(gameState, 'paused')) {
-    Object.defineProperty(gameState, 'paused', {
+  const gs = window.gameState;
+  if (gs && !Object.getOwnPropertyDescriptor(gs, 'paused')) {
+    Object.defineProperty(gs, 'paused', {
       get() { return isGamePaused(); }
     });
   }
