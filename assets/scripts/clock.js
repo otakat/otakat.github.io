@@ -20,12 +20,14 @@ class GlobalClock {
     if (this.timerId) this.stop();
     this.lastClockTime = performance.now();
     const intervalMs = 1000 / gameState.globalParameters.renderHz;
-    this.timerId = workerTimers.setInterval(() => this._beat(), intervalMs);
+    const timers = window.workerTimers || window;
+    this.timerId = timers.setInterval(() => this._beat(), intervalMs);
   }
 
   stop() {
     if (this.timerId) {
-      workerTimers.clearInterval(this.timerId);
+      const timers = window.workerTimers || window;
+      timers.clearInterval(this.timerId);
       this.timerId = null;
     }
   }
