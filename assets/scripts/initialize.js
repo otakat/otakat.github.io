@@ -1,3 +1,5 @@
+window.eventBus = new Emittery();
+
 // States allowed for gameState.paused
 const pauseStates = {
   MANUAL: 'Paused (Manual)',

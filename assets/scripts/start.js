@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateTimeDilationDisplay();
     });
   }
-  document.addEventListener('time-dilation-changed', () => {
+  eventBus.on('time-dilation-changed', () => {
     const slider = document.getElementById('time-dilation-slider');
     if (slider) {
       const base = gameState?.globalParameters?.timeDilationBase ?? gameState?.globalParameters?.timeDilation ?? 1;
