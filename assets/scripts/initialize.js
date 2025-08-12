@@ -1,6 +1,4 @@
-if (window.Emittery) {
-  window.eventBus = new window.Emittery();
-} else {
+if (!window.eventBus) {
   console.error('Emittery not loaded; using no-op event bus');
   window.eventBus = {
     on() {},
