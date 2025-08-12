@@ -397,6 +397,7 @@ function runGameTick(stepMs) {
       actionsConstructed[actionId].update(stepMs);
     });
     processScheduledEvents();
+    processActiveAndQueuedActions();
   }
 }
 
