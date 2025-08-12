@@ -401,7 +401,7 @@ function runGameTick(stepMs) {
 }
 
 // Listen for each fixed clock beat
-document.addEventListener('tick-fixed', e => runGameTick(e.detail.stepMs));
+eventBus.on('tick-fixed', ({ stepMs }) => runGameTick(stepMs));
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
@@ -743,11 +743,7 @@ function showTimeRemaining() { console.log('Time remaining:', timeRemaining + '/
         if (window.gameState && gameState.globalParameters) {
           gameState.globalParameters.timeDilation = eff;
         }
-        try {
-          document.dispatchEvent(
-            new CustomEvent('time-dilation-changed', { detail: { timeDilation: eff } })
-          );
-        } catch (_e) { /* ignore */ }
+        eventBus.emit('time-dilation-changed', { timeDilation: eff });
       }
       return eff;
     }
@@ -772,9 +768,9 @@ function showTimeRemaining() { console.log('Time remaining:', timeRemaining + '/
 
   // Optional: lightweight console trace when dilation changes (only attach once)
   if (!window.__td_logger_attached__) {
-    document.addEventListener('time-dilation-changed', (e) => {
-      if (e?.detail?.timeDilation != null) {
-        console.debug('[TimeDilation] effective =', e.detail.timeDilation);
+    eventBus.on('time-dilation-changed', ({ timeDilation }) => {
+      if (timeDilation != null) {
+        console.debug('[TimeDilation] effective =', timeDilation);
       }
     });
     window.__td_logger_attached__ = true;
