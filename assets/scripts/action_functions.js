@@ -195,11 +195,11 @@ function createNewAction(id) {
   container.className = 'action-container';
   container.innerHTML = `
     <div class="action-header">
-      <span class="action-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Action Label">${label}</span>
+      <span class="action-label" data-tippy-content="Action Label">${label}</span>
       <span class="action-button-container">
 
-        <button id="start-button" class="action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Start">⏵</button>
-        <button id="stop-button" class="action-button stop-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Stop">X</button>
+        <button id="start-button" class="action-button" data-tippy-content="Start">⏵</button>
+        <button id="stop-button" class="action-button stop-button" data-tippy-content="Stop">X</button>
       </span>
     </div>
     <div class="action-progress-container">
@@ -209,8 +209,8 @@ function createNewAction(id) {
     </div>
   `;
   document.getElementById('all-actions-container').appendChild(container);
-  const tooltipButtons = container.querySelectorAll('[data-bs-toggle="tooltip"]');
-  tooltipButtons.forEach(el => new bootstrap.Tooltip(el));
+  const tooltipButtons = container.querySelectorAll('[data-tippy-content]');
+  tippy(tooltipButtons, { animation: 'shift-away', touch: true });
 
   const cond = getActionConfig(id)?.conditions;
   if (!gameState.actionsAvailable.includes(id) || !evaluate(cond, gameState)) {

@@ -130,8 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateTimeDilationDisplay();
   });
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  [...tooltipTriggerList].forEach(el => new bootstrap.Tooltip(el));
+  tippy('[data-tippy-content]', { animation: 'shift-away', touch: true });
   updateDebugToggle();
 });
 
