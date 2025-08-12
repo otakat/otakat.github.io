@@ -597,34 +597,39 @@ function resetGameState() {
   if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
 }
 
-function saveGame(isManualSave = false) {
-    try {
-      localStorage.setItem('gameState', JSON.stringify(gameState));
-      if (isManualSave) {logPopupCombo('Game Saved', 'secondary');}
-    } catch (error) {
-      const errorMessage = 'Error saving to local storage';
-      logPopupCombo(errorMessage, 'danger');
-      console.error(errorMessage);
-    }
-
+async function saveGame(isManualSave = false) {
+  try {
+    await localforage.setItem('gameState', gameState);
+    if (isManualSave) { logPopupCombo('Game Saved', 'secondary'); }
+  } catch (error) {
+    const errorMessage = 'Error saving game data';
+    logPopupCombo(errorMessage, 'danger');
+    console.error(errorMessage, error);
+  }
 }
 
-function loadGame() {
-  const savedState = localStorage.getItem('gameState');
-  if (savedState) {
-    const savedGameState = JSON.parse(savedState);
+async function loadGame() {
+  try {
+    const savedState = await localforage.getItem('gameState');
+    if (savedState) {
+      const savedGameState = savedState;
 
-    // Merge the saved game state with the empty game state
-    // This ensures new variables in emptyGameState are initialized properly
-    gameState = aggregateObjectProperties(emptyGameState, savedGameState);
+      // Merge the saved game state with the empty game state
+      // This ensures new variables in emptyGameState are initialized properly
+      gameState = aggregateObjectProperties(emptyGameState, savedGameState);
 
-    timeMax = gameState.timeMax ?? gameState.timeStart ?? defaultLoopTime;
-    timeRemaining = gameState.timeRemaining ?? timeMax;
-    hasPocketWatch = gameState.hasPocketWatch ?? false;
-    timeWarnings = gameState.timeWarnings || { half: false, quarter: false };
-    gameState.timeMax = timeMax;
+      timeMax = gameState.timeMax ?? gameState.timeStart ?? defaultLoopTime;
+      timeRemaining = gameState.timeRemaining ?? timeMax;
+      hasPocketWatch = gameState.hasPocketWatch ?? false;
+      timeWarnings = gameState.timeWarnings || { half: false, quarter: false };
+      gameState.timeMax = timeMax;
 
-    logPopupCombo('Data Loaded', 'secondary');
+      logPopupCombo('Data Loaded', 'secondary');
+    }
+  } catch (error) {
+    const errorMessage = 'Error loading game data';
+    logPopupCombo(errorMessage, 'danger');
+    console.error(errorMessage, error);
   }
 
   updateDebugToggle();
