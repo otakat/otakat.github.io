@@ -43,7 +43,6 @@ class GameAction {
 
       this.calculateTimeStart();
       this.update();
-			processActiveAndQueuedActions()
   }
 
         get isAvailable() {
@@ -238,6 +237,7 @@ function createNewAction(id) {
   }
 
   actionsConstructed[id] = new GameAction(id);
+  processActiveAndQueuedActions();
 }
 
 // Access a constructed GameAction safely
@@ -279,6 +279,7 @@ function makeActionAvailable(actionId) {
       actionsConstructed[actionId].container.style.display = 'none';
     }
   }
+  processActiveAndQueuedActions();
 }
 
 function makeActionUnavailable(actionId) {
