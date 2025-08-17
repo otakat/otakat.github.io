@@ -32,7 +32,14 @@ function processPauseButton(label) {
     text = 'Running';
   }
   const el = document.getElementById('pause-button');
-  if (el) el.innerText = text;
+  if (el) {
+    const labelSpan = el.querySelector('.label');
+    if (labelSpan) {
+      labelSpan.innerText = text;
+    } else {
+      el.innerText = text;
+    }
+  }
 }
 
 // Backwards compatibility aliases

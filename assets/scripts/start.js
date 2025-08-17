@@ -61,6 +61,8 @@ function updateDebugToggle() {
     }
   }
 
+  if (typeof updateMenuButtons === 'function') { updateMenuButtons(); }
+
   if (gameState.debugMode) {
     window.DEBUG = {
       giveArtifact(id) {
