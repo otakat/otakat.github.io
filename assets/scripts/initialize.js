@@ -18,7 +18,7 @@ const pauseStates = {
 const defaultLoopTime = 600;
 
 const emptyGameState = {
-  debugMode: false,
+  debugMode: true,
   actionsAvailable: [],
   actionsActive: [],
   actionsProgress: {},
