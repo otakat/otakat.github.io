@@ -40,18 +40,18 @@ class GlobalClock {
     const gameDelta = clockDelta * gameState.globalParameters.timeDilation;
 
     // Emit events
-    document.dispatchEvent(new CustomEvent('heartbeat', { detail: { clockDelta } }));
+    eventBus.emit('heartbeat', { clockDelta });
 
     // Fixed-step logic accumulator
     const stepMs = 1000 / gameState.globalParameters.logicHz;
     this.accumulator += gameDelta;
     while (this.accumulator >= stepMs) {
-      document.dispatchEvent(new CustomEvent('tick-fixed', { detail: { stepMs } }));
+      eventBus.emit('tick-fixed', { stepMs });
       this.accumulator -= stepMs;
     }
 
     // Variable-step game tick
-    document.dispatchEvent(new CustomEvent('tick', { detail: { gameDelta } }));
+    eventBus.emit('tick', { gameDelta });
 
     // Update clock in gameState
     const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
@@ -81,13 +81,13 @@ class GlobalClock {
   setTimeDilation(multiplier) {
     const clamped = Math.min(Math.max(multiplier, 0.05), 100);
     gameState.globalParameters.timeDilation = clamped;
-    document.dispatchEvent(new CustomEvent('time-dilation-changed', { detail: { timeDilation: clamped } }));
+    eventBus.emit('time-dilation-changed', { timeDilation: clamped });
   }
 }
 
 let totalTicks = 0;
 
-document.addEventListener('heartbeat', () => {
+eventBus.on('heartbeat', () => {
   totalTicks += 1;
   const overlay = document.getElementById('debug-overlay');
   if (!overlay) return;
@@ -107,7 +107,7 @@ document.addEventListener('heartbeat', () => {
 
 window.addEventListener('load', () => {
   window.gameClock = new GlobalClock();
-  document.addEventListener('heartbeat', () => {
+  eventBus.on('heartbeat', () => {
     if (gameState.debugMode) console.log('Tick!');
   });
 });
