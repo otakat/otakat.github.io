@@ -37,6 +37,7 @@ function updateLibrarySelection() {
 }
 
 function openSkills() {
+  if (typeof refreshSkillsUI === 'function') { refreshSkillsUI(); }
   const modal = new bootstrap.Modal(document.getElementById('skillsModal'));
   modal.show();
 }
