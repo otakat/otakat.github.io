@@ -30,129 +30,170 @@
           </div>
         </div>
 
-        <!-- Row for menu buttons -->
-        <div class="row px-3">
-            <button class="menu-button" onclick="openTab('actions-tab')">Main</button>
-            <button class="menu-button" onclick="openTab('settings-pane')">Options</button>
-            <button class="menu-button" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">Save</button>
-            <button class="menu-button" onclick="resetGameState()" data-tippy-content="Erase progress">Reset</button>
-            <button class="menu-button" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">Pause</button>
+        <!-- System menu row -->
+        <div class="row px-3 system-menu">
+            <button class="menu-button menu-icon-button" onclick="openTab('settings-pane')">
+              <span class="emoji">⚙️</span><span class="label">Settings</span>
+            </button>
+            <button class="menu-button menu-icon-button" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">
+              <span class="emoji">💾</span><span class="label">Save</span>
+            </button>
+            <button class="menu-button menu-icon-button" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">
+              <span class="emoji">⏸️</span><span class="label">Pause</span>
+            </button>
+            <button class="menu-button menu-icon-button" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
+              <span class="emoji">🏠</span><span class="label">Main</span>
+            </button>
+        </div>
 
-        </div>
-        <!-- Row for loop timer -->
-        <div class="row">
-          <div class="col col-md-8 text-center">
-            <div id="timer-container" class="d-none">
-              <div id="timer-display"><span id="timer-icon">&#x23F1;</span> <span id="time-remaining">00:00</span></div>
+        <!-- Skills Modal -->
+        <div class="modal fade" id="skillsModal" tabindex="-1" aria-labelledby="skillsModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="skillsModalLabel">Skills</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="skills-tab" class="mobile-tab row d-none">
+                  <div class="col all-skills-container">
+                    <!-- Courage -->
+                    <div id="courage" class="skill-container">
+                      <div class="skill-name">Courage</div>
+                      <div class="skill-current">
+                        <div id="courage-current-level" class="skill-current-level">Current Loop: 0</div>
+                        <div id="courage-current-progress" class="skill-current-bar"></div>
+                      </div>
+                      <div class="skill-permanent">
+                        <div id="courage-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+                        <div id="courage-permanent-progress" class="skill-permanent-bar"></div>
+                      </div>
+                    </div>
+                    <!-- Creativity -->
+                    <div id="creativity" class="skill-container">
+                      <div class="skill-name">Creativity</div>
+                      <div class="skill-current">
+                        <div id="creativity-current-level" class="skill-current-level">Current Loop: 0</div>
+                        <div id="creativity-current-progress" class="skill-current-bar"></div>
+                      </div>
+                      <div class="skill-permanent">
+                        <div id="creativity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+                        <div id="creativity-permanent-progress" class="skill-permanent-bar"></div>
+                      </div>
+                    </div>
+                    <!-- Curiosity -->
+                    <div id="curiosity" class="skill-container">
+                      <div class="skill-name">Curiosity</div>
+                      <div class="skill-current">
+                        <div id="curiosity-current-level" class="skill-current-level">Current Loop: 0</div>
+                        <div id="curiosity-current-progress" class="skill-current-bar"></div>
+                      </div>
+                      <div class="skill-permanent">
+                        <div id="curiosity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+                        <div id="curiosity-permanent-progress" class="skill-permanent-bar"></div>
+                      </div>
+                    </div>
+                    <!-- Integrity -->
+                    <div id="integrity" class="skill-container">
+                      <div class="skill-name">Integrity</div>
+                      <div class="skill-current">
+                        <div id="integrity-current-level" class="skill-current-level">Current Loop: 0</div>
+                        <div id="integrity-current-progress" class="skill-current-bar"></div>
+                      </div>
+                      <div class="skill-permanent">
+                        <div id="integrity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+                        <div id="integrity-permanent-progress" class="skill-permanent-bar"></div>
+                      </div>
+                    </div>
+                    <!-- Perseverance -->
+                    <div id="perseverance" class="skill-container">
+                      <div class="skill-name">Perseverance</div>
+                      <div class="skill-current">
+                        <div id="perseverance-current-level" class="skill-current-level">Current Loop: 0</div>
+                        <div id="perseverance-current-progress" class="skill-current-bar"></div>
+                      </div>
+                      <div class="skill-permanent">
+                        <div id="perseverance-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+                        <div id="perseverance-permanent-progress" class="skill-permanent-bar"></div>
+                      </div>
+                    </div>
+                    <!-- Resourcefulness -->
+                    <div id="resourcefulness" class="skill-container">
+                      <div class="skill-name">Resourcefulness</div>
+                      <div class="skill-current">
+                        <div id="resourcefulness-current-level" class="skill-current-level">Current Loop: 0</div>
+                        <div id="resourcefulness-current-progress" class="skill-current-bar"></div>
+                      </div>
+                      <div class="skill-permanent">
+                        <div id="resourcefulness-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+                        <div id="resourcefulness-permanent-progress" class="skill-permanent-bar"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div id="debug-overlay" style="display:none;"></div>
           </div>
         </div>
-        <!-- Tab row for mobile view -->
-        <div class="row d-md-none">
-          <div class="col">
-            <span class="tab-button-container">
-              <button class="tab-button" onClick="openTab('actions-tab')">A</button>
-              <button id="skills-button" class="tab-button d-none" onClick="openTab('skills-tab')">S</button>
-              <button class="tab-button" onClick="openTab('log-tab')">L</button>
-              <button id="artifacts-button" class="tab-button d-none" onClick="openTab('artifacts-tab')">R</button>
-            </span>
+
+        <!-- Artifacts Modal -->
+        <div class="modal fade" id="artifactsModal" tabindex="-1" aria-labelledby="artifactsModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="artifactsModalLabel">Artifacts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="artifacts-tab" class="mobile-tab row d-none">
+                  <div class="col" id="artifact-list"></div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+        <!-- Game menu row -->
+        <div class="row px-3 game-menu">
+            <button class="menu-button menu-icon-button" id="library-button" onclick="showLibrary()">
+              <span class="emoji">📚</span><span class="label">Library</span>
+            </button>
+            <button class="menu-button menu-icon-button" id="book-button" onclick="showBook()">
+              <span class="emoji">🐹</span><span class="label">Book</span>
+            </button>
+            <button class="menu-button menu-icon-button d-none" id="artifacts-button" onclick="openArtifacts()">
+              <span class="emoji">🗝️</span><span class="label">Artifacts</span>
+            </button>
+            <button class="menu-button menu-icon-button d-none" id="skills-button" onclick="openSkills()">
+              <span class="emoji">🧠</span><span class="label">Skills</span>
+            </button>
         </div>
         <!-- Row for everything else -->
         <div class="row row-fix">
+
           <!-- Settings. Off by default. -->
           <div id="settings-pane" class="content-pane d-none col-12 full-height">
-            <label><input type="checkbox" id="debug-toggle" checked> Debug mode</label>
+            <label><input type="checkbox" id="debug-toggle"> Debug mode</label>
             <div id="time-dilation-controls" class="d-none mt-2">
               <label for="time-dilation-slider" class="form-label">Time Dilation: <span id="time-dilation-display">1</span>x</label>
               <input type="range" class="form-range" id="time-dilation-slider" min="0.05" max="5" step="0.05" value="1">
             </div>
           </div>
-          <!-- Main View. On by default. -->
+          <!-- Library View -->
+          <div id="library-pane" class="content-pane d-none col-12 full-height text-center p-3">
+            <h2>📚 Library</h2>
+            <p>Select a book to begin. 🐹</p>
+            <div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
+              <button id="book1-option" class="menu-button menu-icon-button library-book-option" onclick="selectBook('book1')">
+                <span class="emoji">🐹</span><span class="label">Book 1</span>
+              </button>
+            </div>
+          </div>
+          <!-- Main View (Book). On by default. -->
           <div id="main-pane" class="content-pane col-12 full-height flex-vert">
-            <!-- Skills -->
-            <div id="skills-tab" class="mobile-tab row d-none">
-              <div class="col all-skills-container">
-                <!-- Courage -->
-                <div id="courage" class="skill-container">
-                  <div class="skill-name">Courage</div>
-                  <div class="skill-current">
-                    <div id="courage-current-level" class="skill-current-level">Current Loop: 0</div>
-                    <div id="courage-current-progress" class="skill-current-bar"></div>
-                  </div>
-                  <div class="skill-permanent">
-                    <div id="courage-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                    <div id="courage-permanent-progress" class="skill-permanent-bar"></div>
-                  </div>
-                </div>
-                <!-- Creativity -->
-                <div id="creativity" class="skill-container">
-                  <div class="skill-name">Creativity</div>
-                  <div class="skill-current">
-                    <div id="creativity-current-level" class="skill-current-level">Current Loop: 0</div>
-                    <div id="creativity-current-progress" class="skill-current-bar"></div>
-                  </div>
-                  <div class="skill-permanent">
-                    <div id="creativity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                    <div id="creativity-permanent-progress" class="skill-permanent-bar"></div>
-                  </div>
-                </div>
-                <!-- Curiosity -->
-                <div id="curiosity" class="skill-container">
-                  <div class="skill-name">Curiosity</div>
-                  <div class="skill-current">
-                    <div id="curiosity-current-level" class="skill-current-level">Current Loop: 0</div>
-                    <div id="curiosity-current-progress" class="skill-current-bar"></div>
-                  </div>
-                  <div class="skill-permanent">
-                    <div id="curiosity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                    <div id="curiosity-permanent-progress" class="skill-permanent-bar"></div>
-                  </div>
-                </div>
-                <!-- Integrity -->
-                <div id="integrity" class="skill-container">
-                  <div class="skill-name">Integrity</div>
-                  <div class="skill-current">
-                    <div id="integrity-current-level" class="skill-current-level">Current Loop: 0</div>
-                    <div id="integrity-current-progress" class="skill-current-bar"></div>
-                  </div>
-                  <div class="skill-permanent">
-                    <div id="integrity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                    <div id="integrity-permanent-progress" class="skill-permanent-bar"></div>
-                  </div>
-                </div>
-                <!-- Perseverance -->
-                <div id="perseverance" class="skill-container">
-                  <div class="skill-name">Perseverance</div>
-                  <div class="skill-current">
-                    <div id="perseverance-current-level" class="skill-current-level">Current Loop: 0</div>
-                    <div id="perseverance-current-progress" class="skill-current-bar"></div>
-                  </div>
-                  <div class="skill-permanent">
-                    <div id="perseverance-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                    <div id="perseverance-permanent-progress" class="skill-permanent-bar"></div>
-                  </div>
-                </div>
-                <!-- Resourcefulness -->
-                <div id="resourcefulness" class="skill-container">
-                  <div class="skill-name">Resourcefulness</div>
-                  <div class="skill-current">
-                    <div id="resourcefulness-current-level" class="skill-current-level">Current Loop: 0</div>
-                    <div id="resourcefulness-current-progress" class="skill-current-bar"></div>
-                  </div>
-                  <div class="skill-permanent">
-                    <div id="resourcefulness-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                    <div id="resourcefulness-permanent-progress" class="skill-permanent-bar"></div>
-                  </div>
-                </div>
-              </div>
+            <div id="timer-container" class="d-none align-self-end">
+              <div id="timer-display"><span id="timer-icon">&#x23F1;</span> <span id="time-remaining">00:00</span></div>
             </div>
-            <!-- Artifacts -->
-            <div id="artifacts-tab" class="mobile-tab row d-none">
-              <div class="col" id="artifact-list"></div>
-            </div>
-            <!-- Actions and Game Log -->
+            <div id="debug-overlay" style="display:none;"></div>
             <div class="row row-col-1 row-col-md-2 row-fix">
               <div id="actions-tab" class="mobile-tab col d-md-block full-height scroll">
                 <div id="all-actions-container" class="col full-height scroll"></div>
@@ -190,6 +231,7 @@
     <script src="./assets/scripts/script.js"></script>
     <script src="./assets/scripts/clock.js"></script>
     <script src="./assets/scripts/start.js"></script>
+    <script src="./assets/scripts/ui.js"></script>
 
 
 

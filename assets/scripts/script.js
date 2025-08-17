@@ -471,12 +471,16 @@ function openTab(tabId = 'None') {
     // Hide both main and settings panes
     var settingsPane = document.getElementById('settings-pane');
     var mainPane = document.getElementById('main-pane');
+    var libraryPane = document.getElementById('library-pane');
     if (settingsPane) settingsPane.classList.add('d-none');
     if (mainPane) mainPane.classList.add('d-none');
+    if (libraryPane) libraryPane.classList.add('d-none');
 
     // Show the specific pane/tab
     if (tabId === 'settings-pane') {
         if (settingsPane) settingsPane.classList.remove('d-none');
+    } else if (tabId === 'library-pane') {
+        if (libraryPane) libraryPane.classList.remove('d-none');
     } else {
         if (mainPane) mainPane.classList.remove('d-none');
         if (tabId !== 'None') {
@@ -636,6 +640,7 @@ async function loadGame() {
   updateDebugToggle();
   initializeGame();
   updateTimerUI();
+  if (typeof updateBookButton === 'function') { updateBookButton(); }
 }
 
 function initializeGame() {

@@ -36,6 +36,7 @@ const emptyGameState = {
   loopFlags: {},
   statuses: {},
   locationId: '',
+  currentBook: 'book1',
   timeWarnings: { half: false, quarter: false },
   globalParameters: {
     logicHz: 30,        // Gameplay logic ticks per second
