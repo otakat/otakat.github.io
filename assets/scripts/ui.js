@@ -8,6 +8,10 @@ function showBook() {
   if (typeof processActiveAndQueuedActions === 'function') { processActiveAndQueuedActions(); }
 }
 
+function showLog() {
+  openTab('log-tab');
+}
+
 function selectBook(bookId) {
   gameState.currentBook = bookId;
   updateBookButton();

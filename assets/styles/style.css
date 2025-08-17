@@ -385,6 +385,26 @@ body {
   border-radius: 2px;
 }
 
+.book-header,
+.book-footer {
+  flex-shrink: 0;
+  padding: 5px;
+}
+
+#actions-tab {
+  display: flex;
+  flex-direction: column;
+}
+
+#all-actions-container {
+  flex: 1;
+}
+
+.book-header {
+  overflow-y: auto;
+  white-space: pre-line;
+}
+
 .game-log {
   min-height:100%;
   padding: 5px;

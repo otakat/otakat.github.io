@@ -318,6 +318,7 @@ function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
     };
     gameState.gameLog.push(logEntry);
     updateLogUI();
+    updateStoryUI();
 }
 
 function updateLogUI() {
@@ -338,6 +339,22 @@ function updateLogUI() {
   // If the scrollbar was at the bottom, keep it at the bottom after the update
   if (isScrolledToBottom) {
     logTab.scrollTop = logTab.scrollHeight;
+  }
+}
+
+function updateStoryUI() {
+  const storyHeader = document.getElementById('book-header');
+  if (!storyHeader) return;
+
+  const isScrolledToBottom = storyHeader.scrollHeight - storyHeader.clientHeight <= storyHeader.scrollTop + 1;
+
+  storyHeader.textContent = '';
+  gameState.gameLog.filter(entry => entry.tag === 'story').forEach(entry => {
+    storyHeader.textContent += entry.text + '\n\n';
+  });
+
+  if (isScrolledToBottom) {
+    storyHeader.scrollTop = storyHeader.scrollHeight;
   }
 }
 
@@ -681,7 +698,7 @@ async function loadGame() {
 function initializeGame() {
   if (gameState.actionsAvailable.length === 0) {
     const opener = getLocationMeta('book1.hemlockForest.followWhisperingTrail').opener;
-    logPopupCombo(opener, 'info');
+    logPopupCombo(opener, 'info', undefined, 'story');
     gameState.actionsAvailable = ['book1.hemlockForest.followWhisperingTrail'];
   }
 

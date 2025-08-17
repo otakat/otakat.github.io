@@ -66,7 +66,7 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               unlockArtifact('pocketwatch');
               const nextId = 'book1.hemlockForest.brewLanternOfDawn';
               logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
@@ -84,7 +84,7 @@ const actionRegistry = {
           completionMax: 10,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               const nextId = 'book1.hemlockForest.aidSilentKnight';
               logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
               makeActionAvailable(nextId);
@@ -109,7 +109,7 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               const nextId = 'book1.hemlockForest.crossEchoingBridge';
               logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
               makeActionAvailable(nextId);
@@ -126,7 +126,7 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               const nextId = 'book1.hemlockForest.meetDreamspinner';
               logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
               makeActionAvailable(nextId);
@@ -143,7 +143,7 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               const nextId = 'book1.hemlockForest.faceMirrorTyrant';
               logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
               makeActionAvailable(nextId);
@@ -160,7 +160,7 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               const nextId = 'book1.hemlockForest.awakenKingdom';
               logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
               makeActionAvailable(nextId);
@@ -177,7 +177,7 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success');
+              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
               logPopupCombo('You have completed every task.', 'warning');
               makeActionUnavailable(actionId);
             }
