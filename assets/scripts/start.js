@@ -30,6 +30,8 @@ function updateDebugToggle() {
     updateTimeDilationDisplay();
   }
 
+  if (typeof updateMenuButtons === 'function') { updateMenuButtons(); }
+
   if (gameState.debugMode) {
     window.DEBUG = {
       giveArtifact(id) {
