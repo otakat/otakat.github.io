@@ -172,11 +172,19 @@
 
           <!-- Settings. Off by default. -->
           <div id="settings-pane" class="content-pane d-none col-12 full-height">
-            <label><input type="checkbox" id="debug-toggle"> Debug mode</label>
+            <div class="mb-3">
+              <label for="render-rate-slider" class="form-label">Refresh Rate: <span id="render-rate-display">30</span> Hz</label>
+              <input type="range" class="form-range" id="render-rate-slider" min="5" max="60" step="5" value="30">
+            </div>
+            <div class="mb-3">
+              <button id="reset-game-button" class="btn btn-danger">Reset Game</button>
+            </div>
+            <label class="mb-2"><input type="checkbox" id="debug-toggle"> Debug mode</label>
             <div id="time-dilation-controls" class="d-none mt-2">
               <label for="time-dilation-slider" class="form-label">Time Dilation: <span id="time-dilation-display">1</span>x</label>
               <input type="range" class="form-range" id="time-dilation-slider" min="0.05" max="5" step="0.05" value="1">
             </div>
+            <pre id="debug-info" class="d-none mt-3"></pre>
           </div>
           <!-- Library View -->
           <div id="library-pane" class="content-pane d-none col-12 full-height text-center p-3">
@@ -193,7 +201,6 @@
             <div id="timer-container" class="d-none align-self-end">
               <div id="timer-display"><span id="timer-icon">&#x23F1;</span> <span id="time-remaining">00:00</span></div>
             </div>
-            <div id="debug-overlay" style="display:none;"></div>
             <div class="row row-col-1 row-col-md-2 row-fix">
               <div id="actions-tab" class="mobile-tab col d-md-block full-height scroll">
                 <div id="all-actions-container" class="col full-height scroll"></div>

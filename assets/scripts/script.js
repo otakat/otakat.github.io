@@ -591,6 +591,9 @@ function resetGameState() {
   gameState.timeMax = timeMax;
   gameState.hasPocketWatch = hasPocketWatch;
   gameState.timeWarnings = { ...timeWarnings };
+  if (window.gameClock && typeof gameClock.setRenderHz === 'function') {
+    gameClock.setRenderHz(gameState.globalParameters.renderHz);
+  }
   updateTimerUI();
 
   const skillsTab = document.getElementById('skills-tab');
@@ -628,6 +631,9 @@ async function loadGame() {
       hasPocketWatch = gameState.hasPocketWatch ?? false;
       timeWarnings = gameState.timeWarnings || { half: false, quarter: false };
       gameState.timeMax = timeMax;
+      if (window.gameClock && typeof gameClock.setRenderHz === 'function') {
+        gameClock.setRenderHz(gameState.globalParameters?.renderHz || 30);
+      }
 
       logPopupCombo('Data Loaded', 'secondary');
     }
