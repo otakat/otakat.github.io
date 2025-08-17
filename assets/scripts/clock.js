@@ -10,23 +10,25 @@ function changeGlobalStyle(selector, property, value) {
 
 class GlobalClock {
   constructor() {
-    this.timer = null;
+    this.timerId = null;
     this.lastClockTime = performance.now();
     this.accumulator = 0;
     this.start();
   }
 
   start() {
-    if (this.timer) this.stop();
+    if (this.timerId) this.stop();
     this.lastClockTime = performance.now();
     const intervalMs = 1000 / gameState.globalParameters.renderHz;
-    this.timer = setInterval(() => this._beat(), intervalMs);
+    const timers = window.workerTimers || window;
+    this.timerId = timers.setInterval(() => this._beat(), intervalMs);
   }
 
   stop() {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
+    if (this.timerId) {
+      const timers = window.workerTimers || window;
+      timers.clearInterval(this.timerId);
+      this.timerId = null;
     }
   }
 
