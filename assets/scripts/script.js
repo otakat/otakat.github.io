@@ -479,6 +479,8 @@ function openTab(tabId = 'None') {
     // Show the specific pane/tab
     if (tabId === 'settings-pane') {
         if (settingsPane) settingsPane.classList.remove('d-none');
+    } else if (tabId === 'library-pane') {
+        if (libraryPane) libraryPane.classList.remove('d-none');
     } else {
         if (mainPane) mainPane.classList.remove('d-none');
         if (tabId !== 'None') {
@@ -638,6 +640,7 @@ async function loadGame() {
   updateDebugToggle();
   initializeGame();
   updateTimerUI();
+  if (typeof updateBookButton === 'function') { updateBookButton(); }
 }
 
 function initializeGame() {
