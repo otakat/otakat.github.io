@@ -448,17 +448,12 @@ function updateTimerVisibility() {
   else container.classList.add('d-none');
 }
 
-function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-}
-
 function updateTimerUI() {
   updateTimerVisibility();
   if (!hasPocketWatch) return;
-  const el = document.getElementById('time-remaining');
-  if (el) el.innerText = formatTime(timeRemaining);
+  if (typeof updateLoopTimer === 'function') {
+    updateLoopTimer(timeRemaining * 1000);
+  }
 }
 
 function checkTimeWarnings() {
@@ -691,6 +686,9 @@ function initializeGame() {
 
   processPauseButton();
   processActiveAndQueuedActions();
+  if (typeof initLoopTimer === 'function') {
+    initLoopTimer(timeMax * 1000);
+  }
   updateTimerUI();
   refreshSkillsUI();
   recordStartingPermanentLevels();
