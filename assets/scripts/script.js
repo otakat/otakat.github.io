@@ -91,11 +91,13 @@ function updateSkill(skill, timeChange) {
   permanentLevelEl.innerText = 'Permanent: ' + skill_to_update.permanent_level;
   permanentProgressEl.style.width = permanentProgressPercentage + '%';
 
-  if (Math.max(skill_to_update.current_level, skill_to_update.current_progress, skill_to_update.permanent_level, skill_to_update.permanent_progress) <= 0) {
-    skillEl.classList.add('d-none');
-  } else {
-    skillEl.classList.remove('d-none');
-  }
+  skillEl.classList.remove('d-none');
+}
+
+function refreshSkillsUI() {
+  skillList.forEach(skill => {
+    updateSkill(skill, 0);
+  });
 }
 
 function generateUniqueId() {
@@ -690,12 +692,7 @@ function initializeGame() {
   processPauseButton();
   processActiveAndQueuedActions();
   updateTimerUI();
-  updateSkill("courage", 0);
-  updateSkill("creativity", 0);
-  updateSkill("curiosity", 0);
-  updateSkill("integrity", 0);
-  updateSkill("perseverance", 0);
-  updateSkill("resourcefulness", 0);
+  refreshSkillsUI();
   recordStartingPermanentLevels();
   Object.keys(gameState.artifacts).forEach(id => {
     if (gameState.artifacts[id]) {applyArtifactEffects(id);}
