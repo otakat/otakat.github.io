@@ -43,6 +43,24 @@ function updateDebugToggle() {
     }
   }
 
+  const artTab = document.getElementById('artifacts-tab');
+  const artBtn = document.getElementById('artifacts-button');
+  const skillTab = document.getElementById('skills-tab');
+  const skillBtn = document.getElementById('skills-button');
+
+  if (gameState.debugMode) {
+    if (artTab) { artTab.classList.add('d-md-block'); artTab.classList.remove('d-none'); }
+    if (artBtn) { artBtn.classList.remove('d-none'); }
+    if (skillTab) { skillTab.classList.add('d-md-block'); skillTab.classList.remove('d-none'); }
+    if (skillBtn) { skillBtn.classList.remove('d-none'); }
+  } else {
+    if (typeof updateArtifactsUI === 'function') { updateArtifactsUI(); }
+    if (!gameState.artifacts?.skillbook) {
+      if (skillTab) { skillTab.classList.add('d-none'); skillTab.classList.remove('d-md-block'); }
+      if (skillBtn) { skillBtn.classList.add('d-none'); }
+    }
+  }
+
   if (gameState.debugMode) {
     window.DEBUG = {
       giveArtifact(id) {

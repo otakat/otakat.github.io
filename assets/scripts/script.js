@@ -210,7 +210,7 @@ function updateArtifactsUI() {
   if (!container || !tab || !button) {return;}
   container.innerHTML = '';
   const unlocked = Object.keys(gameState.artifacts || {}).filter(id => gameState.artifacts[id]);
-  if (unlocked.length === 0) {
+  if (unlocked.length === 0 && !gameState.debugMode) {
     tab.classList.add('d-none');
     tab.classList.remove('d-md-block');
     button.classList.add('d-none');
@@ -597,9 +597,9 @@ function resetGameState() {
   updateTimerUI();
 
   const skillsTab = document.getElementById('skills-tab');
-  if (skillsTab) {skillsTab.classList.add('d-none'); skillsTab.classList.remove('d-md-block');}
+  if (skillsTab && !gameState.debugMode) {skillsTab.classList.add('d-none'); skillsTab.classList.remove('d-md-block');}
   const skillsButton = document.getElementById('skills-button');
-  if (skillsButton) {skillsButton.classList.add('d-none');}
+  if (skillsButton && !gameState.debugMode) {skillsButton.classList.add('d-none');}
 
   initializeGame();
   if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
