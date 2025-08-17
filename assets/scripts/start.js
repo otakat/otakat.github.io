@@ -15,6 +15,11 @@ function updateDebugToggle() {
   if (debugToggle) {
     debugToggle.checked = gameState.debugMode;
   }
+  const renderSlider = document.getElementById('render-rate-slider');
+  if (renderSlider) {
+    renderSlider.value = gameState?.globalParameters?.renderHz ?? 30;
+    updateRenderRateDisplay();
+  }
   const controls = document.getElementById('time-dilation-controls');
   if (controls) {
     if (gameState.debugMode) {
@@ -28,6 +33,32 @@ function updateDebugToggle() {
     const base = gameState?.globalParameters?.timeDilationBase ?? gameState?.globalParameters?.timeDilation ?? 1;
     slider.value = base;
     updateTimeDilationDisplay();
+  }
+  const debugInfo = document.getElementById('debug-info');
+  if (debugInfo) {
+    if (gameState.debugMode) {
+      debugInfo.classList.remove('d-none');
+    } else {
+      debugInfo.classList.add('d-none');
+    }
+  }
+
+  const artTab = document.getElementById('artifacts-tab');
+  const artBtn = document.getElementById('artifacts-button');
+  const skillTab = document.getElementById('skills-tab');
+  const skillBtn = document.getElementById('skills-button');
+
+  if (gameState.debugMode) {
+    if (artTab) { artTab.classList.add('d-md-block'); artTab.classList.remove('d-none'); }
+    if (artBtn) { artBtn.classList.remove('d-none'); }
+    if (skillTab) { skillTab.classList.add('d-md-block'); skillTab.classList.remove('d-none'); }
+    if (skillBtn) { skillBtn.classList.remove('d-none'); }
+  } else {
+    if (typeof updateArtifactsUI === 'function') { updateArtifactsUI(); }
+    if (!gameState.artifacts?.skillbook) {
+      if (skillTab) { skillTab.classList.add('d-none'); skillTab.classList.remove('d-md-block'); }
+      if (skillBtn) { skillBtn.classList.add('d-none'); }
+    }
   }
 
   if (typeof updateMenuButtons === 'function') { updateMenuButtons(); }
@@ -104,6 +135,14 @@ function updateTimeDilationDisplay() {
   }
 }
 
+function updateRenderRateDisplay() {
+  const slider = document.getElementById('render-rate-slider');
+  const disp = document.getElementById('render-rate-display');
+  if (slider && disp) {
+    disp.textContent = Number(slider.value);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const debugToggle = document.getElementById('debug-toggle');
   if (debugToggle) {
@@ -122,6 +161,26 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeDilation(e.target.value);
       }
       updateTimeDilationDisplay();
+    });
+  }
+  const renderSlider = document.getElementById('render-rate-slider');
+  if (renderSlider) {
+    renderSlider.addEventListener('input', e => {
+      const hz = Number(e.target.value);
+      if (window.gameClock && typeof gameClock.setRenderHz === 'function') {
+        gameClock.setRenderHz(hz);
+      } else {
+        if (!gameState.globalParameters) gameState.globalParameters = {};
+        gameState.globalParameters.renderHz = hz;
+      }
+      updateRenderRateDisplay();
+    });
+  }
+  const resetButton = document.getElementById('reset-game-button');
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      resetGameState();
+      saveGame().catch(console.error);
     });
   }
   eventBus.on('time-dilation-changed', () => {

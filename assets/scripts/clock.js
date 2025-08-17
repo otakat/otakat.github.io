@@ -1,6 +1,17 @@
 function changeGlobalStyle(selector, property, value) {
   for (let sheet of document.styleSheets) {
-    for (let rule of sheet.cssRules) {
+    // Skip cross-origin stylesheets to avoid security errors
+    if (sheet.href && new URL(sheet.href).origin !== window.location.origin) {
+      continue;
+    }
+    let rules;
+    try {
+      rules = sheet.cssRules;
+    } catch (e) {
+      // Accessing cssRules can throw if the sheet is not accessible
+      continue;
+    }
+    for (let rule of rules) {
       if (rule.selectorText === selector) {
         rule.style[property] = value;
       }
@@ -89,19 +100,18 @@ let totalTicks = 0;
 
 eventBus.on('heartbeat', () => {
   totalTicks += 1;
-  const overlay = document.getElementById('debug-overlay');
-  if (!overlay) return;
+  const info = document.getElementById('debug-info');
+  if (!info) return;
 
   if (gameState.debugMode) {
     const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
-    overlay.style.display = 'block';
-    overlay.innerText =
+    info.textContent =
       `Render Hz: ${gameState.globalParameters.renderHz}\n` +
       `Logic Hz: ${gameState.globalParameters.logicHz}\n` +
       `Total Ticks: ${totalTicks}\n` +
       `Paused: ${paused}`;
   } else {
-    overlay.style.display = 'none';
+    info.textContent = '';
   }
 });
 
