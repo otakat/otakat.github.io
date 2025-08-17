@@ -1,6 +1,17 @@
 function changeGlobalStyle(selector, property, value) {
   for (let sheet of document.styleSheets) {
-    for (let rule of sheet.cssRules) {
+    // Skip cross-origin stylesheets to avoid security errors
+    if (sheet.href && new URL(sheet.href).origin !== window.location.origin) {
+      continue;
+    }
+    let rules;
+    try {
+      rules = sheet.cssRules;
+    } catch (e) {
+      // Accessing cssRules can throw if the sheet is not accessible
+      continue;
+    }
+    for (let rule of rules) {
       if (rule.selectorText === selector) {
         rule.style[property] = value;
       }
