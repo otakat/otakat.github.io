@@ -183,6 +183,50 @@ document.addEventListener('DOMContentLoaded', () => {
       saveGame().catch(console.error);
     });
   }
+  const restartBtn = document.querySelector('#restart-button');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', restartGame);
+  }
+  const settingsBtn = document.querySelector('#settings-button');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => openTab('settings-pane'));
+  }
+  const saveBtn = document.querySelector('#save-button');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => saveGame(true).catch(console.error));
+  }
+  const pauseBtn = document.querySelector('#pause-button');
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', buttonPause);
+  }
+  const mainBtn = document.querySelector('#main-button');
+  if (mainBtn) {
+    mainBtn.addEventListener('click', showBook);
+  }
+  const libraryBtn = document.querySelector('#library-button');
+  if (libraryBtn) {
+    libraryBtn.addEventListener('click', showLibrary);
+  }
+  const bookBtn = document.querySelector('#book-button');
+  if (bookBtn) {
+    bookBtn.addEventListener('click', showBook);
+  }
+  const logBtn = document.querySelector('#log-button');
+  if (logBtn) {
+    logBtn.addEventListener('click', showLog);
+  }
+  const artifactsBtn = document.querySelector('#artifacts-button');
+  if (artifactsBtn) {
+    artifactsBtn.addEventListener('click', openArtifacts);
+  }
+  const skillsBtn = document.querySelector('#skills-button');
+  if (skillsBtn) {
+    skillsBtn.addEventListener('click', openSkills);
+  }
+  const book1Btn = document.querySelector('#book1-option');
+  if (book1Btn) {
+    book1Btn.addEventListener('click', () => selectBook('book1'));
+  }
   eventBus.on('time-dilation-changed', () => {
     const slider = document.getElementById('time-dilation-slider');
     if (slider) {

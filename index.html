@@ -24,7 +24,7 @@
                 <ul id="reset-summary" class="text-start"></ul>
               </div>
               <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-primary" onclick="restartGame()">Restart</button>
+                <button type="button" class="btn btn-primary" id="restart-button">Restart</button>
               </div>
             </div>
           </div>
@@ -32,16 +32,16 @@
 
         <!-- System menu row -->
         <div class="row px-3 system-menu">
-            <button class="menu-button menu-icon-button" onclick="openTab('settings-pane')">
+            <button class="menu-button menu-icon-button" id="settings-button">
               <span class="emoji">⚙️</span><span class="label">Settings</span>
             </button>
-            <button class="menu-button menu-icon-button" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">
+            <button class="menu-button menu-icon-button" id="save-button" data-tippy-content="Store progress">
               <span class="emoji">💾</span><span class="label">Save</span>
             </button>
-            <button class="menu-button menu-icon-button" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">
+            <button class="menu-button menu-icon-button" id="pause-button" data-tippy-content="Toggle clock pause">
               <span class="emoji">⏸️</span><span class="label">Pause</span>
             </button>
-            <button class="menu-button menu-icon-button" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
+            <button class="menu-button menu-icon-button" id="main-button" data-tippy-content="Return to main view">
               <span class="emoji">🏠</span><span class="label">Main</span>
             </button>
         </div>
@@ -154,19 +154,19 @@
         </div>
         <!-- Game menu row -->
         <div class="row px-3 game-menu">
-            <button class="menu-button menu-icon-button d-none" id="library-button" onclick="showLibrary()">
+            <button class="menu-button menu-icon-button d-none" id="library-button">
               <span class="emoji">📚</span><span class="label">Library</span>
             </button>
-            <button class="menu-button menu-icon-button" id="book-button" onclick="showBook()">
+            <button class="menu-button menu-icon-button" id="book-button">
               <span class="emoji">🐹</span><span class="label">Book</span>
             </button>
-            <button class="menu-button menu-icon-button d-md-none" id="log-button" onclick="showLog()">
+            <button class="menu-button menu-icon-button d-md-none" id="log-button">
               <span class="emoji">📜</span><span class="label">Log</span>
             </button>
-            <button class="menu-button menu-icon-button d-none" id="artifacts-button" onclick="openArtifacts()">
+            <button class="menu-button menu-icon-button d-none" id="artifacts-button">
               <span class="emoji">🗝️</span><span class="label">Artifacts</span>
             </button>
-            <button class="menu-button menu-icon-button d-none" id="skills-button" onclick="openSkills()">
+            <button class="menu-button menu-icon-button d-none" id="skills-button">
               <span class="emoji">🧠</span><span class="label">Skills</span>
             </button>
         </div>
@@ -194,7 +194,7 @@
             <h2>📚 Library</h2>
             <p>Select a book to begin. 🐹</p>
             <div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
-              <button id="book1-option" class="menu-button menu-icon-button library-book-option" onclick="selectBook('book1')">
+              <button id="book1-option" class="menu-button menu-icon-button library-book-option">
                 <span class="emoji">🐹</span><span class="label">Book 1</span>
               </button>
             </div>
