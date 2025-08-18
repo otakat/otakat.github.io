@@ -174,7 +174,7 @@ const actionRegistry = {
           story: {
             completion: 'Statues breathe again as the kingdom awakens.'
           },
-          completionMax: 1,
+          completionMax: 100,
           completionEffects: {
             1: function(actionId) {
               logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
