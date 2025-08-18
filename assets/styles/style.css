@@ -34,6 +34,12 @@ body {
   background-color: #444;
 }
 
+.scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .game-wrapper {
   background: url('../images/book.png');
   background-repeat: no-repeat;
