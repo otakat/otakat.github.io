@@ -60,6 +60,7 @@ body {
 #popup-container .alert {
   padding: 0.25rem 0.5rem;
   margin-bottom: 0;
+  cursor: pointer;
 }
 
 .alert-timer {
@@ -72,6 +73,15 @@ body {
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
+}
+
+#popup-container .alert .arc-track {
+  stroke: rgba(0, 0, 0, 0.15);
+}
+
+#popup-container .alert .arc-progress {
+  stroke: #000;
+  filter: none;
 }
 
 

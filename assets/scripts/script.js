@@ -382,18 +382,17 @@ function updateStoryUI() {
 function createPopup(text, alertType = 'system') {
     const data = alertTypeData[alertType] || alertTypeData.system;
     const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${data.bootstrap} alert-dismissible fade show d-flex align-items-center`;
+    alertDiv.className = `alert alert-${data.bootstrap} fade show d-flex align-items-center`;
     alertDiv.role = 'alert';
 
     alertDiv.innerHTML = `
-        <div class="flex-grow-1">${text}</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        <div class="alert-timer ms-2">
+        <div class="alert-timer me-2">
             <svg viewBox="0 0 44 44">
                 <circle class="arc-track" cx="22" cy="22" r="20"></circle>
                 <circle class="arc-progress" cx="22" cy="22" r="20" pathLength="100"></circle>
             </svg>
-        </div>`;
+        </div>
+        <div class="flex-grow-1">${text}</div>`;
 
     document.getElementById('popup-container').appendChild(alertDiv);
 
@@ -402,14 +401,24 @@ function createPopup(text, alertType = 'system') {
     arc.style.transition = `stroke-dashoffset ${duration}ms linear`;
     setTimeout(() => { arc.style.strokeDashoffset = 100; }, 0);
 
-    setTimeout(() => {
+    const hide = () => {
         alertDiv.classList.remove('show');
         setTimeout(() => alertDiv.remove(), 150);
-    }, duration);
+    };
+    const timeoutId = setTimeout(hide, duration);
+    alertDiv.addEventListener('click', () => {
+        clearTimeout(timeoutId);
+        hide();
+    });
 }
 
 function logPopupCombo(text, alertType = 'system', id, tag) {
-  const settings = gameState.alertSettings?.[alertType] || { popup: true, log: true };
+  if (!gameState.alertSettings[alertType]) {
+    const defaults = emptyGameState.alertSettings?.[alertType] || { popup: true, log: true };
+    gameState.alertSettings[alertType] = { ...defaults };
+    saveGame();
+  }
+  const settings = gameState.alertSettings[alertType];
   const logTag = tag || alertType;
   if (settings.log) { addLogEntry(text, id, logTag); }
   if (settings.popup) { createPopup(text, alertType); }
@@ -736,6 +745,7 @@ async function loadGame() {
   updateTimerUI();
   initAlertSettingsUI();
   if (typeof updateBookButton === 'function') { updateBookButton(); }
+  saveGame();
 }
 
 function initializeGame() {
