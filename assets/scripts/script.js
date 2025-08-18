@@ -343,7 +343,7 @@ function updateLogUI() {
 }
 
 function updateStoryUI() {
-  const storyHeader = document.getElementById('book-header');
+  const storyHeader = document.getElementById('story-header-text');
   if (!storyHeader) return;
 
   const isScrolledToBottom =

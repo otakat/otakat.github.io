@@ -201,21 +201,23 @@
           </div>
           <!-- Main View (Book). On by default. -->
           <div id="main-pane" class="content-pane col-12 full-height flex-vert">
-            <div id="timer-container" class="d-none">
-              <div id="loop-timer" class="loop-timer" role="timer" aria-live="polite">
-                <img class="timer-bg" alt="Pocket watch"
-                     src="https://raw.githubusercontent.com/otakat/otakat.github.io/main/assets/images/PocketWatch.png"
-                     data-local-src="./assets/images/PocketWatch.png" />
-                <svg class="timer-arc" viewBox="0 0 44 44" aria-hidden="true">
-                  <circle class="arc-track" cx="22" cy="22" r="19.5"></circle>
-                  <circle class="arc-progress" cx="22" cy="22" r="19.5" pathLength="100"></circle>
-                </svg>
-                <div class="timer-readout"><span id="loop-time-text">00:00</span></div>
-              </div>
-            </div>
             <div class="row row-col-1 row-col-md-2 row-fix">
               <div id="actions-tab" class="mobile-tab col d-md-block full-height">
-                <div id="book-header" class="book-header"></div>
+                <div id="book-header" class="book-header d-flex align-items-center">
+                  <div id="story-header-text" class="flex-grow-1 overflow-auto"></div>
+                  <div id="timer-container" class="d-none h-100 ms-2 flex-shrink-0">
+                    <div id="loop-timer" class="loop-timer" role="timer" aria-live="polite">
+                      <img class="timer-bg" alt="Pocket watch"
+                           src="https://raw.githubusercontent.com/otakat/otakat.github.io/main/assets/images/PocketWatch.png"
+                           data-local-src="./assets/images/PocketWatch.png" />
+                      <svg class="timer-arc" viewBox="0 0 44 44" aria-hidden="true">
+                        <circle class="arc-track" cx="22" cy="22" r="19.5"></circle>
+                        <circle class="arc-progress" cx="22" cy="22" r="19.5" pathLength="100"></circle>
+                      </svg>
+                      <div class="timer-readout"><span id="loop-time-text">00:00</span></div>
+                    </div>
+                  </div>
+                </div>
                 <div id="all-actions-container"></div>
                 <div id="book-footer" class="book-footer">
                   <img src="./assets/images/footer-placeholder.svg" alt="Placeholder graphic" class="footer-placeholder">

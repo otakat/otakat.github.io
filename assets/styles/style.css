@@ -140,12 +140,9 @@ body {
 
 /* LOOP TIMER */
 #timer-container {
-  --timer-size: 300px;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: var(--timer-size);
-  height: var(--timer-size);
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  position: relative;
 }
 
 .loop-timer {
@@ -468,9 +465,12 @@ body {
   overflow: hidden;
 }
 
-.book-header {
+#story-header-text {
   overflow-y: auto;
   white-space: normal;
+}
+
+.book-header {
   background: rgba(255,255,255,0.8);
   border: 1px solid #ccc;
   border-radius: 2px;
