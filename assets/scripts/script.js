@@ -558,14 +558,31 @@ function checkTimeWarnings() {
   }
 }
 
-function consumeTime(cost) {
-  const c = Number(cost) || 0;
-  timeRemaining -= c;
+let pendingTimeCost = 0;
+let refreshScheduled = false;
+
+function applyPendingTime() {
+  timeRemaining -= pendingTimeCost;
   if (timeRemaining < 0) timeRemaining = 0;
   gameState.timeRemaining = timeRemaining;
+  pendingTimeCost = 0;
+  refreshScheduled = false;
   checkTimeWarnings();
   gameState.timeWarnings = { ...timeWarnings };
   updateTimerUI();
+}
+
+function consumeTime(cost) {
+  const c = Number(cost) || 0;
+  pendingTimeCost += c;
+  if (!refreshScheduled) {
+    refreshScheduled = true;
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(applyPendingTime);
+    } else {
+      setTimeout(applyPendingTime, 50);
+    }
+  }
 }
 
 function openTab(tabId = 'None') {
