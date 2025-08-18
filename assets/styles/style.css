@@ -256,6 +256,7 @@ body {
     justify-content: flex-start;
     gap: 5px;
     overflow-y: auto;
+    min-height: 0;
   }
 
     .action-container {
@@ -379,7 +380,15 @@ body {
   background: rgba(255,255,255,0.8);
   border: 1px solid #ccc;
   border-radius: 2px;
+}
+
+.book-header {
   overflow: hidden;
+}
+
+.book-footer {
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .inventory-bar {
@@ -433,12 +442,13 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
 #story-header-text {
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
   white-space: normal;
   font-size: 0.9rem;
   line-height: 1.2;
