@@ -77,25 +77,6 @@ body {
   z-index: 1000;
 }
 
-#reset-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-  #reset-popup .reset-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 300px;
-  }
 
 /* MENU */
 .menu-button {
@@ -490,16 +471,6 @@ body {
   line-height: 1.1;
 }
 
-.tooltip {
-  display: none;
-  position: absolute;
-  background-color: black;
-  color: white;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 0.8em;
-  z-index: 1000; /* Ensure it's above other elements */
-}
 
 
 /* MOBILE-SPECIFIC STYLE */
