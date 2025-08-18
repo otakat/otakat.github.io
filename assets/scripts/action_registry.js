@@ -20,24 +20,24 @@ const default_action = {
   length: 5000,
   skills: skillList,
   challengeType: 'generic',
-  startEffects: {
-    each: function(actionId) {return true;},
-    unavailable: function(actionId) {
-      logPopupCombo(getActionData(actionId).label + ' is not available to perform.', 'danger');
-      return false;
-    }
-  },
-  completionMax: 1,
-  completionEffects: {
-    each: function(actionId) {
-      logPopupCombo('You completed ' + getActionData(actionId).label + '.', 'success');
+    startEffects: {
+      each: function(actionId) {return true;},
+      unavailable: function(actionId) {
+        logPopupCombo(getActionData(actionId).label + ' is not available to perform.', 'action_failure');
+        return false;
+      }
     },
-    last: function (actionId) {
-      logPopupCombo('You cannot perform ' + getActionData(actionId).label + ' anymore.', 'warning');
-      makeActionUnavailable(actionId);
+  completionMax: 1,
+    completionEffects: {
+      each: function(actionId) {
+        logPopupCombo('You completed ' + getActionData(actionId).label + '.', 'action_complete');
+      },
+      last: function (actionId) {
+        logPopupCombo('You cannot perform ' + getActionData(actionId).label + ' anymore.', 'action_failure');
+        makeActionUnavailable(actionId);
+      }
     }
-  }
-};
+  };
 
 const challengeMods = {
   combat:   { speedMult: 1.0 },
@@ -66,10 +66,10 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               unlockArtifact('pocketwatch');
               const nextId = 'book1.hemlockForest.brewLanternOfDawn';
-              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
+              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'action_unlock');
               makeActionAvailable(nextId);
             },
           }
@@ -84,9 +84,9 @@ const actionRegistry = {
           completionMax: 10,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               const nextId = 'book1.hemlockForest.aidSilentKnight';
-              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
+              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'action_unlock');
               makeActionAvailable(nextId);
             },
           }
@@ -109,9 +109,9 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               const nextId = 'book1.hemlockForest.crossEchoingBridge';
-              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
+              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'action_unlock');
               makeActionAvailable(nextId);
             },
           }
@@ -126,9 +126,9 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               const nextId = 'book1.hemlockForest.meetDreamspinner';
-              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
+              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'action_unlock');
               makeActionAvailable(nextId);
             },
           }
@@ -143,9 +143,9 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               const nextId = 'book1.hemlockForest.faceMirrorTyrant';
-              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
+              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'action_unlock');
               makeActionAvailable(nextId);
             },
           }
@@ -160,9 +160,9 @@ const actionRegistry = {
           completionMax: 1,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               const nextId = 'book1.hemlockForest.awakenKingdom';
-              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'primary');
+              logPopupCombo('Unlocked: ' + getActionData(nextId).label + '.', 'action_unlock');
               makeActionAvailable(nextId);
             },
           }
@@ -177,8 +177,8 @@ const actionRegistry = {
           completionMax: 100,
           completionEffects: {
             1: function(actionId) {
-              logPopupCombo(getActionData(actionId).story.completion, 'success', undefined, 'story');
-              logPopupCombo('You have completed every task.', 'warning');
+              logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
+              logPopupCombo('You have completed every task.', 'system');
               makeActionUnavailable(actionId);
             }
           }

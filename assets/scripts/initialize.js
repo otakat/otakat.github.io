@@ -38,6 +38,16 @@ const emptyGameState = {
   locationId: '',
   currentBook: 'book1',
   timeWarnings: { half: false, quarter: false },
+  alertSettings: {
+    action_complete: { popup: false, log: true },
+    action_unlock: { popup: true, log: true },
+    story: { popup: false, log: true },
+    action_failure: { popup: true, log: true },
+    skill_level: { popup: false, log: true },
+    artifact: { popup: true, log: true },
+    item: { popup: true, log: true },
+    system: { popup: true, log: true }
+  },
   globalParameters: {
     logicHz: 30,        // Gameplay logic ticks per second
     renderHz: 30,       // UI refresh rate in ticks per second

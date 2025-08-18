@@ -52,6 +52,36 @@ body {
   bottom: 1.5rem; left: 1.5rem;
   margin-right: 1.5rem;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+#popup-container .alert {
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.alert-timer {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.alert-timer svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+#popup-container .alert .arc-track {
+  stroke: rgba(0, 0, 0, 0.15);
+}
+
+#popup-container .alert .arc-progress {
+  stroke: #000;
+  filter: none;
 }
 
 
