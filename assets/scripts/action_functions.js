@@ -30,7 +30,7 @@ class GameAction {
       this.container.addEventListener('click', () => toggleAction(id));
 
       this.calculateTimeStart();
-      this.update();
+      this.render();
   }
 
         get isAvailable() {
@@ -88,7 +88,7 @@ class GameAction {
                 if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
         }
 
-  update(timeChange = 0) {
+  step(timeChange = 0) {
     if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
       this.progress.timeCurrent = 0;
     }
@@ -103,15 +103,17 @@ class GameAction {
     runActionTick(this, timeChange);
 
     this.calculateTimeStart();
+  }
 
+  render() {
     const currentPercentage = (this.progress.timeCurrent / this.data.length) * 100;
     const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
-    const label = masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
+    const label =
+      masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
 
     this.elements.progressBarCurrent.style.width = currentPercentage + '%';
     this.elements.progressText.innerText = label;
     this.elements.progressBarMastery.style.width = masteryPercentage + '%';
-
   }
 
     finish() {
@@ -119,7 +121,6 @@ class GameAction {
       if (gameState.debugMode) console.log(`Action ${this.id} finished`);
       this.calculateTimeStart();
       this.progress.timeCurrent = this.progress.timeStart;
-      this.update();
       deactivateAction(this.id);
 
     this.data.completionEffects.each(this.id);
