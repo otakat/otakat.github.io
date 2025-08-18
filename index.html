@@ -159,7 +159,7 @@
             <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="book-button" onclick="showBook()">
               <span class="emoji fs-4">🐹</span><span class="label small">Book</span>
             </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-md-none" id="log-button" onclick="showLog()">
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="log-button" onclick="showLog()">
               <span class="emoji fs-4">📜</span><span class="label small">Log</span>
             </button>
             <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="artifacts-button" onclick="openArtifacts()">
@@ -200,8 +200,8 @@
           </div>
           <!-- Main View (Book). On by default. -->
             <div id="main-pane" class="content-pane col-12 h-100 d-flex flex-column">
-              <div class="row row-col-1 row-col-md-2 flex-fill">
-                <div id="actions-tab" class="mobile-tab col d-md-block h-100">
+              <div class="row flex-fill">
+                <div id="actions-tab" class="mobile-tab col-12 h-100">
                 <div id="book-header" class="book-header d-flex align-items-center">
                   <div id="story-header-text" class="flex-grow-1 overflow-auto"></div>
                   <div id="timer-container" class="d-none h-100 ms-2 flex-shrink-0">
@@ -225,7 +225,7 @@
                   </div>
                 </div>
               </div>
-                <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 h-100 overflow-scroll">
+                <div id="log-tab" class="mobile-tab col-12 d-none px-0 h-100 overflow-scroll">
                   <div id="game-log" class="game-log"></div>
               </div>
             </div>

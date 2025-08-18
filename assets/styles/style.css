@@ -18,15 +18,17 @@
 
 /* BODY */
 html {
-	height: 100vh;
-	scroll-behavior: smooth;
+        height: 100vh;
+        height: 100dvh;
+        scroll-behavior: smooth;
   overflow: hidden;
 }
 
 body {
   font-family: Arial, sans-serif;
   height: 100vh;
-	font-size: 16px;
+  height: 100dvh;
+        font-size: 16px;
   line-height: 1.5;
   overflow: hidden;
   background-color: #444;
@@ -35,8 +37,10 @@ body {
 .game-wrapper {
   background: url('../images/book.png');
   background-repeat: no-repeat;
-  background-size: 100% 100vh; /* Always stretched to screen height */
+  background-size: 100% 100vh;
+  background-size: 100% 100dvh; /* Always stretched to screen height */
   height: 100vh; /* Forces content to full screen height */
+  height: 100dvh;
   display: flex;
   flex-flow: column nowrap;
   justify-content: flex-start;
@@ -432,7 +436,8 @@ body {
 /* MOBILE-SPECIFIC STYLE */
 @media only screen and (max-width: 768px) {
   .game-wrapper {
-    background-size: 200% 100vh; /* Only right book-page in mobile */
+    background-size: 200% 100vh;
+    background-size: 200% 100dvh; /* Only right book-page in mobile */
     background-position: top right;
   }
 }
