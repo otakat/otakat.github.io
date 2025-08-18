@@ -251,7 +251,7 @@ body {
   /* ACTIONS */
   #all-actions-container {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 0%;
     flex-flow: column nowrap;
     justify-content: flex-start;
     gap: 5px;
