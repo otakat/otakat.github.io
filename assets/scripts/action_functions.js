@@ -23,23 +23,11 @@ class GameAction {
               progressContainer: this.container.querySelector('.action-progress-container'),
               progressText: this.container.querySelector('.action-progress-text'),
               progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
-              progressBarMastery: this.container.querySelector('.action-progress-bar-mastery'),
-              buttonActivate: this.container.querySelector('#start-button'),
-              buttonStop: this.container.querySelector('#stop-button')
-                          
+              progressBarMastery: this.container.querySelector('.action-progress-bar-mastery')
+
                         }
       // Allow clicking anywhere on the action body to toggle the action
       this.container.addEventListener('click', () => toggleAction(id));
-
-      // Add button effects
-      this.elements.buttonActivate.addEventListener('click', (event) => {
-        event.stopPropagation();
-        activateAction(id);
-      });
-      this.elements.buttonStop.addEventListener('click', (event) => {
-        event.stopPropagation();
-        fullyDeactivateAction(id);
-      });
 
       this.calculateTimeStart();
       this.update();
@@ -195,11 +183,6 @@ function createNewAction(id) {
   container.innerHTML = `
     <div class="action-header">
       <span class="action-label" data-tippy-content="Action Label">${label}</span>
-      <span class="action-button-container">
-
-        <button id="start-button" class="action-button" data-tippy-content="Start">⏵</button>
-        <button id="stop-button" class="action-button stop-button" data-tippy-content="Stop">X</button>
-      </span>
     </div>
     <div class="action-progress-container">
       <div class="action-progress-text">0% Mastery + 0% Current</div>

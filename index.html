@@ -10,9 +10,7 @@
     <link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 <body>
-  <div class="container-fluid m-0 p-0">
-    <div class="row">
-      <div class="container m-0 game-wrapper p-3">
+  <div class="container-fluid game-wrapper m-0 p-3">
         <div id="popup-container"></div>
         <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered">
@@ -220,18 +218,19 @@
                 </div>
                 <div id="all-actions-container"></div>
                 <div id="book-footer" class="book-footer">
-                  <img src="./assets/images/footer-placeholder.svg" alt="Placeholder graphic" class="footer-placeholder">
+                  <div id="inventory-bar" class="inventory-bar">
+                    <div id="usable-items" class="item-group"></div>
+                    <div id="static-items" class="item-group"></div>
+                  </div>
                 </div>
               </div>
                 <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 h-100 overflow-scroll">
-
                   <div id="game-log" class="game-log"></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+
   </div>
 
 
@@ -254,6 +253,7 @@
       <script src="./assets/scripts/action_runner.js" defer></script>
       <script src="./assets/scripts/action_functions.js" defer></script>
     <script src="./assets/scripts/script.js" defer></script>
+    <script src="./assets/scripts/items.js" defer></script>
     <script src="./assets/scripts/clock.js" defer></script>
     <script src="./assets/scripts/start.js" defer></script>
     <script src="./assets/scripts/ui.js" defer></script>
