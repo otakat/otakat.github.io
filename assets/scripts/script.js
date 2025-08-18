@@ -272,6 +272,7 @@ function updateSkillsUI() {
     skillsTab.classList.remove('d-md-block');
     skillsButton.classList.add('d-none');
   }
+  if (typeof updateActionSkillIcons === 'function') { updateActionSkillIcons(); }
 }
 
 function updateLibraryButton() {

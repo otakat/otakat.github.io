@@ -284,6 +284,15 @@ body {
           font-size: 1.2em;
         }
 
+      .action-skills {
+        display: flex;
+        gap: 2px;
+      }
+
+      .action-skill-icon {
+        font-size: 1.2em;
+      }
+
       .action-progress-container {
         width: 100%;
         background-color: #555;
