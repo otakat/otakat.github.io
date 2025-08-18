@@ -47,6 +47,11 @@ body {
   gap: 10px;
 }
 
+.full-height {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 #popup-container {
   position: fixed;
   bottom: 1.5rem; left: 1.5rem;
