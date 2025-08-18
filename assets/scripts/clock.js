@@ -56,9 +56,19 @@ class GlobalClock {
     // Fixed-step logic accumulator
     const stepMs = 1000 / gameState.globalParameters.logicHz;
     this.accumulator += gameDelta;
-    while (this.accumulator >= stepMs) {
+    const MAX_STEPS = 5;
+    let steps = 0;
+    while (this.accumulator >= stepMs && steps < MAX_STEPS) {
       eventBus.emit('tick-fixed', { stepMs });
       this.accumulator -= stepMs;
+      steps += 1;
+    }
+    if (this.accumulator >= stepMs && steps >= MAX_STEPS) {
+      if (gameState.debugMode) {
+        console.warn(
+          `Clamped fixed-step iterations at ${MAX_STEPS}, leftover ${this.accumulator.toFixed(2)}ms`
+        );
+      }
     }
 
     // Variable-step game tick
