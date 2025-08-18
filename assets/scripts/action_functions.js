@@ -1,3 +1,14 @@
+// Emoji mapping for skills
+const skillEmojis = {
+  courage: '🦁',
+  creativity: '🎨',
+  curiosity: '🔍',
+  integrity: '🧭',
+  perseverance: '💪',
+  resourcefulness: '🛠️'
+};
+globalThis.skillEmojis = skillEmojis;
+
 // THE ACTION CLASS
 class GameAction {
   constructor(id) {
@@ -30,7 +41,7 @@ class GameAction {
       this.container.addEventListener('click', () => toggleAction(id));
 
       this.calculateTimeStart();
-      this.update();
+      this.render();
   }
 
         get isAvailable() {
@@ -88,7 +99,7 @@ class GameAction {
                 if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
         }
 
-  update(timeChange = 0) {
+  step(timeChange = 0) {
     if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
       this.progress.timeCurrent = 0;
     }
@@ -103,15 +114,17 @@ class GameAction {
     runActionTick(this, timeChange);
 
     this.calculateTimeStart();
+  }
 
+  render() {
     const currentPercentage = (this.progress.timeCurrent / this.data.length) * 100;
     const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
-    const label = masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
+    const label =
+      masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
 
     this.elements.progressBarCurrent.style.width = currentPercentage + '%';
     this.elements.progressText.innerText = label;
     this.elements.progressBarMastery.style.width = masteryPercentage + '%';
-
   }
 
     finish() {
@@ -119,7 +132,6 @@ class GameAction {
       if (gameState.debugMode) console.log(`Action ${this.id} finished`);
       this.calculateTimeStart();
       this.progress.timeCurrent = this.progress.timeStart;
-      this.update();
       deactivateAction(this.id);
 
     this.data.completionEffects.each(this.id);
@@ -175,7 +187,12 @@ function createNewAction(id) {
   if (id in actionsConstructed) { console.error('Action already constructed:', id); return; }
   if (!hasActionData(id)) { console.error('Action data does not exist:', id); return; }
 
-  const label = getActionData(id).label;
+  const data = getActionData(id);
+  const label = data.label;
+  const skills = Array.isArray(data.skills) ? data.skills : [];
+  const skillIcons = skills
+    .map(skill => `<span class="action-skill-icon" data-skill="${skill}">${skillEmojis[skill] || ''}</span>`) 
+    .join('');
 
   const container = document.createElement('div');
   container.id = id;
@@ -183,6 +200,7 @@ function createNewAction(id) {
   container.innerHTML = `
     <div class="action-header">
       <span class="action-label" data-tippy-content="Action Label">${label}</span>
+      <span class="action-skills">${skillIcons}</span>
     </div>
     <div class="action-progress-container">
       <div class="action-progress-text">0% Mastery + 0% Current</div>
@@ -200,6 +218,7 @@ function createNewAction(id) {
   }
 
   actionsConstructed[id] = new GameAction(id);
+  updateActionSkillIcons();
   processActiveAndQueuedActions();
 }
 
@@ -332,4 +351,18 @@ function processActiveAndQueuedActions() {
       actionObject.elements.progressBarCurrent.classList.remove('active');
     }
   })
+}
+
+function areSkillsVisible() {
+  return gameState.debugMode || !!gameState.artifacts?.skillbook;
+}
+
+function updateActionSkillIcons() {
+  const show = areSkillsVisible();
+  Object.values(actionsConstructed).forEach(actionObject => {
+    const skillsEl = actionObject.container.querySelector('.action-skills');
+    if (skillsEl) {
+      skillsEl.style.display = show ? 'flex' : 'none';
+    }
+  });
 }

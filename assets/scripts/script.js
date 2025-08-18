@@ -110,6 +110,11 @@ function updateSkill(skill, timeChange) {
 
 function refreshSkillsUI() {
   skillList.forEach(skill => {
+    const nameEl = document.querySelector(`#${skill} .skill-name`);
+    if (nameEl) {
+      const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
+      nameEl.textContent = `${skillEmojis?.[skill] || ''} ${skillName}`;
+    }
     updateSkill(skill, 0);
   });
 }
@@ -272,6 +277,7 @@ function updateSkillsUI() {
     skillsTab.classList.remove('d-md-block');
     skillsButton.classList.add('d-none');
   }
+  if (typeof updateActionSkillIcons === 'function') { updateActionSkillIcons(); }
 }
 
 function updateLibraryButton() {
@@ -495,15 +501,20 @@ function runGameTick(stepMs) {
   if (!isGamePaused()) {
     timeTotal += stepMs;
     gameState.actionsActive.forEach(actionId => {
-      actionsConstructed[actionId].update(stepMs);
+      actionsConstructed[actionId].step(stepMs);
     });
     processScheduledEvents();
-    processActiveAndQueuedActions();
   }
 }
 
 // Listen for each fixed clock beat
 eventBus.on('tick-fixed', ({ stepMs }) => runGameTick(stepMs));
+
+// Render cycle
+eventBus.on('heartbeat', () => {
+  Object.values(actionsConstructed).forEach(action => action.render());
+  processActiveAndQueuedActions();
+});
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
@@ -547,14 +558,31 @@ function checkTimeWarnings() {
   }
 }
 
-function consumeTime(cost) {
-  const c = Number(cost) || 0;
-  timeRemaining -= c;
+let pendingTimeCost = 0;
+let refreshScheduled = false;
+
+function applyPendingTime() {
+  timeRemaining -= pendingTimeCost;
   if (timeRemaining < 0) timeRemaining = 0;
   gameState.timeRemaining = timeRemaining;
+  pendingTimeCost = 0;
+  refreshScheduled = false;
   checkTimeWarnings();
   gameState.timeWarnings = { ...timeWarnings };
   updateTimerUI();
+}
+
+function consumeTime(cost) {
+  const c = Number(cost) || 0;
+  pendingTimeCost += c;
+  if (!refreshScheduled) {
+    refreshScheduled = true;
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(applyPendingTime);
+    } else {
+      setTimeout(applyPendingTime, 50);
+    }
+  }
 }
 
 function openTab(tabId = 'None') {

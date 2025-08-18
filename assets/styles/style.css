@@ -30,6 +30,12 @@ body {
   background-color: #444;
 }
 
+.scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .game-wrapper {
   background: url('../images/book.png');
   background-repeat: no-repeat;
@@ -38,6 +44,11 @@ body {
   height: 100vh; /* Forces content to full screen height */
   height: 100dvh;
   gap: 10px;
+}
+
+.full-height {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 #popup-container {
@@ -271,6 +282,15 @@ body {
           font-size: 1.2em;
         }
 
+      .action-skills {
+        display: flex;
+        gap: 2px;
+      }
+
+      .action-skill-icon {
+        font-size: 1.2em;
+      }
+
       .action-progress-container {
         width: 100%;
         background-color: #555;
@@ -414,6 +434,11 @@ body {
   font-size: 12px;
   line-height: 16px;
   text-align: center;
+}
+
+#main-pane {
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 #actions-tab {
