@@ -1,268 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fairy Tale Game</title>
-    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/tippy.js@^6/dist/tippy.css">
-    <link rel="stylesheet" href="./assets/styles/style.css">
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Fairy Tale Game</title>
+		<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">-->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://unpkg.com/tippy.js@^6/dist/tippy.css">
+		<link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 <body>
-  <div class="container-lg m-0 p-0">
-    <div class="game-wrapper p-2">
-        <div id="popup-container"></div>
-        <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center">
-              <div class="modal-header">
-                <h5 class="modal-title" id="resetModalLabel">Run Over</h5>
-              </div>
-              <div class="modal-body">
-                <ul id="reset-summary" class="text-start"></ul>
-              </div>
-              <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-primary" id="restart-button">Restart</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      
-        <!-- System menu row -->
-        <div class="d-flex gap-1 px-3 system-menu">
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" onclick="openTab('settings-pane')">
-              <span class="emoji fs-4">⚙️</span><span class="label small">Settings</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">
-              <span class="emoji fs-4">💾</span><span class="label small">Save</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">
-              <span class="emoji fs-4">⏸️</span><span class="label small">Pause</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
-              <span class="emoji fs-4">🏠</span><span class="label small">Main</span>
-            </button>
-        </div>
+	<div class="game-wrapper d-flex flex-column container-md m-0 p-0">
 
-        <!-- Skills Modal -->
-        <div class="modal fade" id="skillsModal" tabindex="-1" aria-labelledby="skillsModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="skillsModalLabel">Skills</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <div id="skills-tab" class="mobile-tab row d-none">
-                  <div class="col all-skills-container">
-                    <!-- Courage -->
-                    <div id="courage" class="skill-container">
-                      <div class="skill-name">Courage</div>
-                      <div class="skill-current">
-                        <div id="courage-current-level" class="skill-current-level">Current Loop: 0</div>
-                        <div id="courage-current-progress" class="skill-current-bar"></div>
-                      </div>
-                      <div class="skill-permanent">
-                        <div id="courage-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                        <div id="courage-permanent-progress" class="skill-permanent-bar"></div>
-                      </div>
-                    </div>
-                    <!-- Creativity -->
-                    <div id="creativity" class="skill-container">
-                      <div class="skill-name">Creativity</div>
-                      <div class="skill-current">
-                        <div id="creativity-current-level" class="skill-current-level">Current Loop: 0</div>
-                        <div id="creativity-current-progress" class="skill-current-bar"></div>
-                      </div>
-                      <div class="skill-permanent">
-                        <div id="creativity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                        <div id="creativity-permanent-progress" class="skill-permanent-bar"></div>
-                      </div>
-                    </div>
-                    <!-- Curiosity -->
-                    <div id="curiosity" class="skill-container">
-                      <div class="skill-name">Curiosity</div>
-                      <div class="skill-current">
-                        <div id="curiosity-current-level" class="skill-current-level">Current Loop: 0</div>
-                        <div id="curiosity-current-progress" class="skill-current-bar"></div>
-                      </div>
-                      <div class="skill-permanent">
-                        <div id="curiosity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                        <div id="curiosity-permanent-progress" class="skill-permanent-bar"></div>
-                      </div>
-                    </div>
-                    <!-- Integrity -->
-                    <div id="integrity" class="skill-container">
-                      <div class="skill-name">Integrity</div>
-                      <div class="skill-current">
-                        <div id="integrity-current-level" class="skill-current-level">Current Loop: 0</div>
-                        <div id="integrity-current-progress" class="skill-current-bar"></div>
-                      </div>
-                      <div class="skill-permanent">
-                        <div id="integrity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                        <div id="integrity-permanent-progress" class="skill-permanent-bar"></div>
-                      </div>
-                    </div>
-                    <!-- Perseverance -->
-                    <div id="perseverance" class="skill-container">
-                      <div class="skill-name">Perseverance</div>
-                      <div class="skill-current">
-                        <div id="perseverance-current-level" class="skill-current-level">Current Loop: 0</div>
-                        <div id="perseverance-current-progress" class="skill-current-bar"></div>
-                      </div>
-                      <div class="skill-permanent">
-                        <div id="perseverance-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                        <div id="perseverance-permanent-progress" class="skill-permanent-bar"></div>
-                      </div>
-                    </div>
-                    <!-- Resourcefulness -->
-                    <div id="resourcefulness" class="skill-container">
-                      <div class="skill-name">Resourcefulness</div>
-                      <div class="skill-current">
-                        <div id="resourcefulness-current-level" class="skill-current-level">Current Loop: 0</div>
-                        <div id="resourcefulness-current-progress" class="skill-current-bar"></div>
-                      </div>
-                      <div class="skill-permanent">
-                        <div id="resourcefulness-permanent-level" class="skill-permanent-level">Permanent: 0</div>
-                        <div id="resourcefulness-permanent-progress" class="skill-permanent-bar"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Artifacts Modal -->
-        <div class="modal fade" id="artifactsModal" tabindex="-1" aria-labelledby="artifactsModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="artifactsModalLabel">Artifacts</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <div id="artifacts-tab" class="mobile-tab row d-none">
-                  <div class="col" id="artifact-list"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Game menu row -->
-        <div class="d-flex gap-1 px-3 game-menu">
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="library-button" onclick="showLibrary()">
-              <span class="emoji fs-4">📚</span><span class="label small">Library</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="book-button" onclick="showBook()">
-              <span class="emoji fs-4">🐹</span><span class="label small">Book</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="log-button" onclick="showLog()">
-              <span class="emoji fs-4">📜</span><span class="label small">Log</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="artifacts-button" onclick="openArtifacts()">
-              <span class="emoji fs-4">🗝️</span><span class="label small">Artifacts</span>
-            </button>
-            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="skills-button" onclick="openSkills()">
-              <span class="emoji fs-4">🧠</span><span class="label small">Skills</span>
-            </button>
-        </div>
-        <!-- Row for everything else -->
-        <div class="row flex-fill" style="min-height: 0;">
-
-          <!-- Settings. Off by default. -->
-            <div id="settings-pane" class="content-pane d-none col-12 h-100">
-            <div class="mb-3">
-              <label for="render-rate-slider" class="form-label">Refresh Rate: <span id="render-rate-display">30</span> Hz</label>
-              <input type="range" class="form-range" id="render-rate-slider" min="5" max="60" step="5" value="30">
-            </div>
-            <div class="mb-3">
-              <button id="reset-game-button" class="btn btn-danger">Reset Game</button>
-            </div>
-            <div class="mb-3" id="alert-settings-container">
-              <h5>Alert Preferences</h5>
-              <div id="alert-settings"></div>
-            </div>
-            <label class="mb-2"><input type="checkbox" id="debug-toggle"> Debug mode</label>
-            <div id="time-dilation-controls" class="d-none mt-2">
-              <label for="time-dilation-slider" class="form-label">Time Dilation: <span id="time-dilation-display">1</span>x</label>
-              <input type="range" class="form-range" id="time-dilation-slider" min="0.05" max="5" step="0.05" value="1">
-            </div>
-            <pre id="debug-info" class="d-none mt-3"></pre>
-          </div>
-          <!-- Library View -->
-            <div id="library-pane" class="content-pane d-none col-12 h-100 text-center p-3">
-            <h2>📚 Library</h2>
-            <p>Select a book to begin. 🐹</p>
-            <div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
-              <button id="book1-option" class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 library-book-option" onclick="selectBook('book1')">
-                <span class="emoji fs-4">🐹</span><span class="label small">Book 1</span>
-              </button>
-            </div>
-          </div>
-          <!-- Main View (Book). On by default. -->
-            <div id="main-pane" class="content-pane col-12 h-100 d-flex flex-column">
-              <div class="row flex-fill">
-                <div id="actions-tab" class="mobile-tab col-12 h-100">
-                <div id="book-header" class="book-header d-flex align-items-center">
-                  <div id="story-header-text" class="flex-grow-1 overflow-auto"></div>
-                  <div id="timer-container" class="d-none h-100 ms-2 flex-shrink-0">
-                    <div id="loop-timer" class="loop-timer" role="timer" aria-live="polite">
-                      <img class="timer-bg" alt="Pocket watch"
-                           src="https://raw.githubusercontent.com/otakat/otakat.github.io/main/assets/images/PocketWatch.png"
-                           data-local-src="./assets/images/PocketWatch.png" />
-                      <svg class="timer-arc" viewBox="0 0 44 44" aria-hidden="true">
-                        <circle class="arc-track" cx="22" cy="22" r="19.5"></circle>
-                        <circle class="arc-progress" cx="22" cy="22" r="19.5" pathLength="100"></circle>
-                      </svg>
-                      <div class="timer-readout"><span id="loop-time-text">00:00</span></div>
-                    </div>
-                  </div>
-                </div>
-                <div id="all-actions-container"></div>
-                <div id="book-footer" class="book-footer">
-                  <div id="inventory-bar" class="inventory-bar">
-                    <div id="usable-items" class="item-group"></div>
-                    <div id="static-items" class="item-group"></div>
-                  </div>
-                </div>
-              </div>
-                <div id="log-tab" class="mobile-tab col-12 d-none px-0 h-100 overflow-scroll">
-                  <div id="game-log" class="game-log"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+				<!-- System menu row -->
+				<div class="row d-flex flex-row gap-1 px-3 system-menu">
+						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" onclick="openTab('settings-pane')">
+							<span class="emoji fs-4">⚙️</span><span class="label small">Settings</span>
+						</button>
+						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">
+							<span class="emoji fs-4">💾</span><span class="label small">Save</span>
+						</button>
+						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">
+							<span class="emoji fs-4">⏸️</span><span class="label small">Pause</span>
+						</button>
+						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
+							<span class="emoji fs-4">🏠</span><span class="label small">Main</span>
+						</button>
+				</div>
 
 
-  <script type="module">
-    import Emittery from "./assets/scripts/vendor/emittery/index.js";
-    window.eventBus = new Emittery();
-  </script>
-  
-  <!-- Bootstrap JS plugins -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous" defer></script>
-  <script src="https://unpkg.com/@popperjs/core@^2/dist/umd/popper.min.js" defer></script>
-  <script src="https://unpkg.com/tippy.js@^6/dist/tippy-bundle.umd.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/localforage@^1/dist/localforage.min.js" defer></script>
+				<!-- Game menu row -->
+				<div class="row d-flex flex-row gap-1 px-3 game-menu">
+						<button class="tab-button col btn btn-light align-items-center justify-content-center p-1 gap-1 d-none" id="library-button" onclick="showLibrary()">
+							<span class="emoji fs-4">📚</span><span class="label small">Library</span>
+						</button>
+						<button class="tab-button col btn btn-light align-items-center justify-content-center p-1 gap-1" id="book-button" onclick="showBook()">
+							<span class="emoji fs-4">🐹</span><span class="label small">Book</span>
+						</button>
+						<button class="tab-button col btn btn-light align-items-center justify-content-center p-1 gap-1" id="log-button" onclick="showLog()">
+							<span class="emoji fs-4">📜</span><span class="label small">Log</span>
+						</button>
+						<button class="tab-button col btn btn-light align-items-center justify-content-center p-1 gap-1 d-none" id="artifacts-button" onclick="openArtifacts()">
+							<span class="emoji fs-4">🗝️</span><span class="label small">Artifacts</span>
+						</button>
+						<button class="tab-button col btn btn-light align-items-center justify-content-center p-1 gap-1 d-none" id="skills-button" onclick="openSkills()">
+							<span class="emoji fs-4">🧠</span><span class="label small">Skills</span>
+						</button>
+				</div>
+				<!-- Row for everything else -->
+				<div class="row flex-grow-1" style="min-height: 0;">
+					<!-- Settings. Off by default. -->
+					<div id="settings-pane" class="d-none overflow-scroll h-100 col-12">
+						<div class="mb-3">
+							<label for="render-rate-slider" class="form-label">Refresh Rate: <span id="render-rate-display">30</span> Hz</label>
+							<input type="range" class="form-range" id="render-rate-slider" min="5" max="60" step="5" value="30">
+						</div>
+						<div class="mb-3">
+							<button id="reset-game-button" class="btn btn-danger">Reset Game</button>
+						</div>
+						<div class="mb-3" id="alert-settings-container">
+							<h5>Alert Preferences</h5>
+							<div id="alert-settings"></div>
+						</div>
+						<label class="mb-2"><input type="checkbox" id="debug-toggle"> Debug mode</label>
+						<div id="time-dilation-controls" class="d-none mt-2">
+							<label for="time-dilation-slider" class="form-label">Time Dilation: <span id="time-dilation-display">1</span>x</label>
+							<input type="range" class="form-range" id="time-dilation-slider" min="0.05" max="5" step="0.05" value="1">
+						</div>
+						<pre id="debug-info" class="d-none mt-3"></pre>
+					</div>
+					<!-- Library View -->
+					<div id="library-pane" class="d-none overflow-scroll h-100 col-12 text-center p-3">
+						<h2>📚 Library</h2>
+						<p>Select a book to begin. 🐹</p>
+						<div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
+							<button id="book1-option" class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 library-book-option" onclick="selectBook('book1')">
+								<span class="emoji fs-4">🐹</span><span class="label small">Book 1</span>
+							</button>
+						</div>
+					</div>
+					<div id="log-tab" class="mobile-tab col-12 d-none px-0 h-100 overflow-scroll">
+						<div id="game-log" class="game-log"></div>
+					</div>
+					<!-- Main View (Book). On by default. -->
+					<div id="main-pane" class="h-100 col-12 d-flex flex-column">
+								<div id="book-header" class="book-header flex-shrink-0 d-flex flex-row align-items-center">
+									<div id="story-header-text" class="flex-grow-1 overflow-auto"></div>
+									<div id="timer-container" class="d-none h-100 ms-2 flex-shrink-0">
+										<div id="loop-timer" class="loop-timer" role="timer" aria-live="polite">
+											<img class="timer-bg" alt="Pocket watch"
+													 src="https://raw.githubusercontent.com/otakat/otakat.github.io/main/assets/images/PocketWatch.png"
+													 data-local-src="./assets/images/PocketWatch.png" />
+											<svg class="timer-arc" viewBox="0 0 44 44" aria-hidden="true">
+												<circle class="arc-track" cx="22" cy="22" r="19.5"></circle>
+												<circle class="arc-progress" cx="22" cy="22" r="19.5" pathLength="100"></circle>
+											</svg>
+											<div class="timer-readout"><span id="loop-time-text">00:00</span></div>
+										</div>
+									</div>
+								</div>
+								<div id="all-actions-container" class="d-flex flex-column flex-grow-1 overflow-scroll gap-1 p-1"></div>
+								<div id="book-footer" class="book-footer flex-shrink-0">
+									<div id="inventory-bar" class="inventory-bar">
+										<div id="usable-items" class="item-group"></div>
+										<div id="static-items" class="item-group"></div>
+									</div>
+								</div>
+					</div>
+				</div>
 
-    <!-- Game scripts -->
-    <script src="./assets/scripts/initialize.js" defer></script>
-    <script src="./assets/scripts/pause_helpers.js" defer></script>
-    <script src="./assets/scripts/conditions.js" defer></script>
-      <script src="./assets/scripts/action_registry.js" defer></script>
-      <script src="./assets/scripts/action_runner.js" defer></script>
-      <script src="./assets/scripts/action_functions.js" defer></script>
-    <script src="./assets/scripts/script.js" defer></script>
-    <script src="./assets/scripts/items.js" defer></script>
-    <script src="./assets/scripts/clock.js" defer></script>
-    <script src="./assets/scripts/start.js" defer></script>
-    <script src="./assets/scripts/ui.js" defer></script>
-    <script src="./assets/scripts/loop_timer.js" defer></script>
+				<div id="popup-container"></div>
+				<div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content text-center">
+							<div class="modal-header">
+								<h5 class="modal-title" id="resetModalLabel">Run Over</h5>
+							</div>
+							<div class="modal-body">
+								<ul id="reset-summary" class="text-start"></ul>
+							</div>
+							<div class="modal-footer justify-content-center">
+								<button type="button" class="btn btn-primary" id="restart-button">Restart</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Skills Modal -->
+				<div class="modal fade" id="skillsModal" tabindex="-1" aria-labelledby="skillsModalLabel" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered modal-lg">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="skillsModalLabel">Skills</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body">
+								<div id="skills-tab" class="mobile-tab row d-none">
+									<div class="col all-skills-container">
+										<!-- Courage -->
+										<div id="courage" class="skill-container">
+											<div class="skill-name">Courage</div>
+											<div class="skill-current">
+												<div id="courage-current-level" class="skill-current-level">Current Loop: 0</div>
+												<div id="courage-current-progress" class="skill-current-bar"></div>
+											</div>
+											<div class="skill-permanent">
+												<div id="courage-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+												<div id="courage-permanent-progress" class="skill-permanent-bar"></div>
+											</div>
+										</div>
+										<!-- Creativity -->
+										<div id="creativity" class="skill-container">
+											<div class="skill-name">Creativity</div>
+											<div class="skill-current">
+												<div id="creativity-current-level" class="skill-current-level">Current Loop: 0</div>
+												<div id="creativity-current-progress" class="skill-current-bar"></div>
+											</div>
+											<div class="skill-permanent">
+												<div id="creativity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+												<div id="creativity-permanent-progress" class="skill-permanent-bar"></div>
+											</div>
+										</div>
+										<!-- Curiosity -->
+										<div id="curiosity" class="skill-container">
+											<div class="skill-name">Curiosity</div>
+											<div class="skill-current">
+												<div id="curiosity-current-level" class="skill-current-level">Current Loop: 0</div>
+												<div id="curiosity-current-progress" class="skill-current-bar"></div>
+											</div>
+											<div class="skill-permanent">
+												<div id="curiosity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+												<div id="curiosity-permanent-progress" class="skill-permanent-bar"></div>
+											</div>
+										</div>
+										<!-- Integrity -->
+										<div id="integrity" class="skill-container">
+											<div class="skill-name">Integrity</div>
+											<div class="skill-current">
+												<div id="integrity-current-level" class="skill-current-level">Current Loop: 0</div>
+												<div id="integrity-current-progress" class="skill-current-bar"></div>
+											</div>
+											<div class="skill-permanent">
+												<div id="integrity-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+												<div id="integrity-permanent-progress" class="skill-permanent-bar"></div>
+											</div>
+										</div>
+										<!-- Perseverance -->
+										<div id="perseverance" class="skill-container">
+											<div class="skill-name">Perseverance</div>
+											<div class="skill-current">
+												<div id="perseverance-current-level" class="skill-current-level">Current Loop: 0</div>
+												<div id="perseverance-current-progress" class="skill-current-bar"></div>
+											</div>
+											<div class="skill-permanent">
+												<div id="perseverance-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+												<div id="perseverance-permanent-progress" class="skill-permanent-bar"></div>
+											</div>
+										</div>
+										<!-- Resourcefulness -->
+										<div id="resourcefulness" class="skill-container">
+											<div class="skill-name">Resourcefulness</div>
+											<div class="skill-current">
+												<div id="resourcefulness-current-level" class="skill-current-level">Current Loop: 0</div>
+												<div id="resourcefulness-current-progress" class="skill-current-bar"></div>
+											</div>
+											<div class="skill-permanent">
+												<div id="resourcefulness-permanent-level" class="skill-permanent-level">Permanent: 0</div>
+												<div id="resourcefulness-permanent-progress" class="skill-permanent-bar"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Artifacts Modal -->
+				<div class="modal fade" id="artifactsModal" tabindex="-1" aria-labelledby="artifactsModalLabel" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="artifactsModalLabel">Artifacts</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body">
+								<div id="artifacts-tab" class="mobile-tab row d-none">
+									<div class="col" id="artifact-list"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+		</div>
+
+
+	<script type="module">
+		import Emittery from "./assets/scripts/vendor/emittery/index.js";
+		window.eventBus = new Emittery();
+	</script>
+
+	<!-- Bootstrap JS plugins -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous" defer></script>
+	<script src="https://unpkg.com/@popperjs/core@^2/dist/umd/popper.min.js" defer></script>
+	<script src="https://unpkg.com/tippy.js@^6/dist/tippy-bundle.umd.min.js" defer></script>
+	<script src="https://cdn.jsdelivr.net/npm/localforage@^1/dist/localforage.min.js" defer></script>
+
+		<!-- Game scripts -->
+		<script src="./assets/scripts/initialize.js" defer></script>
+		<script src="./assets/scripts/pause_helpers.js" defer></script>
+		<script src="./assets/scripts/conditions.js" defer></script>
+			<script src="./assets/scripts/action_registry.js" defer></script>
+			<script src="./assets/scripts/action_runner.js" defer></script>
+			<script src="./assets/scripts/action_functions.js" defer></script>
+		<script src="./assets/scripts/script.js" defer></script>
+		<script src="./assets/scripts/items.js" defer></script>
+		<script src="./assets/scripts/clock.js" defer></script>
+		<script src="./assets/scripts/start.js" defer></script>
+		<script src="./assets/scripts/ui.js" defer></script>
+		<script src="./assets/scripts/loop_timer.js" defer></script>
 
 
 
