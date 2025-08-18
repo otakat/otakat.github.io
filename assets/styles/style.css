@@ -438,6 +438,11 @@ body {
   text-align: center;
 }
 
+#main-pane {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
 #actions-tab {
   display: flex;
   flex-direction: column;
