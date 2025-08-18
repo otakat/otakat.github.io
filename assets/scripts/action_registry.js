@@ -33,7 +33,6 @@ const default_action = {
         logPopupCombo('You completed ' + getActionData(actionId).label + '.', 'action_complete');
       },
       last: function (actionId) {
-        logPopupCombo('You cannot perform ' + getActionData(actionId).label + ' anymore.', 'action_failure');
         makeActionUnavailable(actionId);
       }
     }
