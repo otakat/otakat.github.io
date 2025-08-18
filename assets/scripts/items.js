@@ -6,7 +6,7 @@ const itemData = {
     type: 'usable',
     effect() {
       setTimeRemaining(gameState.timeRemaining + 10);
-      logPopupCombo('You feel time wind back a little.', 'success');
+        logPopupCombo('You feel time wind back a little.', 'item');
     }
   },
   smoke_bomb: {
@@ -15,7 +15,7 @@ const itemData = {
     description: 'Creates a smokescreen to escape.',
     type: 'usable',
     effect() {
-      logPopupCombo('Poof! The smoke bomb fizzles harmlessly.', 'secondary');
+        logPopupCombo('Poof! The smoke bomb fizzles harmlessly.', 'item');
     }
   },
   magic_lantern: {
@@ -24,7 +24,7 @@ const itemData = {
     description: 'Reveals hidden paths for a moment.',
     type: 'usable',
     effect() {
-      logPopupCombo('The lantern glows, but nothing happens…', 'info');
+        logPopupCombo('The lantern glows, but nothing happens…', 'item');
     }
   },
   fairy_dust: {
@@ -33,7 +33,7 @@ const itemData = {
     description: 'A pinch might hasten your step.',
     type: 'usable',
     effect() {
-      logPopupCombo('You sparkle briefly.', 'info');
+        logPopupCombo('You sparkle briefly.', 'item');
     }
   },
   throwing_stone: {
@@ -42,7 +42,7 @@ const itemData = {
     description: 'Distracts small foes when tossed.',
     type: 'usable',
     effect() {
-      logPopupCombo('You toss the stone. It skitters away.', 'info');
+        logPopupCombo('You toss the stone. It skitters away.', 'item');
     }
   },
   bread: {
@@ -51,7 +51,7 @@ const itemData = {
     description: 'A simple snack to keep you going.',
     type: 'usable',
     effect() {
-      logPopupCombo('Tasty! But you\'re still hungry.', 'secondary');
+        logPopupCombo('Tasty! But you\'re still hungry.', 'item');
     }
   },
   lucky_clover: {

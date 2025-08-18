@@ -52,8 +52,8 @@ class GameAction {
                 const res = this.canStart();
                 if (!res.ok) {
                         if (res.unmet) {
-                                const msg = buildRequirementsMessage(res.unmet);
-                                logPopupCombo(msg, 'warning');
+                                  const msg = buildRequirementsMessage(res.unmet);
+                                  logPopupCombo(msg, 'action_failure');
                         } else {
                                 console.error('Invalid action data');
                         }

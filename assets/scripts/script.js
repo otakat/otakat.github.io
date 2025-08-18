@@ -59,6 +59,17 @@ function multiplyTimeChangeBySkills(timeChange, skills){
 const currentExperienceToLevel = 3000;
 const permanentExperienceToLevel = 3000;
 
+const alertTypeData = {
+  action_complete: { label: 'Action Completion', bootstrap: 'success' },
+  action_unlock: { label: 'Action Unlock', bootstrap: 'primary' },
+  story: { label: 'Story', bootstrap: 'info' },
+  action_failure: { label: 'Action Failure', bootstrap: 'danger' },
+  skill_level: { label: 'Skill Level Up', bootstrap: 'success' },
+  artifact: { label: 'Artifact Unlock', bootstrap: 'primary' },
+  item: { label: 'Item', bootstrap: 'info' },
+  system: { label: 'System', bootstrap: 'secondary' }
+};
+
 function updateSkill(skill, timeChange) {
   if (!doSkillsExist(skill)) {return false;}
 
@@ -73,8 +84,9 @@ function updateSkill(skill, timeChange) {
   skill_to_update.current_progress += timeChange;
   if (skill_to_update.current_progress >= currentExperienceToLevel) {
     skill_to_update.current_level += 1;
-
     skill_to_update.current_progress -= currentExperienceToLevel;
+    const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
+    logPopupCombo(`${skillName} improved to ${skill_to_update.current_level}.`, 'skill_level');
   }
   let currentProgressPercentage = skill_to_update.current_progress / currentExperienceToLevel * 100;
 
@@ -83,6 +95,8 @@ function updateSkill(skill, timeChange) {
   if (skill_to_update.permanent_progress >= permanentExperienceToLevel) {
     skill_to_update.permanent_level += 1;
     skill_to_update.permanent_progress -= permanentExperienceToLevel;
+    const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
+    logPopupCombo(`${skillName} mastery increased to ${skill_to_update.permanent_level}.`, 'skill_level');
   }
   let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
 
@@ -288,7 +302,7 @@ function unlockArtifact(id) {
     }
     updateArtifactsUI();
     applyArtifactEffects(id);
-    logPopupCombo('You discovered ' + artifactData[id].label + '!', 'primary');
+    logPopupCombo('You discovered ' + artifactData[id].label + '!', 'artifact');
   }
 }
 
@@ -365,49 +379,74 @@ function updateStoryUI() {
   storyHeader.scrollTop = storyHeader.scrollHeight;
 }
 
-function createPopup(text, alertType = 'alert-primary') {
-    // Check alertType for legal entry, correct if applicable, or use default
-    fullType = alertType.startsWith('alert-') ? alertType : 'alert-' + alertType
-    const allAlertTypes = new Set(['alert-primary', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-warning', 'alert-info', 'alert-light', 'alert-dark'])
-    if (!allAlertTypes.has(fullType)) {
-      console.error('Illegal alert type: ', alertType);
-      fullType = 'alert-primary';
-    }
-
-    // Create alert div
+function createPopup(text, alertType = 'system') {
+    const data = alertTypeData[alertType] || alertTypeData.system;
     const alertDiv = document.createElement('div');
-    alertDiv.className = `alert ${fullType} alert-dismissible fade show`;
+    alertDiv.className = `alert alert-${data.bootstrap} alert-dismissible fade show d-flex align-items-center`;
     alertDiv.role = 'alert';
 
-    // Add message and close button to alert
     alertDiv.innerHTML = `
-        ${text}
+        <div class="flex-grow-1">${text}</div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        <div class="progress" style="height: 3px;">
-            <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+        <div class="alert-timer ms-2">
+            <svg viewBox="0 0 44 44">
+                <circle class="arc-track" cx="22" cy="22" r="20"></circle>
+                <circle class="arc-progress" cx="22" cy="22" r="20" pathLength="100"></circle>
+            </svg>
         </div>`;
 
-    // Append alert to the popup-container
     document.getElementById('popup-container').appendChild(alertDiv);
 
-    // Calculate timeout duration based on message length (e.g., 5000ms + 100ms per word)
-    const duration = 3000 + text.split(' ').length * 100;
-    const progressBar = alertDiv.querySelector('.progress-bar');
+    const duration = 3000;
+    const arc = alertDiv.querySelector('.arc-progress');
+    arc.style.transition = `stroke-dashoffset ${duration}ms linear`;
+    setTimeout(() => { arc.style.strokeDashoffset = 100; }, 0);
 
-    // Animate progress bar
-    progressBar.style.transition = `width ${duration}ms linear`;
-    setTimeout(() => progressBar.style.width = '0%', 0);
-
-    // Set timeout to remove the alert
     setTimeout(() => {
         alertDiv.classList.remove('show');
-        setTimeout(() => alertDiv.remove(), 150); // Wait for fade out
+        setTimeout(() => alertDiv.remove(), 150);
     }, duration);
 }
 
-function logPopupCombo(text, alertType, id, tag) {
-  addLogEntry(text, id, tag);
-  createPopup(text, alertType);
+function logPopupCombo(text, alertType = 'system', id, tag) {
+  const settings = gameState.alertSettings?.[alertType] || { popup: true, log: true };
+  const logTag = tag || alertType;
+  if (settings.log) { addLogEntry(text, id, logTag); }
+  if (settings.popup) { createPopup(text, alertType); }
+}
+
+function initAlertSettingsUI() {
+  const container = document.getElementById('alert-settings');
+  if (!container) return;
+  container.innerHTML = '';
+  Object.entries(alertTypeData).forEach(([key, data]) => {
+    const row = document.createElement('div');
+    row.className = 'mb-1';
+    row.innerHTML = `
+      <strong class="me-2">${data.label}</strong>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" id="alert-popup-${key}">
+        <label class="form-check-label" for="alert-popup-${key}">Popup</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" id="alert-log-${key}">
+        <label class="form-check-label" for="alert-log-${key}">Log</label>
+      </div>`;
+    container.appendChild(row);
+    const popupBox = row.querySelector(`#alert-popup-${key}`);
+    const logBox = row.querySelector(`#alert-log-${key}`);
+    const setting = gameState.alertSettings[key];
+    popupBox.checked = setting?.popup;
+    logBox.checked = setting?.log;
+    popupBox.addEventListener('change', () => {
+      gameState.alertSettings[key].popup = popupBox.checked;
+      saveGame();
+    });
+    logBox.addEventListener('change', () => {
+      gameState.alertSettings[key].log = logBox.checked;
+      saveGame();
+    });
+  });
 }
 
 let scheduledEvents = [];
@@ -490,10 +529,10 @@ function checkTimeWarnings() {
   }
   if (!hasPocketWatch) {
     if (fraction <= 0.25 && !timeWarnings.quarter) {
-      logPopupCombo('Your vision swims; the world feels less steady.', 'warning');
+        logPopupCombo('Your vision swims; the world feels less steady.', 'system');
       timeWarnings.quarter = true;
     } else if (fraction <= 0.5 && !timeWarnings.half) {
-      logPopupCombo('You feel a strange heaviness in your limbs.', 'warning');
+        logPopupCombo('You feel a strange heaviness in your limbs.', 'system');
       timeWarnings.half = true;
     }
   }
@@ -651,15 +690,16 @@ function resetGameState() {
 
   initializeGame();
   if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
+  initAlertSettingsUI();
 }
 
 async function saveGame(isManualSave = false) {
   try {
     await localforage.setItem('gameState', gameState);
-    if (isManualSave) { logPopupCombo('Game Saved', 'secondary'); }
+    if (isManualSave) { logPopupCombo('Game Saved', 'system'); }
   } catch (error) {
     const errorMessage = 'Error saving game data';
-    logPopupCombo(errorMessage, 'danger');
+    logPopupCombo(errorMessage, 'system');
     console.error(errorMessage, error);
   }
 }
@@ -683,24 +723,25 @@ async function loadGame() {
         gameClock.setRenderHz(gameState.globalParameters?.renderHz || 30);
       }
 
-      logPopupCombo('Data Loaded', 'secondary');
+      logPopupCombo('Data Loaded', 'system');
     }
   } catch (error) {
     const errorMessage = 'Error loading game data';
-    logPopupCombo(errorMessage, 'danger');
+    logPopupCombo(errorMessage, 'system');
     console.error(errorMessage, error);
   }
 
   updateDebugToggle();
   initializeGame();
   updateTimerUI();
+  initAlertSettingsUI();
   if (typeof updateBookButton === 'function') { updateBookButton(); }
 }
 
 function initializeGame() {
   if (gameState.actionsAvailable.length === 0) {
     const opener = getLocationMeta('book1.hemlockForest.followWhisperingTrail').opener;
-    logPopupCombo(opener, 'info', undefined, 'story');
+    logPopupCombo(opener, 'story', undefined, 'story');
     gameState.actionsAvailable = ['book1.hemlockForest.followWhisperingTrail'];
   }
 
