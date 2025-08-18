@@ -355,6 +355,9 @@ function updateStoryUI() {
       span.classList.add('latest-story');
     }
     storyHeader.appendChild(span);
+    if (index !== storyEntries.length - 1) {
+      storyHeader.appendChild(document.createTextNode(' '));
+    }
   });
 
   storyHeader.scrollTop = storyHeader.scrollHeight;
