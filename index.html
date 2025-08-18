@@ -28,20 +28,20 @@
             </div>
           </div>
         </div>
-
+      
         <!-- System menu row -->
-        <div class="row px-3 system-menu">
-            <button class="menu-button menu-icon-button" id="settings-button">
-              <span class="emoji">⚙️</span><span class="label">Settings</span>
+        <div class="d-flex gap-1 px-3 system-menu">
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" onclick="openTab('settings-pane')">
+              <span class="emoji fs-4">⚙️</span><span class="label small">Settings</span>
             </button>
-            <button class="menu-button menu-icon-button" id="save-button" data-tippy-content="Store progress">
-              <span class="emoji">💾</span><span class="label">Save</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">
+              <span class="emoji fs-4">💾</span><span class="label small">Save</span>
             </button>
-            <button class="menu-button menu-icon-button" id="pause-button" data-tippy-content="Toggle clock pause">
-              <span class="emoji">⏸️</span><span class="label">Pause</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">
+              <span class="emoji fs-4">⏸️</span><span class="label small">Pause</span>
             </button>
-            <button class="menu-button menu-icon-button" id="main-button" data-tippy-content="Return to main view">
-              <span class="emoji">🏠</span><span class="label">Main</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
+              <span class="emoji fs-4">🏠</span><span class="label small">Main</span>
             </button>
         </div>
 
@@ -152,25 +152,25 @@
           </div>
         </div>
         <!-- Game menu row -->
-        <div class="row px-3 game-menu">
-            <button class="menu-button menu-icon-button d-none" id="library-button">
-              <span class="emoji">📚</span><span class="label">Library</span>
+        <div class="d-flex gap-1 px-3 game-menu">
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="library-button" onclick="showLibrary()">
+              <span class="emoji fs-4">📚</span><span class="label small">Library</span>
             </button>
-            <button class="menu-button menu-icon-button" id="book-button">
-              <span class="emoji">🐹</span><span class="label">Book</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" id="book-button" onclick="showBook()">
+              <span class="emoji fs-4">🐹</span><span class="label small">Book</span>
             </button>
-            <button class="menu-button menu-icon-button d-md-none" id="log-button">
-              <span class="emoji">📜</span><span class="label">Log</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-md-none" id="log-button" onclick="showLog()">
+              <span class="emoji fs-4">📜</span><span class="label small">Log</span>
             </button>
-            <button class="menu-button menu-icon-button d-none" id="artifacts-button">
-              <span class="emoji">🗝️</span><span class="label">Artifacts</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="artifacts-button" onclick="openArtifacts()">
+              <span class="emoji fs-4">🗝️</span><span class="label small">Artifacts</span>
             </button>
-            <button class="menu-button menu-icon-button d-none" id="skills-button">
-              <span class="emoji">🧠</span><span class="label">Skills</span>
+            <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 d-none" id="skills-button" onclick="openSkills()">
+              <span class="emoji fs-4">🧠</span><span class="label small">Skills</span>
             </button>
         </div>
-          <!-- Row for everything else -->
-          <div class="row flex-fill">
+        <!-- Row for everything else -->
+        <div class="row row-fix">
 
           <!-- Settings. Off by default. -->
             <div id="settings-pane" class="content-pane d-none col-12 h-100">
@@ -193,8 +193,8 @@
             <h2>📚 Library</h2>
             <p>Select a book to begin. 🐹</p>
             <div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
-              <button id="book1-option" class="menu-button menu-icon-button library-book-option">
-                <span class="emoji">🐹</span><span class="label">Book 1</span>
+              <button id="book1-option" class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1 library-book-option" onclick="selectBook('book1')">
+                <span class="emoji fs-4">🐹</span><span class="label small">Book 1</span>
               </button>
             </div>
           </div>
