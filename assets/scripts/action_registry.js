@@ -179,7 +179,6 @@ const actionRegistry = {
             1: function(actionId) {
               logPopupCombo(getActionData(actionId).story.completion, 'story', undefined, 'story');
               logPopupCombo('You have completed every task.', 'system');
-              makeActionUnavailable(actionId);
             }
           }
         }
