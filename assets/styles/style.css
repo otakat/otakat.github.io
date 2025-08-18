@@ -413,7 +413,7 @@ body {
   justify-content: flex-end;
 }
 
-#story-header-text span {
+#story-header-text > span {
   display: block;
 }
 

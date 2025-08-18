@@ -347,19 +347,21 @@ function updateStoryUI() {
   if (!storyHeader) return;
 
   storyHeader.innerHTML = '';
+  const wrapper = document.createElement('span');
   const storyEntries = gameState.gameLog.filter(entry => entry.tag === 'story');
+
   storyEntries.forEach((entry, index) => {
-    const span = document.createElement('span');
-    span.textContent = entry.text;
     if (index === storyEntries.length - 1) {
-      span.classList.add('latest-story');
-    }
-    storyHeader.appendChild(span);
-    if (index !== storyEntries.length - 1) {
-      storyHeader.appendChild(document.createTextNode(' '));
+      const latest = document.createElement('span');
+      latest.textContent = entry.text;
+      latest.classList.add('latest-story');
+      wrapper.appendChild(latest);
+    } else {
+      wrapper.appendChild(document.createTextNode(entry.text + ' '));
     }
   });
 
+  storyHeader.appendChild(wrapper);
   storyHeader.scrollTop = storyHeader.scrollHeight;
 }
 
