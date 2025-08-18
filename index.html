@@ -168,11 +168,11 @@
               <span class="emoji">🧠</span><span class="label">Skills</span>
             </button>
         </div>
-        <!-- Row for everything else -->
-        <div class="row row-fix">
+          <!-- Row for everything else -->
+          <div class="row flex-fill">
 
           <!-- Settings. Off by default. -->
-          <div id="settings-pane" class="content-pane d-none col-12 full-height">
+            <div id="settings-pane" class="content-pane d-none col-12 h-100">
             <div class="mb-3">
               <label for="render-rate-slider" class="form-label">Refresh Rate: <span id="render-rate-display">30</span> Hz</label>
               <input type="range" class="form-range" id="render-rate-slider" min="5" max="60" step="5" value="30">
@@ -188,7 +188,7 @@
             <pre id="debug-info" class="d-none mt-3"></pre>
           </div>
           <!-- Library View -->
-          <div id="library-pane" class="content-pane d-none col-12 full-height text-center p-3">
+            <div id="library-pane" class="content-pane d-none col-12 h-100 text-center p-3">
             <h2>📚 Library</h2>
             <p>Select a book to begin. 🐹</p>
             <div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
@@ -198,9 +198,9 @@
             </div>
           </div>
           <!-- Main View (Book). On by default. -->
-          <div id="main-pane" class="content-pane col-12 full-height flex-vert">
-            <div class="row row-col-1 row-col-md-2 row-fix">
-              <div id="actions-tab" class="mobile-tab col d-md-block full-height">
+            <div id="main-pane" class="content-pane col-12 h-100 d-flex flex-column">
+              <div class="row row-col-1 row-col-md-2 flex-fill">
+                <div id="actions-tab" class="mobile-tab col d-md-block h-100">
                 <div id="book-header" class="book-header d-flex align-items-center">
                   <div id="story-header-text" class="flex-grow-1 overflow-auto"></div>
                   <div id="timer-container" class="d-none h-100 ms-2 flex-shrink-0">
@@ -224,8 +224,7 @@
                   </div>
                 </div>
               </div>
-              <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 full-height scroll">
-
+                <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 h-100 overflow-scroll">
                   <div id="game-log" class="game-log"></div>
               </div>
             </div>
