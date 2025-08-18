@@ -110,6 +110,11 @@ function updateSkill(skill, timeChange) {
 
 function refreshSkillsUI() {
   skillList.forEach(skill => {
+    const nameEl = document.querySelector(`#${skill} .skill-name`);
+    if (nameEl) {
+      const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
+      nameEl.textContent = `${skillEmojis?.[skill] || ''} ${skillName}`;
+    }
     updateSkill(skill, 0);
   });
 }
@@ -272,6 +277,7 @@ function updateSkillsUI() {
     skillsTab.classList.remove('d-md-block');
     skillsButton.classList.add('d-none');
   }
+  if (typeof updateActionSkillIcons === 'function') { updateActionSkillIcons(); }
 }
 
 function updateLibraryButton() {

@@ -1,3 +1,14 @@
+// Emoji mapping for skills
+const skillEmojis = {
+  courage: '🦁',
+  creativity: '🎨',
+  curiosity: '🔍',
+  integrity: '🧭',
+  perseverance: '💪',
+  resourcefulness: '🛠️'
+};
+globalThis.skillEmojis = skillEmojis;
+
 // THE ACTION CLASS
 class GameAction {
   constructor(id) {
@@ -175,7 +186,12 @@ function createNewAction(id) {
   if (id in actionsConstructed) { console.error('Action already constructed:', id); return; }
   if (!hasActionData(id)) { console.error('Action data does not exist:', id); return; }
 
-  const label = getActionData(id).label;
+  const data = getActionData(id);
+  const label = data.label;
+  const skills = Array.isArray(data.skills) ? data.skills : [];
+  const skillIcons = skills
+    .map(skill => `<span class="action-skill-icon" data-skill="${skill}">${skillEmojis[skill] || ''}</span>`) 
+    .join('');
 
   const container = document.createElement('div');
   container.id = id;
@@ -183,6 +199,7 @@ function createNewAction(id) {
   container.innerHTML = `
     <div class="action-header">
       <span class="action-label" data-tippy-content="Action Label">${label}</span>
+      <span class="action-skills">${skillIcons}</span>
     </div>
     <div class="action-progress-container">
       <div class="action-progress-text">0% Mastery + 0% Current</div>
@@ -200,6 +217,7 @@ function createNewAction(id) {
   }
 
   actionsConstructed[id] = new GameAction(id);
+  updateActionSkillIcons();
   processActiveAndQueuedActions();
 }
 
@@ -332,4 +350,18 @@ function processActiveAndQueuedActions() {
       actionObject.elements.progressBarCurrent.classList.remove('active');
     }
   })
+}
+
+function areSkillsVisible() {
+  return gameState.debugMode || !!gameState.artifacts?.skillbook;
+}
+
+function updateActionSkillIcons() {
+  const show = areSkillsVisible();
+  Object.values(actionsConstructed).forEach(actionObject => {
+    const skillsEl = actionObject.container.querySelector('.action-skills');
+    if (skillsEl) {
+      skillsEl.style.display = show ? 'flex' : 'none';
+    }
+  });
 }
