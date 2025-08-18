@@ -722,6 +722,28 @@ function initializeGame() {
   Object.keys(gameState.artifacts).forEach(id => {
     if (gameState.artifacts[id]) {applyArtifactEffects(id);}
   });
+  Object.keys(gameState.inventory || {}).forEach(id => {
+    const data = itemData[id];
+    if (data && data.type === 'static' && typeof data.apply === 'function') {
+      data.apply();
+    }
+  });
+  if (Object.keys(gameState.inventory || {}).length === 0) {
+    addItem('healing_potion', 3);
+    addItem('smoke_bomb', 2);
+    addItem('magic_lantern', 1);
+    addItem('fairy_dust', 1);
+    addItem('throwing_stone', 4);
+    addItem('bread', 1);
+    addItem('lucky_clover', 1);
+    addItem('hourglass_charm', 1);
+    addItem('silver_feather', 1);
+    addItem('library_card', 1);
+    addItem('mystic_orb', 1);
+    addItem('ancient_map', 1);
+  } else {
+    refreshInventoryUI();
+  }
   updateMenuButtons();
 }
 
