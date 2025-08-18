@@ -405,12 +405,15 @@ body {
 #story-header-text {
   overflow-y: auto;
   white-space: normal;
+  font-size: 0.9rem;
+  line-height: 1.2;
 }
 
 .book-header {
   background: rgba(255,255,255,0.8);
   border: 1px solid #ccc;
   border-radius: 2px;
+  height: 100px;
 }
 
 .book-header .latest-story {
