@@ -7,6 +7,7 @@ const skillEmojis = {
   perseverance: '💪',
   resourcefulness: '🛠️'
 };
+globalThis.skillEmojis = skillEmojis;
 
 // THE ACTION CLASS
 class GameAction {
