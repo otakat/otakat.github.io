@@ -391,6 +391,15 @@ body {
   padding: 5px;
 }
 
+.book-footer {
+  text-align: center;
+}
+
+.footer-placeholder {
+  max-width: 100%;
+  height: auto;
+}
+
 #actions-tab {
   display: flex;
   flex-direction: column;
@@ -403,6 +412,9 @@ body {
 .book-header {
   overflow-y: auto;
   white-space: pre-line;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #ccc;
+  border-radius: 2px;
 }
 
 .game-log {
