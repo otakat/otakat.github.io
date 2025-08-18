@@ -407,14 +407,25 @@ body {
 }
 
 #story-header-text {
+  height: 100%;
   overflow-y: auto;
   white-space: normal;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#story-header-text > span {
+  display: block;
 }
 
 .book-header {
   background: rgba(255,255,255,0.8);
   border: 1px solid #ccc;
   border-radius: 2px;
+  height: 100px;
 }
 
 .book-header .latest-story {

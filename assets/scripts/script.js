@@ -346,26 +346,23 @@ function updateStoryUI() {
   const storyHeader = document.getElementById('story-header-text');
   if (!storyHeader) return;
 
-  const isScrolledToBottom =
-    storyHeader.scrollHeight - storyHeader.clientHeight <= storyHeader.scrollTop + 1;
-
   storyHeader.innerHTML = '';
+  const wrapper = document.createElement('span');
   const storyEntries = gameState.gameLog.filter(entry => entry.tag === 'story');
+
   storyEntries.forEach((entry, index) => {
-    const span = document.createElement('span');
-    span.textContent = entry.text;
     if (index === storyEntries.length - 1) {
-      span.classList.add('latest-story');
-    }
-    storyHeader.appendChild(span);
-    if (index !== storyEntries.length - 1) {
-      storyHeader.appendChild(document.createTextNode(' '));
+      const latest = document.createElement('span');
+      latest.textContent = entry.text;
+      latest.classList.add('latest-story');
+      wrapper.appendChild(latest);
+    } else {
+      wrapper.appendChild(document.createTextNode(entry.text + ' '));
     }
   });
 
-  if (isScrolledToBottom) {
-    storyHeader.scrollTop = storyHeader.scrollHeight;
-  }
+  storyHeader.appendChild(wrapper);
+  storyHeader.scrollTop = storyHeader.scrollHeight;
 }
 
 function createPopup(text, alertType = 'alert-primary') {
