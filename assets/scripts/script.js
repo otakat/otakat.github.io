@@ -346,9 +346,6 @@ function updateStoryUI() {
   const storyHeader = document.getElementById('story-header-text');
   if (!storyHeader) return;
 
-  const isScrolledToBottom =
-    storyHeader.scrollHeight - storyHeader.clientHeight <= storyHeader.scrollTop + 1;
-
   storyHeader.innerHTML = '';
   const storyEntries = gameState.gameLog.filter(entry => entry.tag === 'story');
   storyEntries.forEach((entry, index) => {
@@ -358,14 +355,9 @@ function updateStoryUI() {
       span.classList.add('latest-story');
     }
     storyHeader.appendChild(span);
-    if (index !== storyEntries.length - 1) {
-      storyHeader.appendChild(document.createTextNode(' '));
-    }
   });
 
-  if (isScrolledToBottom) {
-    storyHeader.scrollTop = storyHeader.scrollHeight;
-  }
+  storyHeader.scrollTop = storyHeader.scrollHeight;
 }
 
 function createPopup(text, alertType = 'alert-primary') {

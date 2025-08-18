@@ -403,10 +403,18 @@ body {
 }
 
 #story-header-text {
+  height: 100%;
   overflow-y: auto;
   white-space: normal;
   font-size: 0.9rem;
   line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#story-header-text span {
+  display: block;
 }
 
 .book-header {
