@@ -440,22 +440,60 @@ body {
   flex-shrink: 0;
   padding: 5px;
   height: 80px;
-}
-
-.book-footer {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  text-align: center;
   background: rgba(255,255,255,0.8);
   border: 1px solid #ccc;
   border-radius: 2px;
+  overflow: hidden;
 }
 
-.footer-placeholder {
-  max-width: 100%;
-  max-height: 100%;
-  height: auto;
+.inventory-bar {
+  display: flex;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.item-group {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.item-icon {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.9);
+  cursor: pointer;
+}
+
+.item-icon.usable {
+  box-shadow: 0 0 8px rgba(100,149,237,0.7);
+}
+
+.item-count {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: #dc3545;
+  color: #fff;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
 }
 
 #actions-tab {
