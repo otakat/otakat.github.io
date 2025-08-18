@@ -32,11 +32,6 @@ body {
   background-color: #444;
 }
 
- /* Limiting container width to lg */
-.container-fluid {
-  max-width: 1280px;
-}
-
 .game-wrapper {
   background: url('../images/book.png');
   background-repeat: no-repeat;
