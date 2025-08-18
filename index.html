@@ -10,9 +10,8 @@
     <link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 <body>
-  <div class="container-fluid m-0 p-0">
-    <div class="row">
-      <div class="container m-0 game-wrapper p-3">
+  <div class="container-lg m-0 p-0">
+    <div class="game-wrapper p-3">
         <div id="popup-container"></div>
         <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered">
@@ -24,12 +23,12 @@
                 <ul id="reset-summary" class="text-start"></ul>
               </div>
               <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-primary" onclick="restartGame()">Restart</button>
+                <button type="button" class="btn btn-primary" id="restart-button">Restart</button>
               </div>
             </div>
           </div>
         </div>
-
+      
         <!-- System menu row -->
         <div class="d-flex gap-1 px-3 system-menu">
             <button class="btn btn-light d-flex flex-column align-items-center justify-content-center p-1 gap-1" onclick="openTab('settings-pane')">
@@ -174,7 +173,7 @@
         <div class="row row-fix">
 
           <!-- Settings. Off by default. -->
-          <div id="settings-pane" class="content-pane d-none col-12 full-height">
+            <div id="settings-pane" class="content-pane d-none col-12 h-100">
             <div class="mb-3">
               <label for="render-rate-slider" class="form-label">Refresh Rate: <span id="render-rate-display">30</span> Hz</label>
               <input type="range" class="form-range" id="render-rate-slider" min="5" max="60" step="5" value="30">
@@ -190,7 +189,7 @@
             <pre id="debug-info" class="d-none mt-3"></pre>
           </div>
           <!-- Library View -->
-          <div id="library-pane" class="content-pane d-none col-12 full-height text-center p-3">
+            <div id="library-pane" class="content-pane d-none col-12 h-100 text-center p-3">
             <h2>📚 Library</h2>
             <p>Select a book to begin. 🐹</p>
             <div class="d-flex justify-content-center gap-2 mt-3" id="library-book-list">
@@ -200,9 +199,9 @@
             </div>
           </div>
           <!-- Main View (Book). On by default. -->
-          <div id="main-pane" class="content-pane col-12 full-height flex-vert">
-            <div class="row row-col-1 row-col-md-2 row-fix">
-              <div id="actions-tab" class="mobile-tab col d-md-block full-height">
+            <div id="main-pane" class="content-pane col-12 h-100 d-flex flex-column">
+              <div class="row row-col-1 row-col-md-2 flex-fill">
+                <div id="actions-tab" class="mobile-tab col d-md-block h-100">
                 <div id="book-header" class="book-header d-flex align-items-center">
                   <div id="story-header-text" class="flex-grow-1 overflow-auto"></div>
                   <div id="timer-container" class="d-none h-100 ms-2 flex-shrink-0">
@@ -220,11 +219,13 @@
                 </div>
                 <div id="all-actions-container"></div>
                 <div id="book-footer" class="book-footer">
-                  <img src="./assets/images/footer-placeholder.svg" alt="Placeholder graphic" class="footer-placeholder">
+                  <div id="inventory-bar" class="inventory-bar">
+                    <div id="usable-items" class="item-group"></div>
+                    <div id="static-items" class="item-group"></div>
+                  </div>
                 </div>
               </div>
-              <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 full-height scroll">
-
+                <div id="log-tab" class="mobile-tab col d-none d-md-block px-0 mx-3 h-100 overflow-scroll">
                   <div id="game-log" class="game-log"></div>
               </div>
             </div>
@@ -232,7 +233,6 @@
         </div>
       </div>
     </div>
-  </div>
 
 
   <script type="module">
@@ -254,6 +254,7 @@
       <script src="./assets/scripts/action_runner.js" defer></script>
       <script src="./assets/scripts/action_functions.js" defer></script>
     <script src="./assets/scripts/script.js" defer></script>
+    <script src="./assets/scripts/items.js" defer></script>
     <script src="./assets/scripts/clock.js" defer></script>
     <script src="./assets/scripts/start.js" defer></script>
     <script src="./assets/scripts/ui.js" defer></script>
