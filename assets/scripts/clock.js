@@ -21,45 +21,59 @@ function changeGlobalStyle(selector, property, value) {
 
 class GlobalClock {
   constructor() {
-    this.timerId = null;
-    this.lastClockTime = performance.now();
-    this.accumulator = 0;
+    this.rafId = null;
+    this.logicTimerId = null;
+    this.lastClockTime = null;
+    this.renderAccumulator = 0;
     this.start();
   }
 
   start() {
-    if (this.timerId) this.stop();
-    this.lastClockTime = performance.now();
-    const intervalMs = 1000 / gameState.globalParameters.renderHz;
-    const timers = window.workerTimers || window;
-    this.timerId = timers.setInterval(() => this._beat(), intervalMs);
+    if (this.rafId) this.stop();
+    this.lastClockTime = null;
+    this.renderAccumulator = 0;
+
+    // Fixed-step logic timer
+    this._restartLogicTimer();
+
+    const loop = (timestamp) => {
+      if (this.lastClockTime === null) {
+        this.lastClockTime = timestamp;
+      }
+      const clockDelta = timestamp - this.lastClockTime;
+      this.lastClockTime = timestamp;
+
+      this.renderAccumulator += clockDelta;
+      const renderInterval = 1000 / gameState.globalParameters.renderHz;
+      if (this.renderAccumulator >= renderInterval) {
+        const delta = this.renderAccumulator;
+        this.renderAccumulator = 0;
+        this._beat(delta);
+      }
+
+      this.rafId = requestAnimationFrame(loop);
+    };
+
+    this.rafId = requestAnimationFrame(loop);
   }
 
   stop() {
-    if (this.timerId) {
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    if (this.logicTimerId) {
       const timers = window.workerTimers || window;
-      timers.clearInterval(this.timerId);
-      this.timerId = null;
+      timers.clearInterval(this.logicTimerId);
+      this.logicTimerId = null;
     }
   }
 
-  _beat() {
-    const now = performance.now();
-    const clockDelta = now - this.lastClockTime; // real-world ms
-    this.lastClockTime = now;
-
+  _beat(clockDelta) {
     const gameDelta = clockDelta * gameState.globalParameters.timeDilation;
 
     // Emit events
     eventBus.emit('heartbeat', { clockDelta });
-
-    // Fixed-step logic accumulator
-    const stepMs = 1000 / gameState.globalParameters.logicHz;
-    this.accumulator += gameDelta;
-    while (this.accumulator >= stepMs) {
-      eventBus.emit('tick-fixed', { stepMs });
-      this.accumulator -= stepMs;
-    }
 
     // Variable-step game tick
     eventBus.emit('tick', { gameDelta });
@@ -81,18 +95,32 @@ class GlobalClock {
 
   setRenderHz(hz) {
     gameState.globalParameters.renderHz = hz;
-    this.start();
     changeGlobalStyle('.progress-bar', 'transition', `width ${Math.max(5, 1000 / hz)}ms linear`);
   }
 
   setLogicHz(hz) {
     gameState.globalParameters.logicHz = hz;
+    this._restartLogicTimer();
   }
 
   setTimeDilation(multiplier) {
     const clamped = Math.min(Math.max(multiplier, 0.05), 100);
     gameState.globalParameters.timeDilation = clamped;
     eventBus.emit('time-dilation-changed', { timeDilation: clamped });
+    this._restartLogicTimer();
+  }
+
+  _restartLogicTimer() {
+    if (this.logicTimerId) {
+      const timers = window.workerTimers || window;
+      timers.clearInterval(this.logicTimerId);
+    }
+    const timers = window.workerTimers || window;
+    const stepMs = 1000 / gameState.globalParameters.logicHz;
+    const intervalMs = stepMs / gameState.globalParameters.timeDilation;
+    this.logicTimerId = timers.setInterval(() => {
+      eventBus.emit('tick-fixed', { stepMs });
+    }, intervalMs);
   }
 }
 
