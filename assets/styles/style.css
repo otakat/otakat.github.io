@@ -98,41 +98,6 @@ body {
   }
 
 /* MENU */
-.menu-button {
-    width:auto;
-    height: 40px;
-    font-size: 0.8em;
-    flex: 0 1 auto;
-    line-height: 1.1;
-    margin: 1px;
-    padding: 3px 10px;
-    cursor: pointer;
-  }
-
-.menu-icon-button {
-  width: 60px;
-  height: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.5rem;
-  line-height: 1;
-  background-color: rgba(255,255,255,0.8);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  padding: 4px;
-}
-
-.menu-icon-button .label {
-  font-size: 0.6rem;
-  margin-top: 2px;
-}
-
-.system-menu, .game-menu {
-  gap: 5px;
-}
 
 .library-book-option.selected {
   border: 2px solid blue;
