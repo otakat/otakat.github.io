@@ -545,7 +545,7 @@ function showResetPopup(){
   // Halt clock and display results
   gameOver = true;
   addPauseState(pauseStates.MODAL);
-  document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = true);
+  document.querySelectorAll('button').forEach(btn => btn.disabled = true);
   const restartBtn = document.querySelector('#resetModal button');
   if (restartBtn) {restartBtn.disabled = false;}
 
@@ -573,7 +573,7 @@ function showResetPopup(){
 function restartGame(){
   const modal = bootstrap.Modal.getInstance(document.getElementById('resetModal'));
   if (modal) {modal.hide();}
-  document.querySelectorAll('button:not(.menu-button)').forEach(btn => btn.disabled = false);
+  document.querySelectorAll('button').forEach(btn => btn.disabled = false);
 
   timeRemaining = timeMax;
   gameState.timeRemaining = timeRemaining;
