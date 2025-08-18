@@ -393,6 +393,10 @@ body {
 
 .book-footer {
   text-align: center;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  min-height: 40px;
 }
 
 .footer-placeholder {
@@ -411,10 +415,15 @@ body {
 
 .book-header {
   overflow-y: auto;
-  white-space: pre-line;
+  white-space: normal;
   background: rgba(255,255,255,0.8);
   border: 1px solid #ccc;
   border-radius: 2px;
+  max-height: 4.5em;
+}
+
+.book-header .latest-story {
+  color: red;
 }
 
 .game-log {
