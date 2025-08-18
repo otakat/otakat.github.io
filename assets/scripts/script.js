@@ -501,15 +501,20 @@ function runGameTick(stepMs) {
   if (!isGamePaused()) {
     timeTotal += stepMs;
     gameState.actionsActive.forEach(actionId => {
-      actionsConstructed[actionId].update(stepMs);
+      actionsConstructed[actionId].step(stepMs);
     });
     processScheduledEvents();
-    processActiveAndQueuedActions();
   }
 }
 
 // Listen for each fixed clock beat
 eventBus.on('tick-fixed', ({ stepMs }) => runGameTick(stepMs));
+
+// Render cycle
+eventBus.on('heartbeat', () => {
+  Object.values(actionsConstructed).forEach(action => action.render());
+  processActiveAndQueuedActions();
+});
 
 function buttonPause() {
   if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
