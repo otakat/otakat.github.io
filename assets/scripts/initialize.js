@@ -15,7 +15,7 @@ const pauseStates = {
 };
 
 // Default loop time in seconds
-const defaultLoopTime = 600;
+const defaultLoopTime = 60;
 
 const emptyGameState = {
   debugMode: true,
