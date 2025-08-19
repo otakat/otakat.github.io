@@ -14,6 +14,8 @@ class GameAction {
   constructor(id) {
       // Initialize properties
       this.id = id;
+      this.timeMultiplier = 1;
+      this.skillChangeHandler = null;
 
 			// For static properties
                         this.data = getActionData(id);
@@ -90,14 +92,43 @@ class GameAction {
                         const continueAfterEach = effects.each(this.id);
                         if (!continueAfterEach) {return false;}
                 }
+                this.calculateTimeMultiplier();
+                this.skillChangeHandler = () => {
+                  if (this.isActive) this.calculateTimeMultiplier();
+                };
+                eventBus.on('skills-change', this.skillChangeHandler);
                 if (gameState.debugMode) console.log(`Action ${this.id} started`);
                 return true;
         }
 
         stop() {
-                // Placeholder for any future stop logic
+                if (this.skillChangeHandler) {
+                  eventBus.off('skills-change', this.skillChangeHandler);
+                  this.skillChangeHandler = null;
+                }
                 if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
         }
+
+  calculateTimeMultiplier() {
+    let multiplier = 1;
+    const data = this.data;
+
+    if (doSkillsExist(data.skills)) {
+      multiplier = multiplyTimeChangeBySkills(multiplier, data.skills);
+    }
+
+    const mods = challengeMods[data.challengeType];
+    if (mods) {
+      multiplier *= mods.speedMult ?? 1;
+    }
+
+    const locMeta = getLocationMeta(this.id);
+    if (locMeta.timeMultiplier) {
+      multiplier *= locMeta.timeMultiplier;
+    }
+
+    this.timeMultiplier = multiplier;
+  }
 
   step(timeChange = 0) {
     if (typeof this.progress.timeCurrent !== 'number' || isNaN(this.progress.timeCurrent)) {
@@ -133,6 +164,11 @@ class GameAction {
       this.calculateTimeStart();
       this.progress.timeCurrent = this.progress.timeStart;
       deactivateAction(this.id);
+
+      if (doSkillsExist(this.data.skills)) {
+        const xpPerSkill = this.data.length / this.data.skills.length;
+        this.data.skills.forEach(skill => updateSkill(skill, xpPerSkill));
+      }
 
     this.data.completionEffects.each(this.id);
 

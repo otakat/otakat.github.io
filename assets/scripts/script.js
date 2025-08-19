@@ -106,6 +106,9 @@ function updateSkill(skill, timeChange) {
   permanentProgressEl.style.width = permanentProgressPercentage + '%';
 
   skillEl.classList.remove('d-none');
+  if (typeof eventBus?.emit === 'function') {
+    eventBus.emit('skills-change', { skill });
+  }
 }
 
 function refreshSkillsUI() {
@@ -309,6 +312,9 @@ function unlockArtifact(id) {
     updateArtifactsUI();
     applyArtifactEffects(id);
     logPopupCombo('You discovered ' + artifactData[id].label + '!', 'artifact');
+    if (typeof eventBus?.emit === 'function') {
+      eventBus.emit('skills-change', { artifact: id });
+    }
   }
 }
 
