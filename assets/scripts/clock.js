@@ -19,12 +19,39 @@ function changeGlobalStyle(selector, property, value) {
   }
 }
 
+/*
+Event tiers emitted by GlobalClock:
+  - clockTick-critical / gameTick-critical: every refresh cycle. gameTick events
+    only fire while the game is unpaused.
+  - clockTick-high / gameTick-high: every 2 cycles (aggregated deltas).
+  - clockTick-low / gameTick-low: every 4 cycles (aggregated deltas).
+  - tick-fixed-* counterparts fire from the fixed-step timer.
+
+Example subscription:
+  eventBus.on('gameTick-high', ({ clockDelta, gameDelta }) => {
+    // medium-frequency logic during play
+  });
+*/
+
 class GlobalClock {
   constructor() {
     this.rafId = null;
     this.logicTimerId = null;
     this.lastClockTime = null;
     this.renderAccumulator = 0;
+    this.clockTickCount = 0;
+    this.clockHighClockAccum = 0;
+    this.clockHighGameAccum = 0;
+    this.clockLowClockAccum = 0;
+    this.clockLowGameAccum = 0;
+
+    this.gameTickCount = 0;
+    this.gameHighClockAccum = 0;
+    this.gameHighGameAccum = 0;
+    this.gameLowClockAccum = 0;
+    this.gameLowGameAccum = 0;
+
+    this.prevPaused = true;
     this.start();
   }
 
@@ -32,6 +59,19 @@ class GlobalClock {
     if (this.rafId) this.stop();
     this.lastClockTime = null;
     this.renderAccumulator = 0;
+    this.clockTickCount = 0;
+    this.clockHighClockAccum = 0;
+    this.clockHighGameAccum = 0;
+    this.clockLowClockAccum = 0;
+    this.clockLowGameAccum = 0;
+
+    this.gameTickCount = 0;
+    this.gameHighClockAccum = 0;
+    this.gameHighGameAccum = 0;
+    this.gameLowClockAccum = 0;
+    this.gameLowGameAccum = 0;
+
+    this.prevPaused = true;
 
     // Fixed-step logic timer
     this._restartLogicTimer();
@@ -44,11 +84,11 @@ class GlobalClock {
       this.lastClockTime = timestamp;
 
       this.renderAccumulator += clockDelta;
-      const renderInterval = 1000 / gameState.globalParameters.renderHz;
-      if (this.renderAccumulator >= renderInterval) {
+      const refreshInterval = 1000 / gameState.globalParameters.refreshHz;
+      if (this.renderAccumulator >= refreshInterval) {
         const delta = this.renderAccumulator;
         this.renderAccumulator = 0;
-        this._beat(delta);
+        this._tick(delta);
       }
 
       this.rafId = requestAnimationFrame(loop);
@@ -69,23 +109,51 @@ class GlobalClock {
     }
   }
 
-  _beat(clockDelta) {
-    const gameDelta = clockDelta * gameState.globalParameters.timeDilation;
+  _tick(clockDelta) {
+    const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
+    const gameDelta = paused ? 0 : clockDelta * gameState.globalParameters.timeDilation;
 
-    // Emit events
-    eventBus.emit('heartbeat', { clockDelta });
+    // Clock tick accumulation
+    this.clockTickCount += 1;
+    this.clockHighClockAccum += clockDelta;
+    this.clockLowClockAccum += clockDelta;
+    this.clockHighGameAccum += gameDelta;
+    this.clockLowGameAccum += gameDelta;
 
-    // Variable-step game tick
-    eventBus.emit('tick', { gameDelta });
+    eventBus.emit('clockTick-critical', { clockDelta, gameDelta });
+    if (this.clockTickCount % 2 === 0) {
+      eventBus.emit('clockTick-high', {
+        clockDelta: this.clockHighClockAccum,
+        gameDelta: this.clockHighGameAccum,
+      });
+      this.clockHighClockAccum = 0;
+      this.clockHighGameAccum = 0;
+    }
+    if (this.clockTickCount % 4 === 0) {
+      eventBus.emit('clockTick-low', {
+        clockDelta: this.clockLowClockAccum,
+        gameDelta: this.clockLowGameAccum,
+      });
+      this.clockLowClockAccum = 0;
+      this.clockLowGameAccum = 0;
+    }
+
+    // Game tick emission only while unpaused
+    if (!paused) {
+      this._emitGameTick(clockDelta, gameDelta);
+    } else if (!this.prevPaused) {
+      // Flush pending game ticks on pause
+      this._emitGameTick(0, 0, true);
+    }
+    this.prevPaused = paused;
 
     // Update clock in gameState
-    const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
     const c = gameState.clock;
     c.totalClockTimeAll += clockDelta;
-    c.totalGameTimeAll += gameDelta;
     c.totalClockTimeLoop += clockDelta;
-    c.totalGameTimeLoop += gameDelta;
     if (!paused) {
+      c.totalGameTimeAll += gameDelta;
+      c.totalGameTimeLoop += gameDelta;
       c.unpausedClockTimeAll += clockDelta;
       c.unpausedGameTimeAll += gameDelta;
       c.unpausedClockTimeLoop += clockDelta;
@@ -93,13 +161,41 @@ class GlobalClock {
     }
   }
 
-  setRenderHz(hz) {
-    gameState.globalParameters.renderHz = hz;
-    changeGlobalStyle('.progress-bar', 'transition', `width ${Math.max(5, 1000 / hz)}ms linear`);
+  _emitGameTick(clockDelta, gameDelta, force = false) {
+    this.gameTickCount += 1;
+    this.gameHighClockAccum += clockDelta;
+    this.gameHighGameAccum += gameDelta;
+    this.gameLowClockAccum += clockDelta;
+    this.gameLowGameAccum += gameDelta;
+
+    eventBus.emit('gameTick-critical', { clockDelta, gameDelta });
+
+    if (force || this.gameTickCount % 2 === 0) {
+      eventBus.emit('gameTick-high', {
+        clockDelta: this.gameHighClockAccum,
+        gameDelta: this.gameHighGameAccum,
+      });
+      this.gameHighClockAccum = 0;
+      this.gameHighGameAccum = 0;
+    }
+
+    if (force || this.gameTickCount % 4 === 0) {
+      eventBus.emit('gameTick-low', {
+        clockDelta: this.gameLowClockAccum,
+        gameDelta: this.gameLowGameAccum,
+      });
+      this.gameLowClockAccum = 0;
+      this.gameLowGameAccum = 0;
+    }
+
+    if (force) {
+      this.gameTickCount = 0;
+    }
   }
 
-  setLogicHz(hz) {
-    gameState.globalParameters.logicHz = hz;
+  setRefreshHz(hz) {
+    gameState.globalParameters.refreshHz = hz;
+    changeGlobalStyle('.progress-bar', 'transition', `width ${Math.max(5, 1000 / hz)}ms linear`);
     this._restartLogicTimer();
   }
 
@@ -116,27 +212,44 @@ class GlobalClock {
       timers.clearInterval(this.logicTimerId);
     }
     const timers = window.workerTimers || window;
-    const stepMs = 1000 / gameState.globalParameters.logicHz;
+    const stepMs = 1000 / gameState.globalParameters.refreshHz;
     const intervalMs = stepMs / gameState.globalParameters.timeDilation;
+    let fixedTickCount = 0;
+    let highClock = 0;
+    let highGame = 0;
+    let lowClock = 0;
+    let lowGame = 0;
     this.logicTimerId = timers.setInterval(() => {
-      eventBus.emit('tick-fixed', { stepMs });
+      fixedTickCount += 1;
+      highClock += intervalMs;
+      highGame += stepMs;
+      lowClock += intervalMs;
+      lowGame += stepMs;
+      eventBus.emit('tick-fixed-critical', { clockDelta: intervalMs, gameDelta: stepMs });
+      if (fixedTickCount % 2 === 0) {
+        eventBus.emit('tick-fixed-high', { clockDelta: highClock, gameDelta: highGame });
+        highClock = 0;
+        highGame = 0;
+      }
+      if (fixedTickCount % 4 === 0) {
+        eventBus.emit('tick-fixed-low', { clockDelta: lowClock, gameDelta: lowGame });
+        lowClock = 0;
+        lowGame = 0;
+      }
     }, intervalMs);
   }
 }
 
-let totalTicks = 0;
-
-eventBus.on('heartbeat', () => {
-  totalTicks += 1;
+eventBus.on('clockTick-low', () => {
   const info = document.getElementById('debug-info');
   if (!info) return;
 
   if (gameState.debugMode) {
     const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
+    const ticks = window.gameClock?.clockTickCount ?? 0;
     info.textContent =
-      `Render Hz: ${gameState.globalParameters.renderHz}\n` +
-      `Logic Hz: ${gameState.globalParameters.logicHz}\n` +
-      `Total Ticks: ${totalTicks}\n` +
+      `Refresh Hz: ${gameState.globalParameters.refreshHz}\n` +
+      `Total Ticks: ${ticks}\n` +
       `Paused: ${paused}`;
   } else {
     info.textContent = '';
@@ -145,7 +258,4 @@ eventBus.on('heartbeat', () => {
 
 window.addEventListener('load', () => {
   window.gameClock = new GlobalClock();
-//   eventBus.on('heartbeat', () => {
-//     if (gameState.debugMode) console.log('Tick!');
-//   });
 });

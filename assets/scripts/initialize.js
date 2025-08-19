@@ -49,8 +49,7 @@ const emptyGameState = {
     system: { popup: true, log: true }
   },
   globalParameters: {
-    logicHz: 30,        // Gameplay logic ticks per second
-    renderHz: 30,       // UI refresh rate in ticks per second
+    refreshHz: 30,      // Master clock refresh rate in ticks per second
     timeDilation: 1.0,  // Scales all gameplay time
     masteryMaxRatio: 0.9,
     masteryGrowthRate: 5e-6,
