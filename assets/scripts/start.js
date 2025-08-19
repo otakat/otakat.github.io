@@ -146,14 +146,12 @@ function updateRenderRateDisplay() {
 document.addEventListener('DOMContentLoaded', () => {
   const debugToggle = document.getElementById('debug-toggle');
   if (debugToggle) {
-    debugToggle.addEventListener('change', e => {
-      gameState.debugMode = e.target.checked;
-      if (typeof processActiveAndQueuedActions === 'function') {
-        processActiveAndQueuedActions();
-      }
-      updateDebugToggle();
-    });
-  }
+      debugToggle.addEventListener('change', e => {
+        gameState.debugMode = e.target.checked;
+        pendingActionRefresh = true;
+        updateDebugToggle();
+      });
+    }
   const timeSlider = document.getElementById('time-dilation-slider');
   if (timeSlider) {
     timeSlider.addEventListener('input', e => {

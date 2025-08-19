@@ -5,7 +5,7 @@ function showLibrary() {
 
 function showBook() {
   openTab('actions-tab');
-  if (typeof processActiveAndQueuedActions === 'function') { processActiveAndQueuedActions(); }
+  pendingActionRefresh = true;
 }
 
 function showLog() {

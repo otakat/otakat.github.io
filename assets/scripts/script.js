@@ -519,7 +519,10 @@ eventBus.on('tick-fixed', ({ stepMs }) => runGameTick(stepMs));
 // Render cycle
 eventBus.on('heartbeat', () => {
   Object.values(actionsConstructed).forEach(action => action.render());
-  processActiveAndQueuedActions();
+  if (pendingActionRefresh) {
+    processActiveAndQueuedActions();
+    pendingActionRefresh = false;
+  }
 });
 
 function buttonPause() {
@@ -798,7 +801,7 @@ function initializeGame() {
   });
 
   processPauseButton();
-  processActiveAndQueuedActions();
+  pendingActionRefresh = true;
   if (typeof initLoopTimer === 'function') {
     initLoopTimer(timeMax * 1000);
   }

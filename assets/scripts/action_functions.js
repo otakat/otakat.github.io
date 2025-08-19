@@ -9,6 +9,8 @@ const skillEmojis = {
 };
 globalThis.skillEmojis = skillEmojis;
 
+let pendingActionRefresh = false;
+
 // THE ACTION CLASS
 class GameAction {
   constructor(id) {
@@ -180,8 +182,9 @@ class GameAction {
       this.data.completionEffects.last(this.id);
     }
 
-    if (gameState.debugMode) console.log(this.id);
-  }
+      if (gameState.debugMode) console.log(this.id);
+      pendingActionRefresh = true;
+    }
 
   initializeActionProgress() {
 		let progress = gameState.actionsProgress;
@@ -255,7 +258,7 @@ function createNewAction(id) {
 
   actionsConstructed[id] = new GameAction(id);
   updateActionSkillIcons();
-  processActiveAndQueuedActions();
+  pendingActionRefresh = true;
 }
 
 // Access a constructed GameAction safely
@@ -276,10 +279,10 @@ function removeAction(actionId) {
     }
 
     // Remove from gameState and arrays
-    delete actionsConstructed[actionId];
-    gameState.actionsAvailable = gameState.actionsAvailable.filter(id => id !== actionId);
-    gameState.actionsActive = gameState.actionsActive.filter(id => id !== actionId);
-    processActiveAndQueuedActions();
+  delete actionsConstructed[actionId];
+  gameState.actionsAvailable = gameState.actionsAvailable.filter(id => id !== actionId);
+  gameState.actionsActive = gameState.actionsActive.filter(id => id !== actionId);
+  pendingActionRefresh = true;
 
     // Any additional cleanup...
 }
@@ -297,7 +300,7 @@ function makeActionAvailable(actionId) {
       actionsConstructed[actionId].container.style.display = 'none';
     }
   }
-  processActiveAndQueuedActions();
+  pendingActionRefresh = true;
 }
 
 function makeActionUnavailable(actionId) {
@@ -309,6 +312,7 @@ function makeActionUnavailable(actionId) {
     // Optionally hide:
     // actionsConstructed[actionId].container.style.display = 'none';
   }
+  pendingActionRefresh = true;
 }
 
 function toggleAction(actionId) {
@@ -329,7 +333,7 @@ function activateAction(actionId) {
   if (gameState.actionsActive.includes(actionId)) {
     // Ensure listener is on, just in case
     a.start();
-    processActiveAndQueuedActions();
+    pendingActionRefresh = true;
     return true;
   }
 
@@ -343,7 +347,7 @@ function activateAction(actionId) {
   }
 
   gameState.actionsActive.unshift(actionId);
-  processActiveAndQueuedActions();
+  pendingActionRefresh = true;
   return true;
 }
 
@@ -353,7 +357,7 @@ function deactivateAction(actionId) {
   if (a) a.stop();
 
   gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
-  processActiveAndQueuedActions();
+  pendingActionRefresh = true;
 }
 
 
@@ -364,7 +368,7 @@ function fullyDeactivateAction(actionId) {
   if (a) a.stop();
 
   gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
-  processActiveAndQueuedActions();
+  pendingActionRefresh = true;
 }
 
 function processActiveAndQueuedActions() {
