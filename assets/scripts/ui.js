@@ -42,7 +42,15 @@ function updateLibrarySelection() {
 
 function openSkills() {
   if (typeof refreshSkillsUI === 'function') { refreshSkillsUI(); }
-  const modal = new bootstrap.Modal(document.getElementById('skillsModal'));
+  const modalEl = document.getElementById('skillsModal');
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+  // Ensure any backdrop is cleaned up when the modal closes so gameplay can resume
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    deletePauseState?.(pauseStates?.MODAL);
+  }, { once: true });
+
   modal.show();
 }
 
