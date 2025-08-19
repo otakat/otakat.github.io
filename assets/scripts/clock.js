@@ -145,7 +145,7 @@ eventBus.on('heartbeat', () => {
 
 window.addEventListener('load', () => {
   window.gameClock = new GlobalClock();
-  eventBus.on('heartbeat', () => {
-    if (gameState.debugMode) console.log('Tick!');
-  });
+//   eventBus.on('heartbeat', () => {
+//     if (gameState.debugMode) console.log('Tick!');
+//   });
 });
