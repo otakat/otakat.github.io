@@ -21,13 +21,13 @@ function changeGlobalStyle(selector, property, value) {
 
 /*
 Event tiers emitted by GlobalClock:
-  - heartbeat-critical / tick-critical: every refresh cycle.
-  - heartbeat-high / tick-high: every 2 cycles (aggregated deltas).
-  - heartbeat-low / tick-low: every 4 cycles (aggregated deltas).
-  - tick-fixed-* counterparts fire from the fixed-step timer.
+  - clockTick-critical / gameTick-critical: every refresh cycle.
+  - clockTick-high / gameTick-high: every 2 cycles (aggregated deltas).
+  - clockTick-low / gameTick-low: every 4 cycles (aggregated deltas).
+  - gameTick-fixed-* counterparts fire from the fixed-step timer.
 
 Example subscription:
-  eventBus.on('tick-high', ({ gameDelta }) => {
+  eventBus.on('gameTick-high', ({ gameDelta }) => {
     // medium-frequency logic
   });
 */
@@ -38,7 +38,7 @@ class GlobalClock {
     this.logicTimerId = null;
     this.lastClockTime = null;
     this.renderAccumulator = 0;
-    this.beatCount = 0;
+    this.tickCount = 0;
     this.highClockAccum = 0;
     this.highGameAccum = 0;
     this.lowClockAccum = 0;
@@ -50,7 +50,7 @@ class GlobalClock {
     if (this.rafId) this.stop();
     this.lastClockTime = null;
     this.renderAccumulator = 0;
-    this.beatCount = 0;
+    this.tickCount = 0;
     this.highClockAccum = 0;
     this.highGameAccum = 0;
     this.lowClockAccum = 0;
@@ -71,7 +71,7 @@ class GlobalClock {
       if (this.renderAccumulator >= refreshInterval) {
         const delta = this.renderAccumulator;
         this.renderAccumulator = 0;
-        this._beat(delta);
+        this._tick(delta);
       }
 
       this.rafId = requestAnimationFrame(loop);
@@ -92,25 +92,25 @@ class GlobalClock {
     }
   }
 
-  _beat(clockDelta) {
+  _tick(clockDelta) {
     const gameDelta = clockDelta * gameState.globalParameters.timeDilation;
 
-    this.beatCount += 1;
+    this.tickCount += 1;
     this.highClockAccum += clockDelta;
     this.highGameAccum += gameDelta;
     this.lowClockAccum += clockDelta;
     this.lowGameAccum += gameDelta;
 
     // Emit events
-    eventBus.emit('heartbeat-critical', { clockDelta });
-    eventBus.emit('tick-critical', { clockDelta, gameDelta });
+    eventBus.emit('clockTick-critical', { clockDelta });
+    eventBus.emit('gameTick-critical', { clockDelta, gameDelta });
 
-    if (this.beatCount % 2 === 0) {
-      eventBus.emit('heartbeat-high', {
+    if (this.tickCount % 2 === 0) {
+      eventBus.emit('clockTick-high', {
         clockDelta: this.highClockAccum,
         gameDelta: this.highGameAccum,
       });
-      eventBus.emit('tick-high', {
+      eventBus.emit('gameTick-high', {
         clockDelta: this.highClockAccum,
         gameDelta: this.highGameAccum,
       });
@@ -118,12 +118,12 @@ class GlobalClock {
       this.highGameAccum = 0;
     }
 
-    if (this.beatCount % 4 === 0) {
-      eventBus.emit('heartbeat-low', {
+    if (this.tickCount % 4 === 0) {
+      eventBus.emit('clockTick-low', {
         clockDelta: this.lowClockAccum,
         gameDelta: this.lowGameAccum,
       });
-      eventBus.emit('tick-low', {
+      eventBus.emit('gameTick-low', {
         clockDelta: this.lowClockAccum,
         gameDelta: this.lowGameAccum,
       });
@@ -167,25 +167,25 @@ class GlobalClock {
     const timers = window.workerTimers || window;
     const stepMs = 1000 / gameState.globalParameters.refreshHz;
     const intervalMs = stepMs / gameState.globalParameters.timeDilation;
-    let fixedBeatCount = 0;
+    let fixedTickCount = 0;
     let highClock = 0;
     let highGame = 0;
     let lowClock = 0;
     let lowGame = 0;
     this.logicTimerId = timers.setInterval(() => {
-      fixedBeatCount += 1;
+      fixedTickCount += 1;
       highClock += intervalMs;
       highGame += stepMs;
       lowClock += intervalMs;
       lowGame += stepMs;
-      eventBus.emit('tick-fixed-critical', { clockDelta: intervalMs, gameDelta: stepMs });
-      if (fixedBeatCount % 2 === 0) {
-        eventBus.emit('tick-fixed-high', { clockDelta: highClock, gameDelta: highGame });
+      eventBus.emit('gameTick-fixed-critical', { clockDelta: intervalMs, gameDelta: stepMs });
+      if (fixedTickCount % 2 === 0) {
+        eventBus.emit('gameTick-fixed-high', { clockDelta: highClock, gameDelta: highGame });
         highClock = 0;
         highGame = 0;
       }
-      if (fixedBeatCount % 4 === 0) {
-        eventBus.emit('tick-fixed-low', { clockDelta: lowClock, gameDelta: lowGame });
+      if (fixedTickCount % 4 === 0) {
+        eventBus.emit('gameTick-fixed-low', { clockDelta: lowClock, gameDelta: lowGame });
         lowClock = 0;
         lowGame = 0;
       }
@@ -193,16 +193,16 @@ class GlobalClock {
   }
 }
 
-eventBus.on('heartbeat-low', () => {
+eventBus.on('clockTick-low', () => {
   const info = document.getElementById('debug-info');
   if (!info) return;
 
   if (gameState.debugMode) {
     const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
-    const beats = window.gameClock?.beatCount ?? 0;
+    const ticks = window.gameClock?.tickCount ?? 0;
     info.textContent =
       `Refresh Hz: ${gameState.globalParameters.refreshHz}\n` +
-      `Total Beats: ${beats}\n` +
+      `Total Ticks: ${ticks}\n` +
       `Paused: ${paused}`;
   } else {
     info.textContent = '';

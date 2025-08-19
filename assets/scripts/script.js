@@ -513,16 +513,16 @@ function runGameTick(stepMs) {
   }
 }
 
-// Listen for each fixed clock beat
-eventBus.on('tick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
+// Listen for each fixed game tick
+eventBus.on('gameTick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
 
-// Core game logic each variable tick
-eventBus.on('tick-critical', () => {
+// Core game logic each variable game tick
+eventBus.on('gameTick-critical', () => {
   processActiveAndQueuedActions();
 });
 
 // Medium-frequency UI updates
-eventBus.on('heartbeat-high', () => {
+eventBus.on('clockTick-high', () => {
   Object.values(actionsConstructed).forEach(action => {
     if (action.needsRender === true) {
       action.render();
@@ -531,12 +531,12 @@ eventBus.on('heartbeat-high', () => {
   });
 });
 
-eventBus.on('tick-high', () => {
+eventBus.on('gameTick-high', () => {
   updateTimerUI();
 });
 
 // Low-frequency refreshers
-eventBus.on('tick-low', () => {
+eventBus.on('gameTick-low', () => {
   checkTimeWarnings();
 });
 
