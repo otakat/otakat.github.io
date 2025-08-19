@@ -16,6 +16,7 @@ class GameAction {
       this.id = id;
       this.timeMultiplier = 1;
       this.skillChangeHandler = null;
+      this.needsRender = false;
 
 			// For static properties
                         this.data = getActionData(id);
@@ -44,6 +45,7 @@ class GameAction {
 
       this.calculateTimeStart();
       this.render();
+      this.needsRender = false;
   }
 
         get isAvailable() {
@@ -145,6 +147,7 @@ class GameAction {
     runActionTick(this, timeChange);
 
     this.calculateTimeStart();
+    this.needsRender = true;
   }
 
   render() {
@@ -158,29 +161,30 @@ class GameAction {
     this.elements.progressBarMastery.style.width = masteryPercentage + '%';
   }
 
-    finish() {
-      this.progress.completions += 1;
-      if (gameState.debugMode) console.log(`Action ${this.id} finished`);
-      this.calculateTimeStart();
-      this.progress.timeCurrent = this.progress.timeStart;
-      deactivateAction(this.id);
+  finish() {
+    this.progress.completions += 1;
+    if (gameState.debugMode) console.log(`Action ${this.id} finished`);
+    this.calculateTimeStart();
+    this.progress.timeCurrent = this.progress.timeStart;
+    deactivateAction(this.id);
 
-      if (doSkillsExist(this.data.skills)) {
-        const xpPerSkill = this.data.length / this.data.skills.length;
-        this.data.skills.forEach(skill => updateSkill(skill, xpPerSkill));
-      }
+    if (doSkillsExist(this.data.skills)) {
+      const xpPerSkill = this.data.length / this.data.skills.length;
+      this.data.skills.forEach(skill => updateSkill(skill, xpPerSkill));
+    }
 
     this.data.completionEffects.each(this.id);
 
-		if (this.data.completionEffects.hasOwnProperty(this.progress.completions)) {
-			this.data.completionEffects[this.progress.completions](this.id);
-		}
+    if (this.data.completionEffects.hasOwnProperty(this.progress.completions)) {
+      this.data.completionEffects[this.progress.completions](this.id);
+    }
 
     if (this.progress.completions >= this.data.completionMax) {
       this.data.completionEffects.last(this.id);
     }
 
     if (gameState.debugMode) console.log(this.id);
+    this.needsRender = true;
   }
 
   initializeActionProgress() {
@@ -211,9 +215,10 @@ class GameAction {
     masteryImpact = Math.max(0, Math.min(masteryImpact, parameters.masteryMaxRatio));
 
     this.progress.timeStart = masteryImpact * this.data.length
-    if (this.progress.timeCurrent < this.progress.timeStart) {
+      if (this.progress.timeCurrent < this.progress.timeStart) {
       this.progress.timeCurrent = this.progress.timeStart;
     }
+    this.needsRender = true;
   }
 }
 
