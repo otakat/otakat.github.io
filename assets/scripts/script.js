@@ -518,7 +518,12 @@ eventBus.on('tick-fixed', ({ stepMs }) => runGameTick(stepMs));
 
 // Render cycle
 eventBus.on('heartbeat', () => {
-  Object.values(actionsConstructed).forEach(action => action.render());
+  Object.values(actionsConstructed).forEach(action => {
+    if (action.needsRender === true) {
+      action.render();
+      action.needsRender = false;
+    }
+  });
   processActiveAndQueuedActions();
 });
 
