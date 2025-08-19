@@ -513,8 +513,8 @@ function runGameTick(stepMs) {
   }
 }
 
-// Listen for each fixed game tick
-eventBus.on('gameTick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
+// Listen for each fixed tick
+eventBus.on('tick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
 
 // Core game logic each variable game tick
 eventBus.on('gameTick-critical', () => {
