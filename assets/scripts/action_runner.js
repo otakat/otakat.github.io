@@ -1,23 +1,7 @@
 function runActionTick(actionObj, timeChange) {
-  let newTimeChange = timeChange;
+  const multiplier = actionObj.timeMultiplier ?? 1;
+  const newTimeChange = timeChange * multiplier;
   const data = actionObj.data;
-
-  if (doSkillsExist(data.skills)) {
-    newTimeChange = multiplyTimeChangeBySkills(timeChange, data.skills);
-    data.skills.forEach(skill => {
-      updateSkill(skill, newTimeChange / data.skills.length);
-    });
-  }
-
-  const mods = challengeMods[data.challengeType];
-  if (mods) {
-    newTimeChange *= mods.speedMult ?? 1;
-  }
-
-  const locMeta = getLocationMeta(actionObj.id);
-  if (locMeta.timeMultiplier) {
-    newTimeChange *= locMeta.timeMultiplier;
-  }
 
   actionObj.progress.timeCurrent += newTimeChange;
   actionObj.progress.mastery += newTimeChange;
