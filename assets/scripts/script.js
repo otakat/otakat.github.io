@@ -514,17 +514,30 @@ function runGameTick(stepMs) {
 }
 
 // Listen for each fixed clock beat
-eventBus.on('tick-fixed', ({ stepMs }) => runGameTick(stepMs));
+eventBus.on('tick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
 
-// Render cycle
-eventBus.on('heartbeat', () => {
+// Core game logic each variable tick
+eventBus.on('tick-critical', () => {
+  processActiveAndQueuedActions();
+});
+
+// Medium-frequency UI updates
+eventBus.on('heartbeat-high', () => {
   Object.values(actionsConstructed).forEach(action => {
     if (action.needsRender === true) {
       action.render();
       action.needsRender = false;
     }
   });
-  processActiveAndQueuedActions();
+});
+
+eventBus.on('tick-high', () => {
+  updateTimerUI();
+});
+
+// Low-frequency refreshers
+eventBus.on('tick-low', () => {
+  checkTimeWarnings();
 });
 
 function buttonPause() {
@@ -730,8 +743,8 @@ function resetGameState() {
   gameState.timeMax = timeMax;
   gameState.hasPocketWatch = hasPocketWatch;
   gameState.timeWarnings = { ...timeWarnings };
-  if (window.gameClock && typeof gameClock.setRenderHz === 'function') {
-    gameClock.setRenderHz(gameState.globalParameters.renderHz);
+  if (window.gameClock && typeof gameClock.setRefreshHz === 'function') {
+    gameClock.setRefreshHz(gameState.globalParameters.refreshHz);
   }
   updateTimerUI();
 
@@ -771,8 +784,8 @@ async function loadGame() {
       hasPocketWatch = gameState.hasPocketWatch ?? false;
       timeWarnings = gameState.timeWarnings || { half: false, quarter: false };
       gameState.timeMax = timeMax;
-      if (window.gameClock && typeof gameClock.setRenderHz === 'function') {
-        gameClock.setRenderHz(gameState.globalParameters?.renderHz || 30);
+      if (window.gameClock && typeof gameClock.setRefreshHz === 'function') {
+        gameClock.setRefreshHz(gameState.globalParameters?.refreshHz || 30);
       }
 
       logPopupCombo('Data Loaded', 'system');
@@ -942,8 +955,7 @@ function showTimeRemaining() { console.log('Time remaining:', timeRemaining + '/
   if (!window.addTimeDilationMod) window.addTimeDilationMod = (k, m) => api.addMod(k, m);
   if (!window.removeTimeDilationMod) window.removeTimeDilationMod = (k) => api.removeMod(k);
   if (!window.clearTimeDilationMods) window.clearTimeDilationMods = () => api.clearMods();
-  if (!window.setLogicHz) window.setLogicHz = (hz) => window.gameClock?.setLogicHz?.(hz);
-  if (!window.setRenderHz) window.setRenderHz = (hz) => window.gameClock?.setRenderHz?.(hz);
+  if (!window.setRefreshHz) window.setRefreshHz = (hz) => window.gameClock?.setRefreshHz?.(hz);
 
   // Optional: lightweight console trace when dilation changes (only attach once)
   if (!window.__td_logger_attached__) {

@@ -15,10 +15,10 @@ function updateDebugToggle() {
   if (debugToggle) {
     debugToggle.checked = gameState.debugMode;
   }
-  const renderSlider = document.getElementById('render-rate-slider');
-  if (renderSlider) {
-    renderSlider.value = gameState?.globalParameters?.renderHz ?? 30;
-    updateRenderRateDisplay();
+  const refreshSlider = document.getElementById('refresh-rate-slider');
+  if (refreshSlider) {
+    refreshSlider.value = gameState?.globalParameters?.refreshHz ?? 30;
+    updateRefreshRateDisplay();
   }
   const controls = document.getElementById('time-dilation-controls');
   if (controls) {
@@ -135,9 +135,9 @@ function updateTimeDilationDisplay() {
   }
 }
 
-function updateRenderRateDisplay() {
-  const slider = document.getElementById('render-rate-slider');
-  const disp = document.getElementById('render-rate-display');
+function updateRefreshRateDisplay() {
+  const slider = document.getElementById('refresh-rate-slider');
+  const disp = document.getElementById('refresh-rate-display');
   if (slider && disp) {
     disp.textContent = Number(slider.value);
   }
@@ -163,17 +163,17 @@ document.addEventListener('DOMContentLoaded', () => {
       updateTimeDilationDisplay();
     });
   }
-  const renderSlider = document.getElementById('render-rate-slider');
-  if (renderSlider) {
-    renderSlider.addEventListener('input', e => {
+  const refreshSlider = document.getElementById('refresh-rate-slider');
+  if (refreshSlider) {
+    refreshSlider.addEventListener('input', e => {
       const hz = Number(e.target.value);
-      if (window.gameClock && typeof gameClock.setRenderHz === 'function') {
-        gameClock.setRenderHz(hz);
+      if (window.gameClock && typeof gameClock.setRefreshHz === 'function') {
+        gameClock.setRefreshHz(hz);
       } else {
         if (!gameState.globalParameters) gameState.globalParameters = {};
-        gameState.globalParameters.renderHz = hz;
+        gameState.globalParameters.refreshHz = hz;
       }
-      updateRenderRateDisplay();
+      updateRefreshRateDisplay();
     });
   }
   const resetButton = document.getElementById('reset-game-button');
