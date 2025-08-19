@@ -638,7 +638,11 @@ function showResetPopup(){
     summaryList.appendChild(li);
   });
 
-  const modal = new bootstrap.Modal(document.getElementById('resetModal'));
+  // Prevent closing the reset modal by clicking outside or pressing Escape
+  const modal = new bootstrap.Modal(
+    document.getElementById('resetModal'),
+    { backdrop: 'static', keyboard: false }
+  );
   modal.show();
   if (!gameState.artifacts?.skillbook) {unlockArtifact('skillbook');}
 }
