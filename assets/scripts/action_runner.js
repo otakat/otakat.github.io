@@ -186,7 +186,6 @@ function runActionTick(actionObj, timeChange) {
   const data = actionObj.data;
 
   actionObj.progress.timeCurrent += newTimeChange;
-  actionObj.progress.mastery += newTimeChange;
   if (newTimeChange > 0) consumeTime(newTimeChange / 1000);
 
   if (actionObj.progress.timeCurrent >= data.length) {
