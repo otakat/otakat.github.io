@@ -823,7 +823,12 @@ function initializeGame() {
       a.start();
       const snap = gameState.progressAnimations?.[id];
       if (snap) {
-        ProgressAnimationManager.restore(id, a.elements.progressBarCurrent, snap);
+        ProgressAnimationManager.restore(
+          id,
+          a.elements.progressBarCurrent,
+          snap,
+          isGamePaused()
+        );
       }
     }
   });

@@ -102,7 +102,16 @@ class GameAction {
                 const coreMs = this.data.length - this.progress.timeStart;
                 const rate = this.timeMultiplier || 1;
                 const elapsed = (this.progress.timeCurrent - this.progress.timeStart) / rate;
-                ProgressAnimationManager.start(this.id, this.elements.progressBarCurrent, coreMs, rate, elapsed, isGamePaused() ? "paused" : "running");
+                const paused = isGamePaused();
+                ProgressAnimationManager.start(
+                  this.id,
+                  this.elements.progressBarCurrent,
+                  coreMs,
+                  rate,
+                  elapsed,
+                  paused ? "paused" : "running",
+                  paused
+                );
     if (gameState.debugMode) console.log(`Action ${this.id} started`);
                 return true;
         }

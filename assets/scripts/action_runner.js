@@ -44,7 +44,15 @@ const ProgressAnimationManager = (() => {
     });
   }
 
-  function start(id, el, coreMs, rateBonus, initialElapsedMs = 0, initialStatus = 'running') {
+  function start(
+    id,
+    el,
+    coreMs,
+    rateBonus,
+    initialElapsedMs = 0,
+    initialStatus = 'running',
+    resumeOnUnpause = false
+  ) {
     const totalMs = coreMs / rateBonus;
     const anim = {
       id,
@@ -53,7 +61,7 @@ const ProgressAnimationManager = (() => {
       elapsedMs: Math.min(initialElapsedMs, totalMs),
       status: initialStatus,
       startedAt: null,
-      resumeOnUnpause: false,
+      resumeOnUnpause,
     };
     animations.set(id, anim);
 
@@ -62,6 +70,8 @@ const ProgressAnimationManager = (() => {
 
     if (initialStatus === 'running' && anim.elapsedMs < totalMs) {
       play(anim);
+    } else if (initialStatus === 'paused' && resumeOnUnpause) {
+      anim.resumeOnUnpause = true;
     }
   }
 
@@ -123,7 +133,7 @@ const ProgressAnimationManager = (() => {
     return out;
   }
 
-  function restore(id, el, snapObj) {
+  function restore(id, el, snapObj, resumeOnUnpause = false) {
     const anim = {
       id,
       el,
@@ -131,14 +141,18 @@ const ProgressAnimationManager = (() => {
       elapsedMs: Math.min(snapObj.elapsedMs, snapObj.totalMs),
       status: snapObj.status,
       startedAt: null,
-      resumeOnUnpause: false,
+      resumeOnUnpause,
     };
     animations.set(id, anim);
     const pct = (anim.elapsedMs / anim.totalMs) * 100;
     snap(el, pct);
 
     if (anim.status === 'running' && anim.elapsedMs < anim.totalMs) {
-      play(anim);
+      if (resumeOnUnpause) {
+        anim.resumeOnUnpause = true;
+      } else {
+        play(anim);
+      }
     }
   }
 
