@@ -314,9 +314,7 @@ body {
         }
 
         .progress-bar {
-          transition-property: width !important;
-          transition-duration: var(--progress-tick-ms) !important;
-          transition-timing-function: linear !important;
+          transition: none;
         }
 
         .action-progress-bar-current, .action-progress-bar-mastery {
