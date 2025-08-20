@@ -313,13 +313,18 @@ body {
           z-index: 3;
         }
 
+        .progress-bar {
+          transition-property: width !important;
+          transition-duration: var(--progress-tick-ms) !important;
+          transition-timing-function: linear !important;
+        }
+
         .action-progress-bar-current, .action-progress-bar-mastery {
           position: absolute;
           top: 0; left: 0;
           height: 100%;
           width: 0%;
           line-height: 20px; /* Match the height of the progress bar container */
-          transition: none !important;
         }
 
         .action-progress-bar-current {

@@ -19,6 +19,8 @@ function changeGlobalStyle(selector, property, value) {
   }
 }
 
+
+
 /*
 Event tiers emitted by GlobalClock:
   - clockTick-critical / gameTick-critical: every refresh cycle. gameTick events
@@ -120,22 +122,18 @@ class GlobalClock {
     this.clockHighGameAccum += gameDelta;
     this.clockLowGameAccum += gameDelta;
 
-    eventBus.emit('clockTick-critical', { clockDelta, gameDelta });
+    eventBus.emit('clockTick-critical', { clockDelta });
     if (this.clockTickCount % 2 === 0) {
       eventBus.emit('clockTick-high', {
-        clockDelta: this.clockHighClockAccum,
-        gameDelta: this.clockHighGameAccum,
+        clockDelta: this.clockHighClockAccum
       });
       this.clockHighClockAccum = 0;
-      this.clockHighGameAccum = 0;
     }
     if (this.clockTickCount % 4 === 0) {
       eventBus.emit('clockTick-low', {
-        clockDelta: this.clockLowClockAccum,
-        gameDelta: this.clockLowGameAccum,
+        clockDelta: this.clockLowClockAccum
       });
       this.clockLowClockAccum = 0;
-      this.clockLowGameAccum = 0;
     }
 
     // Game tick emission only while unpaused
@@ -168,23 +166,19 @@ class GlobalClock {
     this.gameLowClockAccum += clockDelta;
     this.gameLowGameAccum += gameDelta;
 
-    eventBus.emit('gameTick-critical', { clockDelta, gameDelta });
+    eventBus.emit('gameTick-critical', { gameDelta });
 
     if (force || this.gameTickCount % 2 === 0) {
       eventBus.emit('gameTick-high', {
-        clockDelta: this.gameHighClockAccum,
-        gameDelta: this.gameHighGameAccum,
+        gameDelta: this.gameHighGameAccum
       });
-      this.gameHighClockAccum = 0;
       this.gameHighGameAccum = 0;
     }
 
     if (force || this.gameTickCount % 4 === 0) {
       eventBus.emit('gameTick-low', {
-        clockDelta: this.gameLowClockAccum,
-        gameDelta: this.gameLowGameAccum,
+        gameDelta: this.gameLowGameAccum
       });
-      this.gameLowClockAccum = 0;
       this.gameLowGameAccum = 0;
     }
 
@@ -193,9 +187,21 @@ class GlobalClock {
     }
   }
 
-  setRefreshHz(hz) {
-    gameState.globalParameters.refreshHz = hz;
-    changeGlobalStyle('.progress-bar', 'transition', `width ${Math.max(5, 1000 / hz)}ms linear`);
+  setRefreshHz(refreshHz) {
+
+      if (!refreshHz || refreshHz <= 0) return;
+      gameState.globalParameters.refreshHz = refreshHz;
+
+      // Convert Hz → ms per frame
+      const msPerFrame = 1000 / refreshHz;
+
+      // Clamp to sensible bounds so it doesn’t blow up
+      const ms = Math.max(1, Math.min(msPerFrame, 5000));
+
+      document.documentElement.style.setProperty('--progress-tick-ms', `${ms}ms`);
+
+      console.log('Refresh rate updated to ' + refreshHz);
+
     this._restartLogicTimer();
   }
 

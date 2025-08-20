@@ -200,7 +200,7 @@ function humanizeClause(c) {
   const cl = c.clause || c;
   switch (cl.type) {
     case 'skill': return `Requires ${cl.key} ${cl.min}+`;
-    case 'artifact': return cl.owned ? `Requires artifact: ${artifactData[cl.id]?.label || cl.id}` 
+    case 'artifact': return cl.owned ? `Requires artifact: ${artifactData[cl.id]?.label || cl.id}`
                                      : `Artifact must be absent: ${cl.id}`;
     case 'actionCompleted': return `Complete ${getActionConfig(cl.id)?.label || cl.id} ×${cl.min}`;
     case 'flag': return `${cl.key} = ${String(cl.equals)}`;
@@ -796,6 +796,7 @@ async function loadGame() {
     console.error(errorMessage, error);
   }
 
+  gameClock.setRefreshHz(gameState.globalParameters.refreshHz);
   updateDebugToggle();
   initializeGame();
   updateTimerUI();
@@ -967,4 +968,3 @@ function showTimeRemaining() { console.log('Time remaining:', timeRemaining + '/
     window.__td_logger_attached__ = true;
   }
 })();
-
