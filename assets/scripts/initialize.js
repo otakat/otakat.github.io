@@ -80,20 +80,3 @@ const permanentExperienceToLevel = 3000;
 const customRequirementFns = {};
 let pendingTimeCost = 0;
 let refreshScheduled = false;
-
-function aggregateObjectProperties(base, incoming) {
-  const out = { ...base };
-  for (const k in incoming) {
-    const v = incoming[k];
-    if (v instanceof Set) {
-      out[k] = new Set(v);
-    } else if (Array.isArray(v)) {
-      out[k] = v.slice();
-    } else if (v && typeof v === 'object') {
-      out[k] = aggregateObjectProperties(out[k] ?? {}, v);
-    } else {
-      out[k] = v;
-    }
-  }
-  return out;
-}
