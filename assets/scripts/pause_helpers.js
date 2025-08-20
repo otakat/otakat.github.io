@@ -1,15 +1,23 @@
 function addPauseState(state) {
+  const wasPaused = isGamePaused();
   if (!gameState.pausedReasons.includes(state)) {
     gameState.pausedReasons.unshift(state);
+  }
+  if (!wasPaused && isGamePaused()) {
+    ProgressAnimationManager.pauseAll();
   }
   processPauseButton();
 }
 
 function deletePauseState(state) {
+  const wasPaused = isGamePaused();
   if (state === undefined) {
     gameState.pausedReasons = [];
   } else {
     gameState.pausedReasons = gameState.pausedReasons.filter(reason => reason !== state);
+  }
+  if (wasPaused && !isGamePaused()) {
+    ProgressAnimationManager.resumeAll();
   }
   processPauseButton();
 }

@@ -22,6 +22,7 @@ const emptyGameState = {
   actionsAvailable: [],
   actionsActive: [],
   actionsProgress: {},
+  progressAnimations: {},
   // Countdown timer replaces health mechanic
   timeRemaining: defaultLoopTime,
   timeMax: defaultLoopTime,

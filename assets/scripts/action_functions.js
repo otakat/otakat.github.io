@@ -99,7 +99,11 @@ class GameAction {
                   if (this.isActive) this.calculateTimeMultiplier();
                 };
                 eventBus.on('skills-change', this.skillChangeHandler);
-                if (gameState.debugMode) console.log(`Action ${this.id} started`);
+                const coreMs = this.data.length - this.progress.timeStart;
+                const rate = this.timeMultiplier || 1;
+                const elapsed = (this.progress.timeCurrent - this.progress.timeStart) / rate;
+                ProgressAnimationManager.start(this.id, this.elements.progressBarCurrent, coreMs, rate, elapsed, isGamePaused() ? "paused" : "running");
+    if (gameState.debugMode) console.log(`Action ${this.id} started`);
                 return true;
         }
 
@@ -109,6 +113,7 @@ class GameAction {
                   this.skillChangeHandler = null;
                 }
                 if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
+                ProgressAnimationManager.pause(this.id);
         }
 
   calculateTimeMultiplier() {
@@ -155,8 +160,6 @@ class GameAction {
     const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
     const label =
       masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
-
-    this.elements.progressBarCurrent.style.width = currentPercentage + '%';
     this.elements.progressText.innerText = label;
     this.elements.progressBarMastery.style.width = masteryPercentage + '%';
   }
@@ -164,6 +167,7 @@ class GameAction {
   finish() {
     this.progress.completions += 1;
     if (gameState.debugMode) console.log(`Action ${this.id} finished`);
+    ProgressAnimationManager.complete(this.id);
     this.calculateTimeStart();
     this.progress.timeCurrent = this.progress.timeStart;
     deactivateAction(this.id);
@@ -258,10 +262,21 @@ function createNewAction(id) {
     container.style.display = 'none';
   }
 
-  actionsConstructed[id] = new GameAction(id);
-  updateActionSkillIcons();
-  processActiveAndQueuedActions();
-}
+    actionsConstructed[id] = new GameAction(id);
+    const barEl = actionsConstructed[id].elements.progressBarCurrent;
+    const snap = gameState.progressAnimations?.[id];
+    if (snap) {
+      ProgressAnimationManager.restore(id, barEl, snap);
+    } else {
+      const a = actionsConstructed[id];
+      const coreMs = a.data.length - a.progress.timeStart;
+      const rate = a.timeMultiplier || 1;
+      const elapsed = (a.progress.timeCurrent - a.progress.timeStart) / rate;
+      ProgressAnimationManager.start(id, barEl, coreMs, rate, elapsed, 'paused');
+    }
+    updateActionSkillIcons();
+    processActiveAndQueuedActions();
+  }
 
 // Access a constructed GameAction safely
 function getAction(id) {
@@ -366,7 +381,10 @@ function deactivateAction(actionId) {
 
 function fullyDeactivateAction(actionId) {
   const a = getAction(actionId);
-  if (a) a.stop();
+  if (a) {
+    a.stop();
+    ProgressAnimationManager.reset(actionId);
+  }
 
   gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
   processActiveAndQueuedActions();
