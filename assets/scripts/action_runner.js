@@ -1,5 +1,3 @@
-const USE_SCALEX_ANIMATION = false;
-
 const ProgressAnimationManager = (() => {
   const animations = new Map();
   const prefersReduced =
@@ -9,12 +7,7 @@ const ProgressAnimationManager = (() => {
 
   function setPercent(el, percent) {
     if (!el) return;
-    if (USE_SCALEX_ANIMATION) {
-      el.style.transformOrigin = 'left center';
-      el.style.transform = `scaleX(${percent / 100})`;
-    } else {
-      el.style.width = `${percent}%`;
-    }
+    el.style.width = `${percent}%`;
   }
 
   function snap(el, percent) {
@@ -37,9 +30,8 @@ const ProgressAnimationManager = (() => {
     anim.startedAt = performance.now();
     anim.status = 'running';
     const dur = prefersReduced ? 1 : remaining;
-    const prop = USE_SCALEX_ANIMATION ? 'transform' : 'width';
     rAF(() => {
-      anim.el.style.transition = `${prop} ${dur}ms linear`;
+      anim.el.style.transition = `width ${dur}ms linear`;
       rAF(() => setPercent(anim.el, 100));
     });
   }
