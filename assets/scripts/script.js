@@ -760,6 +760,11 @@ function resetGameState() {
 
 async function saveGame(isManualSave = false) {
   try {
+    gameState.actionsActive.forEach(id => {
+      const a = actionsConstructed[id];
+      if (a) a.syncProgress();
+    });
+    gameState.progressAnimations = ProgressAnimationManager.snapshotAll();
     await localforage.setItem('gameState', gameState);
     if (isManualSave) { logPopupCombo('Game Saved', 'system'); }
   } catch (error) {
@@ -814,6 +819,22 @@ function initializeGame() {
 
   gameState.actionsAvailable.forEach(actionId => {
     createNewAction(actionId);
+  });
+
+  gameState.actionsActive.forEach(id => {
+    const a = getAction(id);
+    if (a) {
+      a.start();
+      const snap = gameState.progressAnimations?.[id];
+      if (snap) {
+        ProgressAnimationManager.restore(
+          id,
+          a.elements.progressBarCurrent,
+          snap,
+          isGamePaused()
+        );
+      }
+    }
   });
 
   processPauseButton();
