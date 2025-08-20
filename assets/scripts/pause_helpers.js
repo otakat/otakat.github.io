@@ -5,6 +5,10 @@ function addPauseState(state) {
   }
   if (!wasPaused && isGamePaused()) {
     ProgressAnimationManager.pauseAll();
+    gameState.actionsActive.forEach(id => {
+      const a = actionsConstructed[id];
+      if (a) a.syncProgress();
+    });
   }
   processPauseButton();
 }

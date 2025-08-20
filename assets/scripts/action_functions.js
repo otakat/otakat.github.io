@@ -15,8 +15,8 @@ class GameAction {
       // Initialize properties
       this.id = id;
       this.timeMultiplier = 1;
-      this.skillChangeHandler = null;
       this.needsRender = false;
+      this._lastAnimElapsed = 0;
 
 			// For static properties
                         this.data = getActionData(id);
@@ -95,10 +95,6 @@ class GameAction {
                         if (!continueAfterEach) {return false;}
                 }
                 this.calculateTimeMultiplier();
-                this.skillChangeHandler = () => {
-                  if (this.isActive) this.calculateTimeMultiplier();
-                };
-                eventBus.on('skills-change', this.skillChangeHandler);
                 const coreMs = this.data.length - this.progress.timeStart;
                 const rate = this.timeMultiplier || 1;
                 const elapsed = (this.progress.timeCurrent - this.progress.timeStart) / rate;
@@ -112,17 +108,15 @@ class GameAction {
                   paused ? "paused" : "running",
                   paused
                 );
+                this._lastAnimElapsed = elapsed;
     if (gameState.debugMode) console.log(`Action ${this.id} started`);
                 return true;
         }
 
         stop() {
-                if (this.skillChangeHandler) {
-                  eventBus.off('skills-change', this.skillChangeHandler);
-                  this.skillChangeHandler = null;
-                }
                 if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
                 ProgressAnimationManager.pause(this.id);
+                this.syncProgress();
         }
 
   calculateTimeMultiplier() {
@@ -158,10 +152,21 @@ class GameAction {
       this.progress.timeCurrent = this.progress.timeStart;
     }
 
-    runActionTick(this, timeChange);
-
+    this.syncProgress();
     this.calculateTimeStart();
     this.needsRender = true;
+  }
+
+  syncProgress() {
+    const snap = ProgressAnimationManager.snapshot(this.id);
+    if (!snap) return 0;
+    const delta = snap.elapsedMs - this._lastAnimElapsed;
+    if (delta > 0) {
+      this._lastAnimElapsed = snap.elapsedMs;
+      runActionTick(this, delta);
+      this.needsRender = true;
+    }
+    return delta;
   }
 
   render() {
@@ -276,11 +281,13 @@ function createNewAction(id) {
     const snap = gameState.progressAnimations?.[id];
     if (snap) {
       ProgressAnimationManager.restore(id, barEl, snap);
+      actionsConstructed[id]._lastAnimElapsed = snap.elapsedMs;
     } else {
       const a = actionsConstructed[id];
       const coreMs = a.data.length - a.progress.timeStart;
       const rate = a.timeMultiplier || 1;
       const elapsed = (a.progress.timeCurrent - a.progress.timeStart) / rate;
+      actionsConstructed[id]._lastAnimElapsed = elapsed;
       ProgressAnimationManager.start(id, barEl, coreMs, rate, elapsed, 'paused');
     }
     updateActionSkillIcons();
