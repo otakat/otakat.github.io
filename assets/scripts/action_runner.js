@@ -21,13 +21,33 @@ const ProgressAnimationManager = (() => {
     if (!el) return;
     el.style.transition = 'none';
     setPercent(el, percent);
-    // Force reflow to apply the width immediately
-    void el.offsetWidth;
+  }
+
+  const rAF =
+    typeof window !== 'undefined' && window.requestAnimationFrame
+      ? window.requestAnimationFrame.bind(window)
+      : fn => setTimeout(fn, 0);
+
+  function play(anim) {
+    const remaining = anim.totalMs - anim.elapsedMs;
+    if (remaining <= 0) {
+      complete(anim.id);
+      return;
+    }
+    anim.startedAt = performance.now();
+    anim.status = 'running';
+    const dur = prefersReduced ? 1 : remaining;
+    const prop = USE_SCALEX_ANIMATION ? 'transform' : 'width';
+    rAF(() => {
+      anim.el.style.transition = `${prop} ${dur}ms linear`;
+      rAF(() => setPercent(anim.el, 100));
+    });
   }
 
   function start(id, el, coreMs, rateBonus, initialElapsedMs = 0, initialStatus = 'running') {
     const totalMs = coreMs / rateBonus;
     const anim = {
+      id,
       el,
       totalMs,
       elapsedMs: Math.min(initialElapsedMs, totalMs),
@@ -41,12 +61,7 @@ const ProgressAnimationManager = (() => {
     snap(el, pct);
 
     if (initialStatus === 'running' && anim.elapsedMs < totalMs) {
-      anim.startedAt = performance.now();
-      const remaining = totalMs - anim.elapsedMs;
-      const dur = prefersReduced ? 1 : remaining;
-      const prop = USE_SCALEX_ANIMATION ? 'transform' : 'width';
-      el.style.transition = `${prop} ${dur}ms linear`;
-      setPercent(el, 100);
+      play(anim);
     }
   }
 
@@ -66,17 +81,8 @@ const ProgressAnimationManager = (() => {
   function resume(id) {
     const anim = animations.get(id);
     if (!anim || anim.status !== 'paused') return;
-    const remaining = anim.totalMs - anim.elapsedMs;
-    if (remaining <= 0) {
-      complete(id);
-      return;
-    }
-    anim.startedAt = performance.now();
-    anim.status = 'running';
-    const dur = prefersReduced ? 1 : remaining;
-    const prop = USE_SCALEX_ANIMATION ? 'transform' : 'width';
-    anim.el.style.transition = `${prop} ${dur}ms linear`;
-    setPercent(anim.el, 100);
+    anim.id = id;
+    play(anim);
   }
 
   function complete(id) {
@@ -119,6 +125,7 @@ const ProgressAnimationManager = (() => {
 
   function restore(id, el, snapObj) {
     const anim = {
+      id,
       el,
       totalMs: snapObj.totalMs,
       elapsedMs: Math.min(snapObj.elapsedMs, snapObj.totalMs),
@@ -131,12 +138,7 @@ const ProgressAnimationManager = (() => {
     snap(el, pct);
 
     if (anim.status === 'running' && anim.elapsedMs < anim.totalMs) {
-      const remaining = anim.totalMs - anim.elapsedMs;
-      anim.startedAt = performance.now();
-      const dur = prefersReduced ? 1 : remaining;
-      const prop = USE_SCALEX_ANIMATION ? 'transform' : 'width';
-      el.style.transition = `${prop} ${dur}ms linear`;
-      setPercent(el, 100);
+      play(anim);
     }
   }
 
