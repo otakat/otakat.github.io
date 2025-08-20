@@ -20,7 +20,7 @@
 						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" onclick="saveGame(true).catch(console.error)" data-tippy-content="Store progress">
 							<span class="emoji fs-4">💾</span><span class="label small">Save</span>
 						</button>
-						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="pause-button" onclick="buttonPause()" data-tippy-content="Toggle clock pause">
+						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="pause-button" data-tippy-content="Toggle clock pause">
 							<span class="emoji fs-4">⏸️</span><span class="label small">Pause</span>
 						</button>
 						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
@@ -247,18 +247,21 @@
 	<script src="https://cdn.jsdelivr.net/npm/localforage@^1/dist/localforage.min.js" defer></script>
 
 		<!-- Game scripts -->
+		<script src="./assets/scripts/helpers.js" defer></script>
 		<script src="./assets/scripts/initialize.js" defer></script>
 		<script src="./assets/scripts/pause_helpers.js" defer></script>
 		<script src="./assets/scripts/conditions.js" defer></script>
-			<script src="./assets/scripts/action_registry.js" defer></script>
-			<script src="./assets/scripts/action_runner.js" defer></script>
-			<script src="./assets/scripts/action_functions.js" defer></script>
+		<script src="./assets/scripts/skills.js" defer></script>
 		<script src="./assets/scripts/script.js" defer></script>
+		<script src="./assets/scripts/artifacts.js" defer></script>
 		<script src="./assets/scripts/items.js" defer></script>
 		<script src="./assets/scripts/clock.js" defer></script>
-		<script src="./assets/scripts/start.js" defer></script>
+		<script src="./assets/scripts/action_registry.js" defer></script>
+		<script src="./assets/scripts/action_runner.js" defer></script>
+		<script src="./assets/scripts/action_functions.js" defer></script>
 		<script src="./assets/scripts/ui.js" defer></script>
 		<script src="./assets/scripts/loop_timer.js" defer></script>
+		<script src="./assets/scripts/start.js" defer></script>
 
 
 

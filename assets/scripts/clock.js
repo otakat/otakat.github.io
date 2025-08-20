@@ -262,6 +262,201 @@ eventBus.on('clockTick-low', () => {
   }
 });
 
+// Listen for each fixed tick
+eventBus.on('tick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
+
+// Core game logic each variable game tick
+eventBus.on('gameTick-critical', () => {
+  processActiveAndQueuedActions();
+});
+
+// Medium-frequency UI updates
+eventBus.on('clockTick-high', () => {
+  Object.values(actionsConstructed).forEach(action => {
+    if (action.needsRender === true) {
+      action.render();
+      action.needsRender = false;
+    }
+  });
+});
+
+eventBus.on('gameTick-high', () => {
+  updateTimerUI();
+});
+
+// Low-frequency refreshers
+eventBus.on('gameTick-low', () => {
+  checkTimeWarnings();
+});
+
 window.addEventListener('load', () => {
   window.gameClock = new GlobalClock();
 });
+
+function runGameTick(stepMs) {
+  // Auto pause when no actions remain
+  if (gameState.actionsActive.length === 0 && !gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
+    addPauseState(pauseStates.INACTIVE);
+  } else if (gameState.actionsActive.length > 0 && gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
+    deletePauseState(pauseStates.INACTIVE);
+  }
+
+  framesTotal += 1;
+  if (!isGamePaused()) {
+    timeTotal += stepMs;
+    gameState.actionsActive.forEach(actionId => {
+      actionsConstructed[actionId].step(stepMs);
+    });
+    processScheduledEvents();
+  }
+}
+
+function checkTimeWarnings() {
+  const fraction = timeRemaining / timeMax;
+  if (timeRemaining <= 0 && !gameOver) {
+    timeRemaining = 0;
+    gameState.timeRemaining = 0;
+    showResetPopup();
+    return;
+  }
+  if (!hasPocketWatch) {
+    if (fraction <= 0.25 && !timeWarnings.quarter) {
+        logPopupCombo('Your vision swims; the world feels less steady.', 'system');
+      timeWarnings.quarter = true;
+    } else if (fraction <= 0.5 && !timeWarnings.half) {
+        logPopupCombo('You feel a strange heaviness in your limbs.', 'system');
+      timeWarnings.half = true;
+    }
+  }
+}
+
+function applyPendingTime() {
+  timeRemaining -= pendingTimeCost;
+  if (timeRemaining < 0) timeRemaining = 0;
+  gameState.timeRemaining = timeRemaining;
+  pendingTimeCost = 0;
+  refreshScheduled = false;
+  checkTimeWarnings();
+  gameState.timeWarnings = { ...timeWarnings };
+  updateTimerUI();
+}
+
+function consumeTime(cost) {
+  const c = Number(cost) || 0;
+  pendingTimeCost += c;
+  if (!refreshScheduled) {
+    refreshScheduled = true;
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(applyPendingTime);
+    } else {
+      setTimeout(applyPendingTime, 50);
+    }
+  }
+}
+
+
+/* ===== Time Dilation API (non-destructive) =====
+   Lets gameplay and debug stack multiple multipliers.
+   - Base dilation comes from gameState.globalParameters.timeDilationBase (or timeDilation, else 1).
+   - Effective dilation = base * product(modifiers).
+   - If GlobalClock.setTimeDilation exists, we call it; else we set gameState.globalParameters.timeDilation and emit an event.
+*/
+(function () {
+  if (window.TimeDilationAPI) return; // already installed
+
+  function clamp01to100(x, def = 1) {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return def;
+    return Math.min(Math.max(n, 0.05), 100);
+  }
+
+  const api = (function () {
+    const mods = new Map(); // key -> multiplier (number)
+
+    function getBase() {
+      const gp = (window.gameState && gameState.globalParameters) || {};
+      if (Number.isFinite(gp.timeDilationBase)) return gp.timeDilationBase;
+      if (Number.isFinite(gp.timeDilation)) return gp.timeDilation; // backward compat
+      return 1;
+    }
+
+    function setBase(x) {
+      const clamped = clamp01to100(x, 1);
+      if (!window.gameState) window.gameState = { globalParameters: {} };
+      if (!gameState.globalParameters) gameState.globalParameters = {};
+      gameState.globalParameters.timeDilationBase = clamped;
+      return apply();
+    }
+
+    function addMod(key, mult) {
+      if (!key) return false;
+      mods.set(String(key), clamp01to100(mult, 1));
+      return apply();
+    }
+
+    function removeMod(key) {
+      mods.delete(String(key));
+      return apply();
+    }
+
+    function clearMods() {
+      mods.clear();
+      return apply();
+    }
+
+    function getEffective() {
+      const product =
+        Array.from(mods.values()).reduce((a, b) => a * b, 1);
+      return getBase() * product;
+    }
+
+    function apply() {
+      const eff = getEffective();
+
+      // Maintain compatibility with legacy global variable if present
+      if (typeof timeDilation !== 'undefined') {
+        try {
+          timeDilation = eff;
+        } catch (_e) { /* ignore */ }
+      }
+
+      // Prefer GlobalClock API if present
+      if (window.gameClock && typeof gameClock.setTimeDilation === 'function') {
+        gameClock.setTimeDilation(eff);
+      } else {
+        // Fallback: set param and emit event so listeners can react
+        if (window.gameState && gameState.globalParameters) {
+          gameState.globalParameters.timeDilation = eff;
+        }
+        eventBus.emit('time-dilation-changed', { timeDilation: eff });
+      }
+      return eff;
+    }
+
+    return {
+      // public
+      setBase, addMod, removeMod, clearMods, getEffective, apply,
+      // exposed for debugging/inspection (read-only usage recommended)
+      _mods: mods
+    };
+  })();
+
+  window.TimeDilationAPI = api;
+
+  // Convenience debug hooks (safe no-ops if methods missing)
+  if (!window.setTimeDilation) window.setTimeDilation = (x) => api.setBase(x);
+  if (!window.addTimeDilationMod) window.addTimeDilationMod = (k, m) => api.addMod(k, m);
+  if (!window.removeTimeDilationMod) window.removeTimeDilationMod = (k) => api.removeMod(k);
+  if (!window.clearTimeDilationMods) window.clearTimeDilationMods = () => api.clearMods();
+  if (!window.setRefreshHz) window.setRefreshHz = (hz) => window.gameClock?.setRefreshHz?.(hz);
+
+  // Optional: lightweight console trace when dilation changes (only attach once)
+  if (!window.__td_logger_attached__) {
+    eventBus.on('time-dilation-changed', ({ timeDilation }) => {
+      if (timeDilation != null) {
+        console.debug('[TimeDilation] effective =', timeDilation);
+      }
+    });
+    window.__td_logger_attached__ = true;
+  }
+})();

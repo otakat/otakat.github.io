@@ -1,19 +1,5 @@
-const skillList = ["courage", "creativity", "curiosity", "integrity", "perseverance", "resourcefulness"];
 
-const artifactData = {
-  skillbook: {
-    label: "Ancient Skillbook",
-    description: "Reveals the skills menu.",
-  },
-  timeCharm: {
-    label: "Time Charm",
-    description: "Increases all action speed by 10%.",
-  },
-  pocketwatch: {
-    label: "Pocket Watch",
-    description: "Reveals the flow of time left in this loop.",
-  }
-};
+
 
 const default_action = {
   label: "Default Action Name",

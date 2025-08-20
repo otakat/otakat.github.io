@@ -71,15 +71,15 @@ const emptyGameState = {
   },
 };
 
+let scheduledEvents = [];
 let actionsConstructed = {};
-
-function isValidNumber(v) {
-  return typeof v === 'number' && Number.isFinite(v);
-}
-
-function sanitizeNumber(v, d = 0) {
-  return isValidNumber(v) ? v : d;
-}
+let startingPermanentLevels = {};
+let gameOver = false;
+const currentExperienceToLevel = 3000;
+const permanentExperienceToLevel = 3000;
+const customRequirementFns = {};
+let pendingTimeCost = 0;
+let refreshScheduled = false;
 
 function aggregateObjectProperties(base, incoming) {
   const out = { ...base };

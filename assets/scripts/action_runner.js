@@ -92,7 +92,7 @@ const ProgressAnimationManager = (() => {
     if (!anim) return;
     anim.elapsedMs = anim.totalMs;
     anim.status = 'completed';
-    snap(anim.el, 100);
+    snap(anim.el, 0);
   }
 
   function reset(id) {

@@ -1,4 +1,6 @@
 function addPauseState(state) {
+  if (gameState.pausedReasons.includes(state)){ return; }
+
   const wasPaused = isGamePaused();
   if (!gameState.pausedReasons.includes(state)) {
     gameState.pausedReasons.unshift(state);
@@ -11,9 +13,13 @@ function addPauseState(state) {
     });
   }
   processPauseButton();
+
+  console.log('Added pause state: ' + state)
 }
 
 function deletePauseState(state) {
+  if (!gameState.pausedReasons.includes(state)){ return; }
+  
   const wasPaused = isGamePaused();
   if (state === undefined) {
     gameState.pausedReasons = [];
@@ -24,6 +30,8 @@ function deletePauseState(state) {
     ProgressAnimationManager.resumeAll();
   }
   processPauseButton();
+
+  console.log('Deleted pause state: ' + state)
 }
 
 function isGamePaused() {
@@ -55,9 +63,9 @@ function processPauseButton(label) {
 }
 
 // Backwards compatibility aliases
-const addPauseReason = addPauseState;
-const removePauseReason = deletePauseState;
-const clearPauseReasons = deletePauseState;
+// const addPauseReason = addPauseState;
+// const removePauseReason = deletePauseState;
+// const clearPauseReasons = deletePauseState;
 
 // Optional property shim for old `gameState.paused` checks
 window.addEventListener('load', () => {
@@ -68,3 +76,11 @@ window.addEventListener('load', () => {
     });
   }
 });
+
+function buttonPause() {
+  if (gameState.pausedReasons.includes(pauseStates.MANUAL)) {
+    deletePauseState(pauseStates.MANUAL);
+  } else {
+    addPauseState(pauseStates.MANUAL);
+  }
+}
