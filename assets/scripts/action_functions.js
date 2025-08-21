@@ -83,18 +83,12 @@ class GameAction {
                         const continueAfterEach = effects.each(this.id);
                         if (!continueAfterEach) {return false;}
                 }
-                const masteryPct = (this.progress.timeStart / this.data.length) * 100;
-                const completionPct = (this.progress.timeCurrent / this.data.length) * 100;
-                if (completionPct < masteryPct) {
-                  this.progress.timeCurrent = this.progress.timeStart;
-                  ProgressAnimationManager.reset(this.id);
-                  this.needsRender = true;
-                }
 
+                this.calculateTimeStart();
                 this.calculateTimeMultiplier();
-                const coreMs = this.data.length - this.progress.timeStart;
+                const coreMs = this.data.length;
                 const rate = this.timeMultiplier || 1;
-                const elapsed = (this.progress.timeCurrent - this.progress.timeStart) / rate;
+                const elapsed = this.progress.timeCurrent / rate;
                 const paused = isGamePaused();
                 ProgressAnimationManager.start(
                   this.id,
@@ -181,6 +175,10 @@ class GameAction {
     this.progress.mastery += this.data.length;
     this.calculateTimeStart();
     this.progress.timeCurrent = this.progress.timeStart;
+    if (this.elements && this.elements.progressBarMastery) {
+      const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
+      this.elements.progressBarMastery.style.width = masteryPercentage + '%';
+    }
     deactivateAction(this.id);
 
     if (doSkillsExist(this.data.skills)) {
@@ -232,10 +230,11 @@ class GameAction {
     this.progress.timeStart = masteryImpact * this.data.length;
     if (this.progress.timeCurrent < this.progress.timeStart) {
       this.progress.timeCurrent = this.progress.timeStart;
-    }
-    const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
-    if (this.elements && this.elements.progressBarMastery) {
-      this.elements.progressBarMastery.style.width = masteryPercentage + '%';
+      if (this.elements && this.elements.progressBarCurrent) {
+        const pct = (this.progress.timeCurrent / this.data.length) * 100;
+        this.elements.progressBarCurrent.style.transition = 'none';
+        this.elements.progressBarCurrent.style.width = pct + '%';
+      }
     }
     this.needsRender = true;
   }
