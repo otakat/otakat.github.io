@@ -83,10 +83,12 @@ class GameAction {
                         const continueAfterEach = effects.each(this.id);
                         if (!continueAfterEach) {return false;}
                 }
+
+                this.calculateTimeStart();
                 this.calculateTimeMultiplier();
-                const coreMs = this.data.length - this.progress.timeStart;
+                const coreMs = this.data.length;
                 const rate = this.timeMultiplier || 1;
-                const elapsed = (this.progress.timeCurrent - this.progress.timeStart) / rate;
+                const elapsed = this.progress.timeCurrent / rate;
                 const paused = isGamePaused();
                 ProgressAnimationManager.start(
                   this.id,
@@ -159,20 +161,24 @@ class GameAction {
   }
 
   render() {
-    const currentPercentage = (this.progress.timeCurrent / this.data.length) * 100;
+    const completedPercentage = (this.progress.timeCurrent / this.data.length) * 100;
     const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
     const label =
-      masteryPercentage.toFixed(1) + '% Mastery + ' + (currentPercentage - masteryPercentage).toFixed(1) + '% Current';
+      completedPercentage.toFixed(1) + '% Completed (' + masteryPercentage.toFixed(1) + '% Mastery)';
     this.elements.progressText.innerText = label;
-    this.elements.progressBarMastery.style.width = masteryPercentage + '%';
   }
 
   finish() {
     this.progress.completions += 1;
     if (gameState.debugMode) console.log(`Action ${this.id} finished`);
     ProgressAnimationManager.complete(this.id);
+    this.progress.mastery += this.data.length;
     this.calculateTimeStart();
     this.progress.timeCurrent = this.progress.timeStart;
+    if (this.elements && this.elements.progressBarMastery) {
+      const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
+      this.elements.progressBarMastery.style.width = masteryPercentage + '%';
+    }
     deactivateAction(this.id);
 
     if (doSkillsExist(this.data.skills)) {
@@ -221,9 +227,14 @@ class GameAction {
     }
     masteryImpact = Math.max(0, Math.min(masteryImpact, parameters.masteryMaxRatio));
 
-    this.progress.timeStart = masteryImpact * this.data.length
-      if (this.progress.timeCurrent < this.progress.timeStart) {
+    this.progress.timeStart = masteryImpact * this.data.length;
+    if (this.progress.timeCurrent < this.progress.timeStart) {
       this.progress.timeCurrent = this.progress.timeStart;
+      if (this.elements && this.elements.progressBarCurrent) {
+        const pct = (this.progress.timeCurrent / this.data.length) * 100;
+        this.elements.progressBarCurrent.style.transition = 'none';
+        this.elements.progressBarCurrent.style.width = pct + '%';
+      }
     }
     this.needsRender = true;
   }
@@ -251,7 +262,7 @@ function createNewAction(id) {
       <span class="action-skills">${skillIcons}</span>
     </div>
     <div class="action-progress-container">
-      <div class="action-progress-text">0% Mastery + 0% Current</div>
+      <div class="action-progress-text">0% Completed (0% Mastery)</div>
       <div class="action-progress-bar-mastery progress-bar"></div>
       <div class="action-progress-bar-current progress-bar"></div>
     </div>
