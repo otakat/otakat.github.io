@@ -1,114 +1,114 @@
 // THE ACTION CLASS
 class GameAction {
   constructor(id) {
-      // Initialize properties
-      this.id = id;
-      this.timeMultiplier = 1;
-      this.needsRender = false;
-      this._lastAnimElapsed = 0;
+    // Initialize properties
+    this.id = id;
+    this.timeMultiplier = 1;
+    this.needsRender = false;
+    this._lastAnimElapsed = 0;
 
-			// For static properties
-                        this.data = getActionData(id);
+    // For static properties
+    this.data = getActionData(id);
 
-			// For progress-based properties
-			this.initializeActionProgress();
-			this.progress = new Proxy(gameState.actionsProgress[id], {
-				get (target, property) {return target[property];},
-				set (target, property, value) {
-					target[property] = sanitizeNumber(value);
-					return true;
-				}
-			});
+    // For progress-based properties
+    this.initializeActionProgress();
+    this.progress = new Proxy(gameState.actionsProgress[id], {
+      get (target, property) {return target[property];},
+      set (target, property, value) {
+        target[property] = sanitizeNumber(value);
+        return true;
+      }
+    });
 
-                        this.container = document.getElementById(id);
-                        this.elements = {
-                                container: this.container,
-              progressContainer: this.container.querySelector('.action-progress-container'),
-              progressText: this.container.querySelector('.action-progress-text'),
-              progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
-              progressBarMastery: this.container.querySelector('.action-progress-bar-mastery')
+    this.container = document.getElementById(id);
+    this.elements = {
+      container: this.container,
+      progressContainer: this.container.querySelector('.action-progress-container'),
+      progressText: this.container.querySelector('.action-progress-text'),
+      progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
+      progressBarMastery: this.container.querySelector('.action-progress-bar-mastery')
 
-                        }
-      // Allow clicking anywhere on the action body to toggle the action
-      this.container.addEventListener('click', () => toggleAction(id));
+    }
+    // Allow clicking anywhere on the action body to toggle the action
+    this.container.addEventListener('click', () => toggleAction(id));
 
-      this.calculateTimeStart();
-      this.render();
-      this.needsRender = false;
+    this.calculateTimeStart();
+    this.render();
+    this.needsRender = false;
   }
 
-        get isAvailable() {
-                const cond = getActionConfig(this.id)?.conditions;
-                return gameState.actionsAvailable.includes(this.id) && evaluate(cond, gameState);
-        }
-        get isActive() {return gameState.actionsActive.includes(this.id);}
+  get isAvailable() {
+    const cond = getActionConfig(this.id)?.conditions;
+    return gameState.actionsAvailable.includes(this.id) && evaluate(cond, gameState);
+  }
+  get isActive() {return gameState.actionsActive.includes(this.id);}
 
-        canStart() {
-                if (!this.data || !this.progress) {return {ok: false};}
-                if (!this.isAvailable) {return {ok: false};}
-                if (this.progress.completions >= this.data.completionMax) {return {ok: false};}
-                const req = this.data.requirements;
-                const res = evaluateRequirements(req);
-                return res;
-        }
+  canStart() {
+    if (!this.data || !this.progress) {return {ok: false};}
+    if (!this.isAvailable) {return {ok: false};}
+    if (this.progress.completions >= this.data.completionMax) {return {ok: false};}
+    const req = this.data.requirements;
+    const res = evaluateRequirements(req);
+    return res;
+  }
 
-        start() {
-                const res = this.canStart();
-                if (!res.ok) {
-                        if (res.unmet) {
-                                  const msg = buildRequirementsMessage(res.unmet);
-                                  logPopupCombo(msg, 'action_failure');
-                        } else {
-                                console.error('Invalid action data');
-                        }
-                        return false;
-                }
+  start() {
+    const res = this.canStart();
+    if (!res.ok) {
+      if (res.unmet) {
+        const msg = buildRequirementsMessage(res.unmet);
+        logPopupCombo(msg, 'action_failure');
+      } else {
+        console.error('Invalid action data');
+      }
+      return false;
+    }
 
-                const effects = this.data.startEffects;
-                const completions = this.progress.completions;
+    const effects = this.data.startEffects;
+    const completions = this.progress.completions;
 
-		// Execute the unavailable effect (and usually halt start)
-		if ('unavailable' in effects && !this.isAvailable) {
-			const continueAfterUnavailable = effects.unavailable(this.id);
-			if (!continueAfterUnavailable) {return false;}
-		}
+    // Execute the unavailable effect (and usually halt start)
+    if ('unavailable' in effects && !this.isAvailable) {
+      const continueAfterUnavailable = effects.unavailable(this.id);
+      if (!continueAfterUnavailable) {return false;}
+    }
 
-		// Execute the completions-based effect and halt start if needed
-		if (completions in effects) {
-			const continueAfterCompletions = effects[completions](this.id);
-			if (!continueAfterCompletions)	{return false};
-		}
+    // Execute the completions-based effect and halt start if needed
+    if (completions in effects) {
+      const continueAfterCompletions = effects[completions](this.id);
+      if (!continueAfterCompletions)	{return false};
+    }
 
-                if ('each' in effects) {
-                        const continueAfterEach = effects.each(this.id);
-                        if (!continueAfterEach) {return false;}
-                }
+    if ('each' in effects) {
+      const continueAfterEach = effects.each(this.id);
+      if (!continueAfterEach) {return false;}
+    }
 
-                this.calculateTimeStart();
-                this.calculateTimeMultiplier();
-                const coreMs = this.data.length;
-                const rate = this.timeMultiplier || 1;
-                const elapsed = this.progress.timeCurrent / rate;
-                const paused = isGamePaused();
-                ProgressAnimationManager.start(
-                  this.id,
-                  this.elements.progressBarCurrent,
-                  coreMs,
-                  rate,
-                  elapsed,
-                  paused ? "paused" : "running",
-                  paused
-                );
-                this._lastAnimElapsed = elapsed;
+    this.calculateTimeStart();
+    this.calculateTimeMultiplier();
+    const coreMs = this.data.length;
+    const rate = this.timeMultiplier || 1;
+    const elapsed = this.progress.timeCurrent / rate;
+    const paused = isGamePaused();
+    ProgressAnimationManager.start(
+      this.id,
+      this.elements.progressBarCurrent,
+      coreMs,
+      rate,
+      elapsed,
+      paused ? "paused" : "running",
+      paused
+    );
+    this._lastAnimElapsed = elapsed;
     if (gameState.debugMode) console.log(`Action ${this.id} started`);
-                return true;
-        }
+    return true;
+  }
 
-        stop() {
-                if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
-                ProgressAnimationManager.pause(this.id);
-                this.syncProgress();
-        }
+  stop() {
+    if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
+    ProgressAnimationManager.pause(this.id);
+    this.syncProgress();
+  }
 
   calculateTimeMultiplier() {
     let multiplier = 1;
@@ -151,21 +151,22 @@ class GameAction {
   syncProgress() {
     const snap = ProgressAnimationManager.snapshot(this.id);
     if (!snap) return 0;
-    const delta = snap.elapsedMs - this._lastAnimElapsed;
-    if (delta > 0) {
-      this._lastAnimElapsed = snap.elapsedMs;
-      runActionTick(this, delta);
-      this.needsRender = true;
-    }
-    return delta;
+    this.progress.timeCurrent = snap.elapsedMs;
+    runActionTick(this);
+    this.needsRender = true;
+    console.log(this.progress.timeCurrent + " " + snap.elapsedMs);
   }
 
   render() {
     const completedPercentage = (this.progress.timeCurrent / this.data.length) * 100;
-    const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
+    const masteryPct = this.getMasteryPct();
     const label =
-      completedPercentage.toFixed(1) + '% Completed (' + masteryPercentage.toFixed(1) + '% Mastery)';
+    completedPercentage.toFixed(1) + '% Completed (' + masteryPct.toFixed(1) + '% Mastery)';
     this.elements.progressText.innerText = label;
+
+    if (this.elements && this.elements.progressBarMastery) {
+      this.elements.progressBarMastery.style.width = masteryPct + '%';
+    }
   }
 
   finish() {
@@ -175,10 +176,7 @@ class GameAction {
     this.progress.mastery += this.data.length;
     this.calculateTimeStart();
     this.progress.timeCurrent = this.progress.timeStart;
-    if (this.elements && this.elements.progressBarMastery) {
-      const masteryPercentage = (this.progress.timeStart / this.data.length) * 100;
-      this.elements.progressBarMastery.style.width = masteryPercentage + '%';
-    }
+
     deactivateAction(this.id);
 
     if (doSkillsExist(this.data.skills)) {
@@ -196,44 +194,54 @@ class GameAction {
       this.data.completionEffects.last(this.id);
     }
 
-    if (gameState.debugMode) console.log(this.id);
     this.needsRender = true;
   }
 
   initializeActionProgress() {
-		let progress = gameState.actionsProgress;
-		const defaultProgress = {
-			timeStart: 0,
-			timeCurrent: 0,
-			mastery: 0,
-			completions: 0
-		};
+    let progress = gameState.actionsProgress;
+    const defaultProgress = {
+      timeStart: 0,
+      timeCurrent: 0,
+      mastery: 0,
+      completions: 0
+    };
 
-		if (!(this.id in progress)) {
-			progress[this.id] = defaultProgress;
-		} else {
-			progress[this.id] = aggregateObjectProperties(defaultProgress, progress[this.id]);
-		}
+    if (!(this.id in progress)) {
+      progress[this.id] = defaultProgress;
+    } else {
+      progress[this.id] = aggregateObjectProperties(defaultProgress, progress[this.id]);
+    }
+  }
+
+  getMasteryPct() {
+    const parameters = gameState.globalParameters;
+
+    let masteryPct = 0;
+    if (this.progress.mastery > 0) {
+      masteryPct = 100 * parameters.masteryMaxRatio * Math.atan(parameters.masteryGrowthRate * this.progress.mastery);
+    }
+    masteryPct = Math.max(0, masteryPct);
+    masteryPct = Math.min(100 * parameters.masteryMaxRatio, masteryPct);
+
+    return masteryPct;
   }
 
   calculateTimeStart() {
-    const parameters = gameState.globalParameters;
+    const masteryPct = this.getMasteryPct();
 
-    let masteryImpact = 0;
-    if (this.progress.mastery === 0) {
-      masteryImpact = 0;
-    } else {
-      masteryImpact = parameters.masteryMaxRatio * Math.atan(parameters.masteryGrowthRate * this.progress.mastery);
-    }
-    masteryImpact = Math.max(0, Math.min(masteryImpact, parameters.masteryMaxRatio));
+    this.progress.timeStart = masteryPct / 100 * this.data.length;
+    return this.progress.timeStart;
+  }
 
-    this.progress.timeStart = masteryImpact * this.data.length;
+  processMinimumProgress() {
+    this.calculateTimeStart();
+
     if (this.progress.timeCurrent < this.progress.timeStart) {
       this.progress.timeCurrent = this.progress.timeStart;
       if (this.elements && this.elements.progressBarCurrent) {
         const pct = (this.progress.timeCurrent / this.data.length) * 100;
-        this.elements.progressBarCurrent.style.transition = 'none';
-        this.elements.progressBarCurrent.style.width = pct + '%';
+        const el = this.elements.progressBarCurrent;
+        ProgressAnimationManager.snap(el, pct);
       }
     }
     this.needsRender = true;
@@ -250,22 +258,22 @@ function createNewAction(id) {
   const label = data.label;
   const skills = Array.isArray(data.skills) ? data.skills : [];
   const skillIcons = skills
-    .map(skill => `<span class="action-skill-icon" data-skill="${skill}">${skillEmojis[skill] || ''}</span>`)
-    .join('');
+  .map(skill => `<span class="action-skill-icon" data-skill="${skill}">${skillEmojis[skill] || ''}</span>`)
+  .join('');
 
   const container = document.createElement('div');
   container.id = id;
   container.className = 'action-container';
   container.innerHTML = `
-    <div class="action-header">
-      <span class="action-label" data-tippy-content="Action Label">${label}</span>
-      <span class="action-skills">${skillIcons}</span>
-    </div>
-    <div class="action-progress-container">
-      <div class="action-progress-text">0% Completed (0% Mastery)</div>
-      <div class="action-progress-bar-mastery progress-bar"></div>
-      <div class="action-progress-bar-current progress-bar"></div>
-    </div>
+  <div class="action-header">
+    <span class="action-label" data-tippy-content="Action Label">${label}</span>
+    <span class="action-skills">${skillIcons}</span>
+  </div>
+  <div class="action-progress-container">
+    <div class="action-progress-text">0% Completed (0% Mastery)</div>
+    <div class="action-progress-bar-mastery progress-bar"></div>
+    <div class="action-progress-bar-current progress-bar"></div>
+  </div>
   `;
   document.getElementById('all-actions-container').appendChild(container);
   const tooltipButtons = container.querySelectorAll('[data-tippy-content]');
@@ -276,23 +284,23 @@ function createNewAction(id) {
     container.style.display = 'none';
   }
 
-    actionsConstructed[id] = new GameAction(id);
-    const barEl = actionsConstructed[id].elements.progressBarCurrent;
-    const snap = gameState.progressAnimations?.[id];
-    if (snap) {
-      ProgressAnimationManager.restore(id, barEl, snap);
-      actionsConstructed[id]._lastAnimElapsed = snap.elapsedMs;
-    } else {
-      const a = actionsConstructed[id];
-      const coreMs = a.data.length - a.progress.timeStart;
-      const rate = a.timeMultiplier || 1;
-      const elapsed = (a.progress.timeCurrent - a.progress.timeStart) / rate;
-      actionsConstructed[id]._lastAnimElapsed = elapsed;
-      ProgressAnimationManager.start(id, barEl, coreMs, rate, elapsed, 'paused');
-    }
-    updateActionSkillIcons();
-    processActiveAndQueuedActions();
+  actionsConstructed[id] = new GameAction(id);
+  const barEl = actionsConstructed[id].elements.progressBarCurrent;
+  const snap = gameState.progressAnimations?.[id];
+  if (snap) {
+    ProgressAnimationManager.restore(id, barEl, snap);
+    actionsConstructed[id]._lastAnimElapsed = snap.elapsedMs;
+  } else {
+    const a = actionsConstructed[id];
+    const coreMs = a.data.length - a.progress.timeStart;
+    const rate = a.timeMultiplier || 1;
+    const elapsed = (a.progress.timeCurrent - a.progress.timeStart) / rate;
+    actionsConstructed[id]._lastAnimElapsed = elapsed;
+    ProgressAnimationManager.start(id, barEl, coreMs, rate, elapsed, 'paused');
   }
+  updateActionSkillIcons();
+  processActiveAndQueuedActions();
+}
 
 // Access a constructed GameAction safely
 function getAction(id) {
@@ -306,18 +314,18 @@ function hasActionData(id) {
 
 function removeAction(actionId) {
   // Remove HTML elements
-    const actionElement = document.getElementById(actionId);
-    if (actionElement) {
-        actionElement.parentNode.removeChild(actionElement);
-    }
+  const actionElement = document.getElementById(actionId);
+  if (actionElement) {
+    actionElement.parentNode.removeChild(actionElement);
+  }
 
-    // Remove from gameState and arrays
-    delete actionsConstructed[actionId];
-    gameState.actionsAvailable = gameState.actionsAvailable.filter(id => id !== actionId);
-    gameState.actionsActive = gameState.actionsActive.filter(id => id !== actionId);
-    processActiveAndQueuedActions();
+  // Remove from gameState and arrays
+  delete actionsConstructed[actionId];
+  gameState.actionsAvailable = gameState.actionsAvailable.filter(id => id !== actionId);
+  gameState.actionsActive = gameState.actionsActive.filter(id => id !== actionId);
+  processActiveAndQueuedActions();
 
-    // Any additional cleanup...
+  // Any additional cleanup...
 }
 
 function makeActionAvailable(actionId) {
@@ -428,20 +436,6 @@ function processActiveAndQueuedActions() {
   })
 }
 
-function areSkillsVisible() {
-  return gameState.debugMode || !!gameState.artifacts?.skillbook;
-}
-
-function updateActionSkillIcons() {
-  const show = areSkillsVisible();
-  Object.values(actionsConstructed).forEach(actionObject => {
-    const skillsEl = actionObject.container.querySelector('.action-skills');
-    if (skillsEl) {
-      skillsEl.style.display = show ? 'flex' : 'none';
-    }
-  });
-}
-
 const requirementEvaluators = {
   skill(req) {
     const s = gameState.skills?.[req.key];
@@ -511,7 +505,7 @@ function humanizeClause(c) {
   switch (cl.type) {
     case 'skill': return `Requires ${cl.key} ${cl.min}+`;
     case 'artifact': return cl.owned ? `Requires artifact: ${artifactData[cl.id]?.label || cl.id}`
-                                     : `Artifact must be absent: ${cl.id}`;
+      : `Artifact must be absent: ${cl.id}`;
     case 'actionCompleted': return `Complete ${getActionConfig(cl.id)?.label || cl.id} ×${cl.min}`;
     case 'flag': return `${cl.key} = ${String(cl.equals)}`;
     case 'mastery': return `Mastery of ${getActionConfig(cl.id)?.label || cl.id} ≥ ${(cl.minRatio*100)|0}%`;

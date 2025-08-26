@@ -6,23 +6,23 @@ const default_action = {
   length: 5000,
   skills: skillList,
   challengeType: 'generic',
-    startEffects: {
-      each: function(actionId) {return true;},
-      unavailable: function(actionId) {
-        logPopupCombo(getActionData(actionId).label + ' is not available to perform.', 'action_failure');
-        return false;
-      }
-    },
-  completionMax: 1,
-    completionEffects: {
-      each: function(actionId) {
-        logPopupCombo('You completed ' + getActionData(actionId).label + '.', 'action_complete');
-      },
-      last: function (actionId) {
-        makeActionUnavailable(actionId);
-      }
+  startEffects: {
+    each: function(actionId) {return true;},
+    unavailable: function(actionId) {
+      logPopupCombo(getActionData(actionId).label + ' is not available to perform.', 'action_failure');
+      return false;
     }
-  };
+  },
+  completionMax: 1,
+  completionEffects: {
+    each: function(actionId) {
+      logPopupCombo('You completed ' + getActionData(actionId).label + '.', 'action_complete');
+    },
+    last: function (actionId) {
+      makeActionUnavailable(actionId);
+    }
+  }
+};
 
 const challengeMods = {
   combat:   { speedMult: 1.0 },
@@ -37,7 +37,7 @@ const actionRegistry = {
       meta: {
         timeMultiplier: 1,
         opener:
-          'You boot up at the edge of Hemlock Forest, neon dawn flickering through the branches.'
+        'You boot up at the edge of Hemlock Forest, neon dawn flickering through the branches.'
       },
       actions: {
         followWhisperingTrail: {

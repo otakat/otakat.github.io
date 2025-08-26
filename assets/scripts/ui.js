@@ -30,6 +30,20 @@ function selectBook(bookId) {
   updateLibrarySelection();
 }
 
+function areSkillsVisible() {
+  return gameState.debugMode || !!gameState.artifacts?.skillbook;
+}
+
+function updateActionSkillIcons() {
+  const show = areSkillsVisible();
+  Object.values(actionsConstructed).forEach(actionObject => {
+    const skillsEl = actionObject.container.querySelector('.action-skills');
+    if (skillsEl) {
+      skillsEl.style.display = show ? 'flex' : 'none';
+    }
+  });
+}
+
 function updateBookButton() {
   const btn = document.getElementById('book-button');
   if (!btn) return;
@@ -149,21 +163,21 @@ function openArtifacts() {
 }
 
 function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
-    //if (id === undefined) {
-    //  id = generateUniqueId();
-    //}
-    const currentDate = new Date(Date.now())
-    const timestamp = currentDate.toLocaleDateString('en-US');
+  //if (id === undefined) {
+  //  id = generateUniqueId();
+  //}
+  const currentDate = new Date(Date.now())
+  const timestamp = currentDate.toLocaleDateString('en-US');
 
-    const logEntry = {
-        id: id, // Implement this function to generate unique IDs
-        tag: tag,
-        text: text,
-        date: timestamp
-    };
-    gameState.gameLog.push(logEntry);
-    updateLogUI();
-    updateStoryUI();
+  const logEntry = {
+    id: id, // Implement this function to generate unique IDs
+    tag: tag,
+    text: text,
+    date: timestamp
+  };
+  gameState.gameLog.push(logEntry);
+  updateLogUI();
+  updateStoryUI();
 }
 
 function updateLogUI() {
@@ -211,36 +225,36 @@ function updateStoryUI() {
 }
 
 function createPopup(text, alertType = 'system') {
-    const data = alertTypeData[alertType] || alertTypeData.system;
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${data.bootstrap} fade show d-flex align-items-center`;
-    alertDiv.role = 'alert';
+  const data = alertTypeData[alertType] || alertTypeData.system;
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${data.bootstrap} fade show d-flex align-items-center`;
+  alertDiv.role = 'alert';
 
-    alertDiv.innerHTML = `
-        <div class="alert-timer me-2">
-            <svg viewBox="0 0 44 44">
-                <circle class="arc-track" cx="22" cy="22" r="20"></circle>
-                <circle class="arc-progress" cx="22" cy="22" r="20" pathLength="100"></circle>
-            </svg>
-        </div>
-        <div class="flex-grow-1">${text}</div>`;
+  alertDiv.innerHTML = `
+  <div class="alert-timer me-2">
+    <svg viewBox="0 0 44 44">
+      <circle class="arc-track" cx="22" cy="22" r="20"></circle>
+      <circle class="arc-progress" cx="22" cy="22" r="20" pathLength="100"></circle>
+    </svg>
+  </div>
+  <div class="flex-grow-1">${text}</div>`;
 
-    document.getElementById('popup-container').appendChild(alertDiv);
+  document.getElementById('popup-container').appendChild(alertDiv);
 
-    const duration = 3000;
-    const arc = alertDiv.querySelector('.arc-progress');
-    arc.style.transition = `stroke-dashoffset ${duration}ms linear`;
-    setTimeout(() => { arc.style.strokeDashoffset = 100; }, 0);
+  const duration = 3000;
+  const arc = alertDiv.querySelector('.arc-progress');
+  arc.style.transition = `stroke-dashoffset ${duration}ms linear`;
+  setTimeout(() => { arc.style.strokeDashoffset = 100; }, 0);
 
-    const hide = () => {
-        alertDiv.classList.remove('show');
-        setTimeout(() => alertDiv.remove(), 150);
-    };
-    const timeoutId = setTimeout(hide, duration);
-    alertDiv.addEventListener('click', () => {
-        clearTimeout(timeoutId);
-        hide();
-    });
+  const hide = () => {
+    alertDiv.classList.remove('show');
+    setTimeout(() => alertDiv.remove(), 150);
+  };
+  const timeoutId = setTimeout(hide, duration);
+  alertDiv.addEventListener('click', () => {
+    clearTimeout(timeoutId);
+    hide();
+  });
 }
 
 function logPopupCombo(text, alertType = 'system', id, tag) {
@@ -263,15 +277,15 @@ function initAlertSettingsUI() {
     const row = document.createElement('div');
     row.className = 'mb-1';
     row.innerHTML = `
-      <strong class="me-2">${data.label}</strong>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="alert-popup-${key}">
-        <label class="form-check-label" for="alert-popup-${key}">Popup</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="alert-log-${key}">
-        <label class="form-check-label" for="alert-log-${key}">Log</label>
-      </div>`;
+    <strong class="me-2">${data.label}</strong>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="alert-popup-${key}">
+      <label class="form-check-label" for="alert-popup-${key}">Popup</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="alert-log-${key}">
+      <label class="form-check-label" for="alert-log-${key}">Log</label>
+    </div>`;
     container.appendChild(row);
     const popupBox = row.querySelector(`#alert-popup-${key}`);
     const logBox = row.querySelector(`#alert-log-${key}`);
@@ -305,32 +319,32 @@ function updateTimerUI() {
 }
 
 function openTab(tabId = 'None') {
-    // Hide all tab content
-    var tabContents = document.getElementsByClassName("mobile-tab");
-    for (var i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.add('d-none');
-    }
+  // Hide all tab content
+  var tabContents = document.getElementsByClassName("mobile-tab");
+  for (var i = 0; i < tabContents.length; i++) {
+    tabContents[i].classList.add('d-none');
+  }
 
-    // Hide both main and settings panes
-    var settingsPane = document.getElementById('settings-pane');
-    var mainPane = document.getElementById('main-pane');
-    var libraryPane = document.getElementById('library-pane');
-    if (settingsPane) settingsPane.classList.add('d-none');
-    if (mainPane) mainPane.classList.add('d-none');
-    if (libraryPane) libraryPane.classList.add('d-none');
+  // Hide both main and settings panes
+  var settingsPane = document.getElementById('settings-pane');
+  var mainPane = document.getElementById('main-pane');
+  var libraryPane = document.getElementById('library-pane');
+  if (settingsPane) settingsPane.classList.add('d-none');
+  if (mainPane) mainPane.classList.add('d-none');
+  if (libraryPane) libraryPane.classList.add('d-none');
 
-    // Show the specific pane/tab
-    if (tabId === 'settings-pane') {
-        if (settingsPane) settingsPane.classList.remove('d-none');
-    } else if (tabId === 'library-pane') {
-        if (libraryPane) libraryPane.classList.remove('d-none');
-    } else {
-        if (mainPane) mainPane.classList.remove('d-none');
-        if (tabId !== 'None') {
-            var tab = document.getElementById(tabId);
-            if (tab) tab.classList.remove('d-none');
-        }
+  // Show the specific pane/tab
+  if (tabId === 'settings-pane') {
+    if (settingsPane) settingsPane.classList.remove('d-none');
+  } else if (tabId === 'library-pane') {
+    if (libraryPane) libraryPane.classList.remove('d-none');
+  } else {
+    if (mainPane) mainPane.classList.remove('d-none');
+    if (tabId !== 'None') {
+      var tab = document.getElementById(tabId);
+      if (tab) tab.classList.remove('d-none');
     }
+  }
 }
 
 function showResetPopup(){

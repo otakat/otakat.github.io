@@ -23,16 +23,16 @@ function changeGlobalStyle(selector, property, value) {
 
 /*
 Event tiers emitted by GlobalClock:
-  - clockTick-critical / gameTick-critical: every refresh cycle. gameTick events
-    only fire while the game is unpaused.
-  - clockTick-high / gameTick-high: every 2 cycles (aggregated deltas).
-  - clockTick-low / gameTick-low: every 4 cycles (aggregated deltas).
-  - tick-fixed-* counterparts fire from the fixed-step timer.
+- clockTick-critical / gameTick-critical: every refresh cycle. gameTick events
+only fire while the game is unpaused.
+- clockTick-high / gameTick-high: every 2 cycles (aggregated deltas).
+- clockTick-low / gameTick-low: every 4 cycles (aggregated deltas).
+- tick-fixed-* counterparts fire from the fixed-step timer.
 
 Example subscription:
-  eventBus.on('gameTick-high', ({ clockDelta, gameDelta }) => {
-    // medium-frequency logic during play
-  });
+eventBus.on('gameTick-high', ({ clockDelta, gameDelta }) => {
+// medium-frequency logic during play
+});
 */
 
 class GlobalClock {
@@ -189,18 +189,18 @@ class GlobalClock {
 
   setRefreshHz(refreshHz) {
 
-      if (!refreshHz || refreshHz <= 0) return;
-      gameState.globalParameters.refreshHz = refreshHz;
+    if (!refreshHz || refreshHz <= 0) return;
+    gameState.globalParameters.refreshHz = refreshHz;
 
-      // Convert Hz → ms per frame
-      const msPerFrame = 1000 / refreshHz;
+    // Convert Hz → ms per frame
+    const msPerFrame = 1000 / refreshHz;
 
-      // Clamp to sensible bounds so it doesn’t blow up
-      const ms = Math.max(1, Math.min(msPerFrame, 5000));
+    // Clamp to sensible bounds so it doesn’t blow up
+    const ms = Math.max(1, Math.min(msPerFrame, 5000));
 
-      document.documentElement.style.setProperty('--progress-tick-ms', `${ms}ms`);
+    document.documentElement.style.setProperty('--progress-tick-ms', `${ms}ms`);
 
-      console.log('Refresh rate updated to ' + refreshHz);
+    console.log('Refresh rate updated to ' + refreshHz);
 
     this._restartLogicTimer();
   }
@@ -254,9 +254,9 @@ eventBus.on('clockTick-low', () => {
     const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
     const ticks = window.gameClock?.clockTickCount ?? 0;
     info.textContent =
-      `Refresh Hz: ${gameState.globalParameters.refreshHz}\n` +
-      `Total Ticks: ${ticks}\n` +
-      `Paused: ${paused}`;
+    `Refresh Hz: ${gameState.globalParameters.refreshHz}\n` +
+    `Total Ticks: ${ticks}\n` +
+    `Paused: ${paused}`;
   } else {
     info.textContent = '';
   }
@@ -321,10 +321,10 @@ function checkTimeWarnings() {
   }
   if (!hasPocketWatch) {
     if (fraction <= 0.25 && !timeWarnings.quarter) {
-        logPopupCombo('Your vision swims; the world feels less steady.', 'system');
+      logPopupCombo('Your vision swims; the world feels less steady.', 'system');
       timeWarnings.quarter = true;
     } else if (fraction <= 0.5 && !timeWarnings.half) {
-        logPopupCombo('You feel a strange heaviness in your limbs.', 'system');
+      logPopupCombo('You feel a strange heaviness in your limbs.', 'system');
       timeWarnings.half = true;
     }
   }
@@ -356,10 +356,10 @@ function consumeTime(cost) {
 
 
 /* ===== Time Dilation API (non-destructive) =====
-   Lets gameplay and debug stack multiple multipliers.
-   - Base dilation comes from gameState.globalParameters.timeDilationBase (or timeDilation, else 1).
-   - Effective dilation = base * product(modifiers).
-   - If GlobalClock.setTimeDilation exists, we call it; else we set gameState.globalParameters.timeDilation and emit an event.
+Lets gameplay and debug stack multiple multipliers.
+- Base dilation comes from gameState.globalParameters.timeDilationBase (or timeDilation, else 1).
+- Effective dilation = base * product(modifiers).
+- If GlobalClock.setTimeDilation exists, we call it; else we set gameState.globalParameters.timeDilation and emit an event.
 */
 (function () {
   if (window.TimeDilationAPI) return; // already installed
@@ -406,7 +406,7 @@ function consumeTime(cost) {
 
     function getEffective() {
       const product =
-        Array.from(mods.values()).reduce((a, b) => a * b, 1);
+      Array.from(mods.values()).reduce((a, b) => a * b, 1);
       return getBase() * product;
     }
 

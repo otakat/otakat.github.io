@@ -1,25 +1,32 @@
 const ProgressAnimationManager = (() => {
   const animations = new Map();
   const prefersReduced =
-    typeof window !== 'undefined' &&
+  typeof window !== 'undefined' &&
     window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function setPercent(el, percent) {
+  function setPercent(el, percent, ms) {
     if (!el) return;
+
+    if (sanitizeNumber(ms) > 0) {
+      el.style.transition = `width ${ms}ms linear`;
+    } else {
+      el.style.transition = 'none';
+    }
+
     el.style.width = `${percent}%`;
+    console.log('Setting action to ' + percent + '%');
   }
 
   function snap(el, percent) {
     if (!el) return;
-    el.style.transition = 'none';
-    setPercent(el, percent);
+    setPercent(el, percent, 0);
   }
 
   const rAF =
-    typeof window !== 'undefined' && window.requestAnimationFrame
-      ? window.requestAnimationFrame.bind(window)
-      : fn => setTimeout(fn, 0);
+  typeof window !== 'undefined' && window.requestAnimationFrame
+  ? window.requestAnimationFrame.bind(window)
+  : fn => setTimeout(fn, 0);
 
   function play(anim) {
     const remaining = anim.totalMs - anim.elapsedMs;
@@ -31,8 +38,7 @@ const ProgressAnimationManager = (() => {
     anim.status = 'running';
     const dur = prefersReduced ? 1 : remaining;
     rAF(() => {
-      anim.el.style.transition = `width ${dur}ms linear`;
-      rAF(() => setPercent(anim.el, 100));
+      rAF(() => setPercent(anim.el, 100, dur));
     });
   }
 
@@ -92,7 +98,8 @@ const ProgressAnimationManager = (() => {
     if (!anim) return;
     anim.elapsedMs = anim.totalMs;
     anim.status = 'completed';
-    snap(anim.el, 0);
+    snap(anim.el, 100);
+    reset(id);
   }
 
   function reset(id) {
@@ -180,19 +187,12 @@ const ProgressAnimationManager = (() => {
   };
 })();
 
-function runActionTick(actionObj, timeChange) {
-  const multiplier = actionObj.timeMultiplier ?? 1;
-  const newTimeChange = timeChange * multiplier;
+function runActionTick(actionObj) {
   const data = actionObj.data;
-
-  actionObj.progress.timeCurrent += newTimeChange;
-  if (newTimeChange > 0) consumeTime(newTimeChange / 1000);
 
   if (actionObj.progress.timeCurrent >= data.length) {
     actionObj.finish();
   }
-
-  return newTimeChange;
 }
 
 if (typeof globalThis !== 'undefined') {

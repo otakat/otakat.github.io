@@ -19,7 +19,7 @@ function addPauseState(state) {
 
 function deletePauseState(state) {
   if (!gameState.pausedReasons.includes(state)){ return; }
-  
+
   const wasPaused = isGamePaused();
   if (state === undefined) {
     gameState.pausedReasons = [];

@@ -59,9 +59,9 @@ function restartGame(){
 function resetGameState() {
   // Preserve base time dilation before wiping state
   const base =
-    gameState?.globalParameters?.timeDilationBase ??
-    gameState?.globalParameters?.timeDilation ??
-    1;
+  gameState?.globalParameters?.timeDilationBase ??
+  gameState?.globalParameters?.timeDilation ??
+  1;
 
   // Remove all time dilation modifiers but keep base multiplier
   if (window.TimeDilationAPI?.clearMods) {
