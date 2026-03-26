@@ -57,6 +57,7 @@ const emptyGameState = {
     fixedStepMs: 1000 / 60,
     maxFrameDeltaMs: 250,
     maxCatchUpSteps: 5,
+    fastActionThresholdMs: 500,
     masteryMaxRatio: 0.9,
     masteryGrowthRate: 5e-6,
     actionsMaxActive: 1,

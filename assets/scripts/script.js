@@ -22,6 +22,9 @@ function processScheduledEvents() {
 }
 
 function restartGame(){
+  if (typeof resetUiBatchState === 'function') {
+    resetUiBatchState();
+  }
   const modal = bootstrap.Modal.getInstance(document.getElementById('resetModal'));
   if (modal) {modal.hide();}
   document.querySelectorAll('button').forEach(btn => btn.disabled = false);
@@ -56,6 +59,9 @@ function restartGame(){
 }
 
 function resetGameState() {
+  if (typeof resetUiBatchState === 'function') {
+    resetUiBatchState();
+  }
   // Preserve base time dilation before wiping state
   const base =
   gameState?.globalParameters?.timeDilationBase ??
@@ -119,6 +125,9 @@ async function loadGame() {
   try {
     const savedState = await localforage.getItem('gameState');
     if (savedState) {
+      if (typeof resetUiBatchState === 'function') {
+        resetUiBatchState();
+      }
       const savedGameState = savedState;
 
       // Merge the saved game state with the empty game state
@@ -163,9 +172,21 @@ function initializeGame() {
     gameState.actionsAvailable = ['book1.hemlockForest.followWhisperingTrail'];
   }
 
+  const createdActionIds = [];
   gameState.actionsAvailable.forEach(actionId => {
-    createNewAction(actionId);
+    if (!actionsConstructed[actionId]) {
+      createNewAction(actionId, {
+        processState: false,
+        initTooltip: false,
+        refreshSkillIcons: false
+      });
+      createdActionIds.push(actionId);
+    }
   });
+  initializeQueuedActionTooltips(createdActionIds);
+  updateActionSkillIcons();
+  updateLogUI();
+  updateStoryUI();
 
   gameState.actionsActive.forEach(id => {
     const a = getAction(id);

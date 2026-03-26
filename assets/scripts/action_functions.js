@@ -2,7 +2,12 @@
 class GameAction {
   constructor(id) {
     this.id = id;
-    this.timeMultiplier = 1;
+    this.cachedTimeCostMs = 0;
+    this.cachedTimeStartMs = 0;
+    this.cachedTimeMultiplier = 1;
+    this.expectedWallClockMs = 0;
+    this.needsRateRecalc = true;
+    this.needsThresholdRecalc = true;
     this.needsRender = false;
     this.data = getActionData(id);
 
@@ -26,8 +31,7 @@ class GameAction {
 
     this.container.addEventListener('click', () => toggleAction(id));
 
-    this.calculateTimeStart();
-    this.processMinimumProgress();
+    this.refreshDerivedState({ forceMultiplier: true, forceThreshold: true });
     this.render();
     this.needsRender = false;
   }
@@ -79,9 +83,7 @@ class GameAction {
       if (!continueAfterEach) {return false;}
     }
 
-    this.calculateTimeStart();
-    this.calculateTimeMultiplier();
-    this.processMinimumProgress();
+    this.refreshDerivedState({ forceMultiplier: true, forceThreshold: true });
     this.needsRender = true;
     if (gameState.debugMode) console.log(`Action ${this.id} started`);
     return true;
@@ -89,6 +91,12 @@ class GameAction {
 
   stop() {
     if (gameState.debugMode) console.log(`Action ${this.id} stopped`);
+  }
+
+  invalidateTiming({ multiplier = false, threshold = false } = {}) {
+    if (multiplier) this.needsRateRecalc = true;
+    if (threshold) this.needsThresholdRecalc = true;
+    this.needsRender = true;
   }
 
   calculateTimeMultiplier() {
@@ -109,27 +117,78 @@ class GameAction {
       multiplier *= locMeta.timeMultiplier;
     }
 
-    this.timeMultiplier = multiplier;
+    this.cachedTimeMultiplier = multiplier;
+    this.needsRateRecalc = false;
+    return multiplier;
   }
 
   getTimeCost() {
-    return getActionTimeCost(this.data);
+    return this.cachedTimeCostMs;
   }
 
   getRemainingMs() {
-    return Math.max(0, this.getTimeCost() - this.progress.timeCurrent);
+    return Math.max(0, this.cachedTimeCostMs - this.progress.timeCurrent);
+  }
+
+  getRemainingWallClockMs() {
+    const rate = this.cachedTimeMultiplier || 1;
+    const dilation = gameState.globalParameters.timeDilation || 1;
+    return this.getRemainingMs() / rate / dilation;
+  }
+
+  getMasteryPct() {
+    if (this.cachedTimeCostMs <= 0) return 0;
+    return (this.cachedTimeStartMs / this.cachedTimeCostMs) * 100;
+  }
+
+  refreshTimeCost() {
+    this.cachedTimeCostMs = getActionTimeCost(this.data);
+  }
+
+  refreshThresholdState() {
+    const parameters = gameState.globalParameters;
+    let masteryPct = 0;
+    if (this.progress.mastery > 0) {
+      masteryPct = 100 * parameters.masteryMaxRatio * Math.atan(parameters.masteryGrowthRate * this.progress.mastery);
+    }
+    masteryPct = Math.max(0, masteryPct);
+    masteryPct = Math.min(100 * parameters.masteryMaxRatio, masteryPct);
+
+    this.cachedTimeStartMs = masteryPct / 100 * this.cachedTimeCostMs;
+    this.progress.timeStart = this.cachedTimeStartMs;
+    if (this.progress.timeCurrent < this.cachedTimeStartMs) {
+      this.progress.timeCurrent = this.cachedTimeStartMs;
+    }
+    this.needsThresholdRecalc = false;
+  }
+
+  refreshPresentationState() {
+    const rate = this.cachedTimeMultiplier || 1;
+    const dilation = gameState.globalParameters.timeDilation || 1;
+    this.expectedWallClockMs = (this.cachedTimeCostMs - this.cachedTimeStartMs) / rate / dilation;
+  }
+
+  refreshDerivedState({ forceMultiplier = false, forceThreshold = false } = {}) {
+    this.refreshTimeCost();
+    if (forceMultiplier || this.needsRateRecalc) {
+      this.calculateTimeMultiplier();
+    }
+    if (forceThreshold || this.needsThresholdRecalc) {
+      this.refreshThresholdState();
+    }
+    this.refreshPresentationState();
   }
 
   step(gameDeltaMs = 0) {
     if (!Number.isFinite(gameDeltaMs) || gameDeltaMs <= 0) return;
 
-    this.calculateTimeStart();
-    this.calculateTimeMultiplier();
-    this.processMinimumProgress();
+    if (this.needsRateRecalc || this.needsThresholdRecalc) {
+      this.refreshDerivedState();
+    }
 
-    this.progress.timeCurrent += gameDeltaMs * this.timeMultiplier;
-    if (this.progress.timeCurrent >= this.getTimeCost()) {
-      this.progress.timeCurrent = this.getTimeCost();
+    this.progress.timeCurrent += gameDeltaMs * this.cachedTimeMultiplier;
+    if (this.progress.timeCurrent >= this.cachedTimeCostMs) {
+      this.progress.timeCurrent = this.cachedTimeCostMs;
       this.finish();
       return;
     }
@@ -138,13 +197,20 @@ class GameAction {
   }
 
   render() {
-    const totalMs = this.getTimeCost();
+    if (this.needsRateRecalc || this.needsThresholdRecalc) {
+      this.refreshDerivedState();
+    }
+
+    const totalMs = this.cachedTimeCostMs;
     const completedPercentage = totalMs > 0
       ? (this.progress.timeCurrent / totalMs) * 100
       : 0;
     const masteryPct = this.getMasteryPct();
-    const label =
-    completedPercentage.toFixed(1) + '% Completed (' + masteryPct.toFixed(1) + '% Mastery)';
+    const threshold = gameState.globalParameters.fastActionThresholdMs ?? 500;
+    const isFinishing = this.isActive && this.getRemainingWallClockMs() <= threshold;
+    const label = isFinishing
+      ? 'Finishing...'
+      : `${completedPercentage.toFixed(1)}% Completed (${masteryPct.toFixed(1)}% Mastery)`;
     this.elements.progressText.innerText = label;
 
     if (this.elements && this.elements.progressBarCurrent) {
@@ -158,14 +224,12 @@ class GameAction {
   finish() {
     this.progress.completions += 1;
     if (gameState.debugMode) console.log(`Action ${this.id} finished`);
-    this.progress.mastery += this.getTimeCost();
-    this.calculateTimeStart();
-    this.progress.timeCurrent = this.progress.timeStart;
+    this.progress.mastery += this.cachedTimeCostMs;
 
-    deactivateAction(this.id);
+    deactivateAction(this.id, { deferUiSync: true });
 
     if (doSkillsExist(this.data.skills)) {
-      const xpPerSkill = this.getTimeCost() / this.data.skills.length;
+      const xpPerSkill = this.cachedTimeCostMs / this.data.skills.length;
       this.data.skills.forEach(skill => updateSkill(skill, xpPerSkill));
     }
 
@@ -179,7 +243,11 @@ class GameAction {
       this.data.completionEffects.last(this.id);
     }
 
+    this.invalidateTiming({ threshold: true });
+    this.refreshDerivedState({ forceThreshold: true });
+    this.progress.timeCurrent = this.cachedTimeStartMs;
     this.needsRender = true;
+    queueActionListRefresh();
   }
 
   initializeActionProgress() {
@@ -198,39 +266,34 @@ class GameAction {
     }
   }
 
-  getMasteryPct() {
-    const parameters = gameState.globalParameters;
-
-    let masteryPct = 0;
-    if (this.progress.mastery > 0) {
-      masteryPct = 100 * parameters.masteryMaxRatio * Math.atan(parameters.masteryGrowthRate * this.progress.mastery);
-    }
-    masteryPct = Math.max(0, masteryPct);
-    masteryPct = Math.min(100 * parameters.masteryMaxRatio, masteryPct);
-
-    return masteryPct;
-  }
-
-  calculateTimeStart() {
-    const masteryPct = this.getMasteryPct();
-
-    this.progress.timeStart = masteryPct / 100 * this.getTimeCost();
-    return this.progress.timeStart;
-  }
-
   processMinimumProgress() {
-    this.calculateTimeStart();
-
-    if (this.progress.timeCurrent < this.progress.timeStart) {
-      this.progress.timeCurrent = this.progress.timeStart;
-    }
+    this.refreshDerivedState({ forceThreshold: true });
     this.needsRender = true;
   }
 }
 
-// PROCEDURES
-// Build DOM for a new action and initialize its GameAction instance
-function createNewAction(id) {
+function initActionTooltips(target) {
+  const tooltipButtons = target.querySelectorAll('[data-tippy-content]');
+  if (tooltipButtons.length > 0) {
+    tippy(tooltipButtons, { animation: 'shift-away', touch: true });
+  }
+}
+
+function initializeQueuedActionTooltips(actionIds) {
+  actionIds.forEach(id => {
+    const action = actionsConstructed[id];
+    if (action?.container) {
+      initActionTooltips(action.container);
+    }
+  });
+}
+
+function createNewAction(id, options = {}) {
+  const {
+    processState = true,
+    initTooltip = true,
+    refreshSkillIcons = true
+  } = options;
   if (id in actionsConstructed) { console.error('Action already constructed:', id); return; }
   if (!hasActionData(id)) { console.error('Action data does not exist:', id); return; }
 
@@ -256,8 +319,9 @@ function createNewAction(id) {
   </div>
   `;
   document.getElementById('all-actions-container').appendChild(container);
-  const tooltipButtons = container.querySelectorAll('[data-tippy-content]');
-  tippy(tooltipButtons, { animation: 'shift-away', touch: true });
+  if (initTooltip) {
+    initActionTooltips(container);
+  }
 
   const cond = getActionConfig(id)?.conditions;
   if (!gameState.actionsAvailable.includes(id) || !evaluate(cond, gameState)) {
@@ -265,10 +329,14 @@ function createNewAction(id) {
   }
 
   actionsConstructed[id] = new GameAction(id);
-  actionsConstructed[id].processMinimumProgress();
   actionsConstructed[id].render();
-  updateActionSkillIcons();
-  processActiveAndQueuedActions();
+  if (refreshSkillIcons) {
+    updateActionSkillIcons();
+  }
+  if (processState) {
+    processActiveAndQueuedActions();
+  }
+  return actionsConstructed[id];
 }
 
 // Access a constructed GameAction safely
@@ -301,16 +369,15 @@ function makeActionAvailable(actionId) {
   const cond = getActionConfig(actionId)?.conditions;
   if (gameState.actionsAvailable.includes(actionId)) {
     if (evaluate(cond, gameState)) {
-      actionsConstructed[actionId].container.style.display = 'block';
+      if (actionsConstructed[actionId]) {
+        actionsConstructed[actionId].container.style.display = 'block';
+      }
     }
   } else {
     gameState.actionsAvailable.push(actionId);
-    createNewAction(actionId);
-    if (!evaluate(cond, gameState)) {
-      actionsConstructed[actionId].container.style.display = 'none';
-    }
+    queueActionCreation(actionId);
   }
-  processActiveAndQueuedActions();
+  queueActionListRefresh();
 }
 
 function makeActionUnavailable(actionId) {
@@ -361,12 +428,17 @@ function activateAction(actionId) {
 }
 
 // Stop an action and remove it from the active list
-function deactivateAction(actionId) {
+function deactivateAction(actionId, options = {}) {
+  const { deferUiSync = false } = options;
   const a = getAction(actionId);
   if (a) a.stop();
 
   gameState.actionsActive = gameState.actionsActive.filter(x => x !== actionId);
-  processActiveAndQueuedActions();
+  if (deferUiSync) {
+    queueActionListRefresh();
+  } else {
+    processActiveAndQueuedActions();
+  }
 }
 
 
@@ -399,7 +471,7 @@ function processActiveAndQueuedActions() {
       actionObject.elements.progressContainer.style.border = '2px solid black';
       actionObject.elements.progressBarCurrent.classList.remove('active');
     }
-  })
+  });
 }
 
 const requirementEvaluators = {
@@ -493,3 +565,38 @@ function buildRequirementsMessage(unmet) {
   const parts = flat.map(humanizeClause);
   return parts.length === 1 ? parts[0] : `Requirements not met:\n• ` + parts.join('\n• ');
 }
+
+function invalidateActionsForTimingChange({ skill, artifact, forceAll = false, thresholdOnly = false } = {}) {
+  Object.values(actionsConstructed).forEach(action => {
+    if (!action) return;
+
+    const affectedBySkill =
+      !!skill &&
+      Array.isArray(action.data.skills) &&
+      action.data.skills.includes(skill);
+    const affectedByArtifact =
+      artifact === 'timeCharm';
+    const shouldInvalidate =
+      forceAll ||
+      thresholdOnly ||
+      affectedBySkill ||
+      affectedByArtifact;
+
+    if (!shouldInvalidate) return;
+
+    action.invalidateTiming({
+      multiplier: !thresholdOnly && (forceAll || affectedBySkill || affectedByArtifact),
+      threshold: true,
+    });
+  });
+
+  queueActionListRefresh();
+}
+
+eventBus.on('skills-change', ({ skill, artifact } = {}) => {
+  invalidateActionsForTimingChange({ skill, artifact });
+});
+
+eventBus.on('time-dilation-changed', () => {
+  invalidateActionsForTimingChange({ forceAll: true, thresholdOnly: true });
+});

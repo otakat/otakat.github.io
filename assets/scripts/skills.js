@@ -69,7 +69,7 @@ function multiplyTimeChangeBySkills(timeChange, skills){
   return newTimeChange;
 }
 
-function updateSkill(skill, timeChange) {
+function renderSkillUI(skill) {
   if (!doSkillsExist(skill)) {return false;}
 
   let skill_to_update = gameState.skills[skill]
@@ -80,22 +80,8 @@ function updateSkill(skill, timeChange) {
   const permanentLevelEl = document.getElementById(skill + '-permanent-level');
   const permanentProgressEl = document.getElementById(skill + '-permanent-progress');
 
-  skill_to_update.current_progress += timeChange;
-  if (skill_to_update.current_progress >= currentExperienceToLevel) {
-    skill_to_update.current_level += 1;
-    skill_to_update.current_progress -= currentExperienceToLevel;
-    const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
-    logPopupCombo(`${skillName} improved to ${skill_to_update.current_level}.`, 'skill_level');
-  }
   let currentProgressPercentage = skill_to_update.current_progress / currentExperienceToLevel * 100;
 
-  skill_to_update.permanent_progress += timeChange;
-  if (skill_to_update.permanent_progress >= permanentExperienceToLevel) {
-    skill_to_update.permanent_level += 1;
-    skill_to_update.permanent_progress -= permanentExperienceToLevel;
-    const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
-    logPopupCombo(`${skillName} mastery increased to ${skill_to_update.permanent_level}.`, 'skill_level');
-  }
   let permanentProgressPercentage = skill_to_update.permanent_progress / permanentExperienceToLevel * 100;
 
   currentLevelEl.innerText = 'Current Loop: ' + skill_to_update.current_level;
@@ -104,6 +90,30 @@ function updateSkill(skill, timeChange) {
   permanentProgressEl.style.width = permanentProgressPercentage + '%';
 
   skillEl.classList.remove('d-none');
+}
+
+function updateSkill(skill, timeChange) {
+  if (!doSkillsExist(skill)) {return false;}
+
+  let skill_to_update = gameState.skills[skill]
+
+  skill_to_update.current_progress += timeChange;
+  while (skill_to_update.current_progress >= currentExperienceToLevel) {
+    skill_to_update.current_level += 1;
+    skill_to_update.current_progress -= currentExperienceToLevel;
+    const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
+    logPopupCombo(`${skillName} improved to ${skill_to_update.current_level}.`, 'skill_level');
+  }
+
+  skill_to_update.permanent_progress += timeChange;
+  while (skill_to_update.permanent_progress >= permanentExperienceToLevel) {
+    skill_to_update.permanent_level += 1;
+    skill_to_update.permanent_progress -= permanentExperienceToLevel;
+    const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
+    logPopupCombo(`${skillName} mastery increased to ${skill_to_update.permanent_level}.`, 'skill_level');
+  }
+
+  queueSkillUpdate(skill);
   if (typeof eventBus?.emit === 'function') {
     eventBus.emit('skills-change', { skill });
   }
