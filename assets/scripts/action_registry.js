@@ -3,7 +3,7 @@
 
 const default_action = {
   label: "Default Action Name",
-  length: 5000,
+  timeCost: 5000,
   skills: skillList,
   challengeType: 'generic',
   startEffects: {
@@ -42,7 +42,7 @@ const actionRegistry = {
       actions: {
         followWhisperingTrail: {
           label: "Follow the Whispering Trail",
-          length: 5000,
+          timeCost: 5000,
           skills: ["curiosity", "perseverance"],
           challengeType: 'explore',
           story: {
@@ -61,7 +61,7 @@ const actionRegistry = {
         },
         brewLanternOfDawn: {
           label: "Brew the Lantern of Dawn",
-          length: 6000,
+          timeCost: 6000,
           skills: ["creativity", "resourcefulness", "courage"],
           story: {
             completion: 'A lantern of pure dawnlight hangs from your belt.'
@@ -78,7 +78,7 @@ const actionRegistry = {
         },
         aidSilentKnight: {
           label: "Aid the Silent Knight",
-          length: 7000,
+          timeCost: 7000,
           skills: ["courage", "integrity"],
           requirements: {
             mode: 'any',
@@ -103,7 +103,7 @@ const actionRegistry = {
         },
         crossEchoingBridge: {
           label: "Cross the Echoing Bridge",
-          length: 8000,
+          timeCost: 8000,
           skills: ["courage", "perseverance"],
           story: {
             completion: 'The Echoing Bridge lies silent behind you.'
@@ -120,7 +120,7 @@ const actionRegistry = {
         },
         meetDreamspinner: {
           label: "Meet the Dreamspinner",
-          length: 9000,
+          timeCost: 9000,
           skills: ["creativity", "curiosity"],
           story: {
             completion: 'The Dreamspinner opens a doorway to the tower.'
@@ -137,7 +137,7 @@ const actionRegistry = {
         },
         faceMirrorTyrant: {
           label: "Face the Mirror Tyrant",
-          length: 10000,
+          timeCost: 10000,
           skills: ["courage", "integrity", "resourcefulness"],
           story: {
             completion: 'The Mirror Tyrant collapses into glittering dust.'
@@ -154,7 +154,7 @@ const actionRegistry = {
         },
         awakenKingdom: {
           label: "Awaken the Kingdom",
-          length: 11000,
+          timeCost: 11000,
           skills: ["courage", "creativity", "curiosity", "integrity", "perseverance", "resourcefulness"],
           story: {
             completion: 'Statues breathe again as the kingdom awakens.'
@@ -185,12 +185,26 @@ function getActionConfig(id) {
 function getActionData(id) {
   const cfg = getActionConfig(id);
   if (!cfg) return null;
-  return aggregateObjectProperties(default_action, cfg);
+  const data = aggregateObjectProperties(default_action, cfg);
+  data.timeCost = getActionTimeCost(data);
+  return data;
 }
 
 function getLocationMeta(id) {
   const { bookId, locationId } = parseActionId(id);
   return actionRegistry[bookId]?.[locationId]?.meta || {};
+}
+
+function getActionTimeCost(actionOrId) {
+  const data =
+  typeof actionOrId === 'string'
+    ? getActionData(actionOrId)
+    : actionOrId;
+
+  if (!data) return 0;
+  if (Number.isFinite(data.timeCost)) return data.timeCost;
+  if (Number.isFinite(data.length)) return data.length;
+  return default_action.timeCost;
 }
 
 if (typeof globalThis !== 'undefined') {
@@ -201,5 +215,6 @@ if (typeof globalThis !== 'undefined') {
   globalThis.actionRegistry = actionRegistry;
   globalThis.getActionConfig = getActionConfig;
   globalThis.getActionData = getActionData;
+  globalThis.getActionTimeCost = getActionTimeCost;
   globalThis.getLocationMeta = getLocationMeta;
 }

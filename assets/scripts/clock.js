@@ -1,102 +1,53 @@
-function changeGlobalStyle(selector, property, value) {
-  for (let sheet of document.styleSheets) {
-    // Skip cross-origin stylesheets to avoid security errors
-    if (sheet.href && new URL(sheet.href).origin !== window.location.origin) {
-      continue;
-    }
-    let rules;
-    try {
-      rules = sheet.cssRules;
-    } catch (e) {
-      // Accessing cssRules can throw if the sheet is not accessible
-      continue;
-    }
-    for (let rule of rules) {
-      if (rule.selectorText === selector) {
-        rule.style[property] = value;
-      }
-    }
-  }
+function syncTimeState() {
+  gameState.timeRemainingMs = timeRemainingMs;
+  gameState.timeMaxMs = timeMaxMs;
+  gameState.timeRemaining = timeRemainingMs / 1000;
+  gameState.timeMax = timeMaxMs / 1000;
 }
 
+function setLoopTimeMs(remainingMs, maxMs = timeMaxMs) {
+  timeMaxMs = Math.max(0, Number(maxMs) || 0);
+  timeRemainingMs = Math.max(0, Math.min(timeMaxMs, Number(remainingMs) || 0));
+  syncTimeState();
+}
 
+function spendLoopTime(stepMs) {
+  const spend = Math.max(0, Number(stepMs) || 0);
+  if (spend <= 0) return 0;
 
-/*
-Event tiers emitted by GlobalClock:
-- clockTick-critical / gameTick-critical: every refresh cycle. gameTick events
-only fire while the game is unpaused.
-- clockTick-high / gameTick-high: every 2 cycles (aggregated deltas).
-- clockTick-low / gameTick-low: every 4 cycles (aggregated deltas).
-- tick-fixed-* counterparts fire from the fixed-step timer.
+  const applied = Math.min(spend, timeRemainingMs);
+  timeRemainingMs -= applied;
+  syncTimeState();
+  return applied;
+}
 
-Example subscription:
-eventBus.on('gameTick-high', ({ clockDelta, gameDelta }) => {
-// medium-frequency logic during play
-});
-*/
+function getTimeRemainingSeconds() {
+  return timeRemainingMs / 1000;
+}
 
-class GlobalClock {
+function getTimeMaxSeconds() {
+  return timeMaxMs / 1000;
+}
+
+class ClockEngine {
   constructor() {
     this.rafId = null;
-    this.logicTimerId = null;
-    this.lastClockTime = null;
-    this.renderAccumulator = 0;
-    this.clockTickCount = 0;
-    this.clockHighClockAccum = 0;
-    this.clockHighGameAccum = 0;
-    this.clockLowClockAccum = 0;
-    this.clockLowGameAccum = 0;
-
-    this.gameTickCount = 0;
-    this.gameHighClockAccum = 0;
-    this.gameHighGameAccum = 0;
-    this.gameLowClockAccum = 0;
-    this.gameLowGameAccum = 0;
-
-    this.prevPaused = true;
-    this.start();
+    this.lastFrameTime = null;
+    this.accumulatorMs = 0;
+    this.tickCount = 0;
+    this.lastRawDeltaMs = 0;
+    this.lastGameDeltaMs = 0;
+    this.lastStepCount = 0;
+    this.smoothedFps = 0;
+    this.boundFrame = this.frame.bind(this);
+    this.boundVisibilityChange = this.handleVisibilityChange.bind(this);
   }
 
   start() {
-    if (this.rafId) this.stop();
-    this.lastClockTime = null;
-    this.renderAccumulator = 0;
-    this.clockTickCount = 0;
-    this.clockHighClockAccum = 0;
-    this.clockHighGameAccum = 0;
-    this.clockLowClockAccum = 0;
-    this.clockLowGameAccum = 0;
-
-    this.gameTickCount = 0;
-    this.gameHighClockAccum = 0;
-    this.gameHighGameAccum = 0;
-    this.gameLowClockAccum = 0;
-    this.gameLowGameAccum = 0;
-
-    this.prevPaused = true;
-
-    // Fixed-step logic timer
-    this._restartLogicTimer();
-
-    const loop = (timestamp) => {
-      if (this.lastClockTime === null) {
-        this.lastClockTime = timestamp;
-      }
-      const clockDelta = timestamp - this.lastClockTime;
-      this.lastClockTime = timestamp;
-
-      this.renderAccumulator += clockDelta;
-      const refreshInterval = 1000 / gameState.globalParameters.refreshHz;
-      if (this.renderAccumulator >= refreshInterval) {
-        const delta = this.renderAccumulator;
-        this.renderAccumulator = 0;
-        this._tick(delta);
-      }
-
-      this.rafId = requestAnimationFrame(loop);
-    };
-
-    this.rafId = requestAnimationFrame(loop);
+    this.stop();
+    this.resetFrameTime();
+    document.addEventListener('visibilitychange', this.boundVisibilityChange);
+    this.rafId = requestAnimationFrame(this.boundFrame);
   }
 
   stop() {
@@ -104,221 +55,152 @@ class GlobalClock {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    if (this.logicTimerId) {
-      const timers = window.workerTimers || window;
-      timers.clearInterval(this.logicTimerId);
-      this.logicTimerId = null;
-    }
+    document.removeEventListener('visibilitychange', this.boundVisibilityChange);
   }
 
-  _tick(clockDelta) {
-    const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
-    const gameDelta = paused ? 0 : clockDelta * gameState.globalParameters.timeDilation;
-
-    // Clock tick accumulation
-    this.clockTickCount += 1;
-    this.clockHighClockAccum += clockDelta;
-    this.clockLowClockAccum += clockDelta;
-    this.clockHighGameAccum += gameDelta;
-    this.clockLowGameAccum += gameDelta;
-
-    eventBus.emit('clockTick-critical', { clockDelta });
-    if (this.clockTickCount % 2 === 0) {
-      eventBus.emit('clockTick-high', {
-        clockDelta: this.clockHighClockAccum
-      });
-      this.clockHighClockAccum = 0;
-    }
-    if (this.clockTickCount % 4 === 0) {
-      eventBus.emit('clockTick-low', {
-        clockDelta: this.clockLowClockAccum
-      });
-      this.clockLowClockAccum = 0;
-    }
-
-    // Game tick emission only while unpaused
-    if (!paused) {
-      this._emitGameTick(clockDelta, gameDelta);
-    } else if (!this.prevPaused) {
-      // Flush pending game ticks on pause
-      this._emitGameTick(0, 0, true);
-    }
-    this.prevPaused = paused;
-
-    // Update clock in gameState
-    const c = gameState.clock;
-    c.totalClockTimeAll += clockDelta;
-    c.totalClockTimeLoop += clockDelta;
-    if (!paused) {
-      c.totalGameTimeAll += gameDelta;
-      c.totalGameTimeLoop += gameDelta;
-      c.unpausedClockTimeAll += clockDelta;
-      c.unpausedGameTimeAll += gameDelta;
-      c.unpausedClockTimeLoop += clockDelta;
-      c.unpausedGameTimeLoop += gameDelta;
-    }
-  }
-
-  _emitGameTick(clockDelta, gameDelta, force = false) {
-    this.gameTickCount += 1;
-    this.gameHighClockAccum += clockDelta;
-    this.gameHighGameAccum += gameDelta;
-    this.gameLowClockAccum += clockDelta;
-    this.gameLowGameAccum += gameDelta;
-
-    eventBus.emit('gameTick-critical', { gameDelta });
-
-    if (force || this.gameTickCount % 2 === 0) {
-      eventBus.emit('gameTick-high', {
-        gameDelta: this.gameHighGameAccum
-      });
-      this.gameHighGameAccum = 0;
-    }
-
-    if (force || this.gameTickCount % 4 === 0) {
-      eventBus.emit('gameTick-low', {
-        gameDelta: this.gameLowGameAccum
-      });
-      this.gameLowGameAccum = 0;
-    }
-
-    if (force) {
-      this.gameTickCount = 0;
-    }
-  }
-
-  setRefreshHz(refreshHz) {
-
-    if (!refreshHz || refreshHz <= 0) return;
-    gameState.globalParameters.refreshHz = refreshHz;
-
-    // Convert Hz → ms per frame
-    const msPerFrame = 1000 / refreshHz;
-
-    // Clamp to sensible bounds so it doesn’t blow up
-    const ms = Math.max(1, Math.min(msPerFrame, 5000));
-
-    document.documentElement.style.setProperty('--progress-tick-ms', `${ms}ms`);
-
-    console.log('Refresh rate updated to ' + refreshHz);
-
-    this._restartLogicTimer();
+  resetFrameTime() {
+    this.lastFrameTime = null;
+    this.accumulatorMs = 0;
   }
 
   setTimeDilation(multiplier) {
-    const clamped = Math.min(Math.max(multiplier, 0.05), 100);
+    const clamped = Math.min(Math.max(Number(multiplier) || 1, 0.05), 100);
     gameState.globalParameters.timeDilation = clamped;
+    this.resetFrameTime();
     eventBus.emit('time-dilation-changed', { timeDilation: clamped });
-    this._restartLogicTimer();
   }
 
-  _restartLogicTimer() {
-    if (this.logicTimerId) {
-      const timers = window.workerTimers || window;
-      timers.clearInterval(this.logicTimerId);
+  handleVisibilityChange() {
+    if (document.hidden) {
+      addPauseState(pauseStates.HIDDEN);
+    } else {
+      deletePauseState(pauseStates.HIDDEN);
+      this.resetFrameTime();
     }
-    const timers = window.workerTimers || window;
-    const stepMs = 1000 / gameState.globalParameters.refreshHz;
-    const intervalMs = stepMs / gameState.globalParameters.timeDilation;
-    let fixedTickCount = 0;
-    let highClock = 0;
-    let highGame = 0;
-    let lowClock = 0;
-    let lowGame = 0;
-    this.logicTimerId = timers.setInterval(() => {
-      fixedTickCount += 1;
-      highClock += intervalMs;
-      highGame += stepMs;
-      lowClock += intervalMs;
-      lowGame += stepMs;
-      eventBus.emit('tick-fixed-critical', { clockDelta: intervalMs, gameDelta: stepMs });
-      if (fixedTickCount % 2 === 0) {
-        eventBus.emit('tick-fixed-high', { clockDelta: highClock, gameDelta: highGame });
-        highClock = 0;
-        highGame = 0;
+  }
+
+  frame(now) {
+    if (this.lastFrameTime === null) {
+      this.lastFrameTime = now;
+      this.render();
+      this.rafId = requestAnimationFrame(this.boundFrame);
+      return;
+    }
+
+    const rawDeltaMs = Math.max(0, now - this.lastFrameTime);
+    this.lastFrameTime = now;
+    this.lastRawDeltaMs = rawDeltaMs;
+    const instantFps = rawDeltaMs > 0 ? 1000 / rawDeltaMs : 0;
+    this.smoothedFps = this.smoothedFps === 0
+      ? instantFps
+      : (this.smoothedFps * 0.9) + (instantFps * 0.1);
+
+    const clock = gameState.clock;
+    clock.totalClockTimeAll += rawDeltaMs;
+    clock.totalClockTimeLoop += rawDeltaMs;
+
+    updateAutoPauseState();
+    const paused = isGamePaused();
+    updateDebugInfo(paused);
+
+    if (paused) {
+      this.accumulatorMs = 0;
+      this.lastGameDeltaMs = 0;
+      this.lastStepCount = 0;
+      this.render();
+      this.rafId = requestAnimationFrame(this.boundFrame);
+      return;
+    }
+
+    const maxFrameDeltaMs = gameState.globalParameters.maxFrameDeltaMs ?? 250;
+    const fixedStepMs = gameState.globalParameters.fixedStepMs ?? (1000 / 30);
+    const maxCatchUpSteps = gameState.globalParameters.maxCatchUpSteps ?? 5;
+    const clampedDeltaMs = Math.min(rawDeltaMs, maxFrameDeltaMs);
+    const gameDeltaMs = clampedDeltaMs * (gameState.globalParameters.timeDilation || 1);
+    this.lastGameDeltaMs = gameDeltaMs;
+
+    clock.totalGameTimeAll += gameDeltaMs;
+    clock.totalGameTimeLoop += gameDeltaMs;
+    clock.unpausedClockTimeAll += rawDeltaMs;
+    clock.unpausedClockTimeLoop += rawDeltaMs;
+    clock.unpausedGameTimeAll += gameDeltaMs;
+    clock.unpausedGameTimeLoop += gameDeltaMs;
+
+    this.accumulatorMs += gameDeltaMs;
+
+    let steps = 0;
+    while (this.accumulatorMs >= fixedStepMs && steps < maxCatchUpSteps) {
+      runGameTick(fixedStepMs);
+      this.accumulatorMs -= fixedStepMs;
+      this.tickCount += 1;
+      steps += 1;
+    }
+    this.lastStepCount = steps;
+
+    if (steps === maxCatchUpSteps && this.accumulatorMs > fixedStepMs) {
+      this.accumulatorMs = fixedStepMs;
+    }
+
+    this.render();
+    this.rafId = requestAnimationFrame(this.boundFrame);
+  }
+
+  render() {
+    Object.values(actionsConstructed).forEach(action => {
+      if (action.needsRender === true) {
+        action.render();
+        action.needsRender = false;
       }
-      if (fixedTickCount % 4 === 0) {
-        eventBus.emit('tick-fixed-low', { clockDelta: lowClock, gameDelta: lowGame });
-        lowClock = 0;
-        lowGame = 0;
-      }
-    }, intervalMs);
+    });
+    updateTimerUI();
   }
 }
 
-eventBus.on('clockTick-low', () => {
+function updateDebugInfo(paused = isGamePaused()) {
   const info = document.getElementById('debug-info');
-  if (!info) return;
+  const overlay = document.getElementById('debug-overlay');
+  if (!info && !overlay) return;
 
-  if (gameState.debugMode) {
-    const paused = (typeof isGamePaused === 'function') ? isGamePaused() : false;
-    const ticks = window.gameClock?.clockTickCount ?? 0;
-    info.textContent =
-    `Refresh Hz: ${gameState.globalParameters.refreshHz}\n` +
-    `Total Ticks: ${ticks}\n` +
-    `Paused: ${paused}`;
-  } else {
-    info.textContent = '';
+  if (!gameState.debugMode) {
+    if (info) info.textContent = '';
+    if (overlay) overlay.textContent = '';
+    return;
   }
-});
 
-// Listen for each fixed tick
-eventBus.on('tick-fixed-critical', ({ gameDelta }) => runGameTick(gameDelta));
+  const clock = window.gameClock;
+  const debugText =
+  `Fixed Step: ${gameState.globalParameters.fixedStepMs}ms\n` +
+  `FPS: ${Number(clock?.smoothedFps ?? 0).toFixed(1)}\n` +
+  `Frame: ${Number(clock?.lastRawDeltaMs ?? 0).toFixed(2)}ms\n` +
+  `Game Delta: ${Number(clock?.lastGameDeltaMs ?? 0).toFixed(2)}ms\n` +
+  `Steps/Frame: ${clock?.lastStepCount ?? 0}\n` +
+  `Ticks: ${clock?.tickCount ?? 0}\n` +
+  `Time Dilation: ${Number(gameState.globalParameters.timeDilation || 1).toFixed(2)}x\n` +
+  `Paused: ${paused}`;
 
-// Core game logic each variable game tick
-eventBus.on('gameTick-critical', () => {
-  processActiveAndQueuedActions();
-});
+  if (info) info.textContent = debugText;
+  if (overlay) overlay.textContent = debugText;
+}
 
-// Medium-frequency UI updates
-eventBus.on('clockTick-high', () => {
-  Object.values(actionsConstructed).forEach(action => {
-    if (action.needsRender === true) {
-      action.render();
-      action.needsRender = false;
-    }
-  });
-});
-
-eventBus.on('gameTick-high', () => {
-  updateTimerUI();
-});
-
-// Low-frequency refreshers
-eventBus.on('gameTick-low', () => {
-  checkTimeWarnings();
-});
-
-window.addEventListener('load', () => {
-  window.gameClock = new GlobalClock();
-});
-
-function runGameTick(stepMs) {
-  // Auto pause when no actions remain
+function updateAutoPauseState() {
   if (gameState.actionsActive.length === 0 && !gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
     addPauseState(pauseStates.INACTIVE);
   } else if (gameState.actionsActive.length > 0 && gameState.pausedReasons.includes(pauseStates.INACTIVE)) {
     deletePauseState(pauseStates.INACTIVE);
   }
-
-  framesTotal += 1;
-  if (!isGamePaused()) {
-    timeTotal += stepMs;
-    gameState.actionsActive.forEach(actionId => {
-      actionsConstructed[actionId].step(stepMs);
-    });
-    processScheduledEvents();
-  }
 }
 
 function checkTimeWarnings() {
-  const fraction = timeRemaining / timeMax;
-  if (timeRemaining <= 0 && !gameOver) {
-    timeRemaining = 0;
-    gameState.timeRemaining = 0;
+  if (timeMaxMs <= 0) return;
+
+  const fraction = timeRemainingMs / timeMaxMs;
+  if (timeRemainingMs <= 0 && !gameOver) {
+    timeRemainingMs = 0;
+    syncTimeState();
     showResetPopup();
     return;
   }
+
   if (!hasPocketWatch) {
     if (fraction <= 0.25 && !timeWarnings.quarter) {
       logPopupCombo('Your vision swims; the world feels less steady.', 'system');
@@ -330,39 +212,35 @@ function checkTimeWarnings() {
   }
 }
 
-function applyPendingTime() {
-  timeRemaining -= pendingTimeCost;
-  if (timeRemaining < 0) timeRemaining = 0;
-  gameState.timeRemaining = timeRemaining;
-  pendingTimeCost = 0;
-  refreshScheduled = false;
+function runGameTick(stepMs) {
+  updateAutoPauseState();
+  if (isGamePaused()) return;
+
+  const effectiveStepMs = spendLoopTime(stepMs);
+  framesTotal += 1;
+  timeTotal += effectiveStepMs;
+
+  gameState.actionsActive.slice().forEach(actionId => {
+    actionsConstructed[actionId]?.step(effectiveStepMs);
+  });
+
+  processScheduledEvents();
   checkTimeWarnings();
   gameState.timeWarnings = { ...timeWarnings };
-  updateTimerUI();
 }
 
-function consumeTime(cost) {
-  const c = Number(cost) || 0;
-  pendingTimeCost += c;
-  if (!refreshScheduled) {
-    refreshScheduled = true;
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(applyPendingTime);
-    } else {
-      setTimeout(applyPendingTime, 50);
-    }
-  }
-}
-
+window.addEventListener('load', () => {
+  window.gameClock = new ClockEngine();
+  window.gameClock.start();
+});
 
 /* ===== Time Dilation API (non-destructive) =====
 Lets gameplay and debug stack multiple multipliers.
 - Base dilation comes from gameState.globalParameters.timeDilationBase (or timeDilation, else 1).
 - Effective dilation = base * product(modifiers).
-- If GlobalClock.setTimeDilation exists, we call it; else we set gameState.globalParameters.timeDilation and emit an event.
 */
 (function () {
-  if (window.TimeDilationAPI) return; // already installed
+  if (window.TimeDilationAPI) return;
 
   function clamp01to100(x, def = 1) {
     const n = Number(x);
@@ -371,12 +249,12 @@ Lets gameplay and debug stack multiple multipliers.
   }
 
   const api = (function () {
-    const mods = new Map(); // key -> multiplier (number)
+    const mods = new Map();
 
     function getBase() {
       const gp = (window.gameState && gameState.globalParameters) || {};
       if (Number.isFinite(gp.timeDilationBase)) return gp.timeDilationBase;
-      if (Number.isFinite(gp.timeDilation)) return gp.timeDilation; // backward compat
+      if (Number.isFinite(gp.timeDilation)) return gp.timeDilation;
       return 1;
     }
 
@@ -405,26 +283,24 @@ Lets gameplay and debug stack multiple multipliers.
     }
 
     function getEffective() {
-      const product =
-      Array.from(mods.values()).reduce((a, b) => a * b, 1);
+      const product = Array.from(mods.values()).reduce((a, b) => a * b, 1);
       return getBase() * product;
     }
 
     function apply() {
       const eff = getEffective();
 
-      // Maintain compatibility with legacy global variable if present
       if (typeof timeDilation !== 'undefined') {
         try {
           timeDilation = eff;
-        } catch (_e) { /* ignore */ }
+        } catch (_e) {
+          // Ignore legacy global assignment failures.
+        }
       }
 
-      // Prefer GlobalClock API if present
       if (window.gameClock && typeof gameClock.setTimeDilation === 'function') {
         gameClock.setTimeDilation(eff);
       } else {
-        // Fallback: set param and emit event so listeners can react
         if (window.gameState && gameState.globalParameters) {
           gameState.globalParameters.timeDilation = eff;
         }
@@ -434,23 +310,23 @@ Lets gameplay and debug stack multiple multipliers.
     }
 
     return {
-      // public
-      setBase, addMod, removeMod, clearMods, getEffective, apply,
-      // exposed for debugging/inspection (read-only usage recommended)
+      setBase,
+      addMod,
+      removeMod,
+      clearMods,
+      getEffective,
+      apply,
       _mods: mods
     };
   })();
 
   window.TimeDilationAPI = api;
 
-  // Convenience debug hooks (safe no-ops if methods missing)
   if (!window.setTimeDilation) window.setTimeDilation = (x) => api.setBase(x);
   if (!window.addTimeDilationMod) window.addTimeDilationMod = (k, m) => api.addMod(k, m);
   if (!window.removeTimeDilationMod) window.removeTimeDilationMod = (k) => api.removeMod(k);
   if (!window.clearTimeDilationMods) window.clearTimeDilationMods = () => api.clearMods();
-  if (!window.setRefreshHz) window.setRefreshHz = (hz) => window.gameClock?.setRefreshHz?.(hz);
 
-  // Optional: lightweight console trace when dilation changes (only attach once)
   if (!window.__td_logger_attached__) {
     eventBus.on('time-dilation-changed', ({ timeDilation }) => {
       if (timeDilation != null) {

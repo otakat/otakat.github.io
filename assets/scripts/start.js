@@ -5,8 +5,8 @@ let timeDilation = emptyGameState.globalParameters.timeDilation;
 let gameState = JSON.parse(JSON.stringify(emptyGameState));
 let framesTotal = 0;    // Counts clock ticks since load
 let timeTotal = 0;      // Accumulates clock ms for scheduling
-let timeRemaining = defaultLoopTime; // seconds left in loop
-let timeMax = defaultLoopTime;       // maximum loop time in seconds
+let timeRemainingMs = defaultLoopTimeMs;
+let timeMaxMs = defaultLoopTimeMs;
 let hasPocketWatch = false;
 let timeWarnings = { half: false, quarter: false };
 
@@ -14,11 +14,6 @@ function updateDebugToggle() {
   const debugToggle = document.getElementById('debug-toggle');
   if (debugToggle) {
     debugToggle.checked = gameState.debugMode;
-  }
-  const refreshSlider = document.getElementById('refresh-rate-slider');
-  if (refreshSlider) {
-    refreshSlider.value = gameState?.globalParameters?.refreshHz ?? 30;
-    updateRefreshRateDisplay();
   }
   const controls = document.getElementById('time-dilation-controls');
   if (controls) {
@@ -42,6 +37,14 @@ function updateDebugToggle() {
       debugInfo.classList.add('d-none');
     }
   }
+  const debugOverlay = document.getElementById('debug-overlay');
+  if (debugOverlay) {
+    if (gameState.debugMode) {
+      debugOverlay.classList.remove('d-none');
+    } else {
+      debugOverlay.classList.add('d-none');
+    }
+  }
 
   const artTab = document.getElementById('artifacts-tab');
   const artBtn = document.getElementById('artifacts-button');
@@ -62,6 +65,7 @@ function updateDebugToggle() {
   }
 
   if (typeof updateMenuButtons === 'function') { updateMenuButtons(); }
+  if (typeof updateDebugInfo === 'function') { updateDebugInfo(); }
 
   if (gameState.debugMode) {
     window.DEBUG = {
@@ -85,7 +89,7 @@ function updateDebugToggle() {
         if (typeof setTimeRemaining === 'function') {
           setTimeRemaining(seconds);
         } else {
-          timeRemaining = Math.max(0, Number(seconds));
+          setLoopTimeMs(Number(seconds) * 1000);
         }
       },
       tp(id) {
@@ -135,14 +139,6 @@ function updateTimeDilationDisplay() {
   }
 }
 
-function updateRefreshRateDisplay() {
-  const slider = document.getElementById('refresh-rate-slider');
-  const disp = document.getElementById('refresh-rate-display');
-  if (slider && disp) {
-    disp.textContent = Number(slider.value);
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   const debugToggle = document.getElementById('debug-toggle');
   if (debugToggle) {
@@ -161,19 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeDilation(e.target.value);
       }
       updateTimeDilationDisplay();
-    });
-  }
-  const refreshSlider = document.getElementById('refresh-rate-slider');
-  if (refreshSlider) {
-    refreshSlider.addEventListener('input', e => {
-      const hz = Number(e.target.value);
-      if (window.gameClock && typeof gameClock.setRefreshHz === 'function') {
-        gameClock.setRefreshHz(hz);
-      } else {
-        if (!gameState.globalParameters) gameState.globalParameters = {};
-        gameState.globalParameters.refreshHz = hz;
-      }
-      updateRefreshRateDisplay();
     });
   }
   const resetButton = document.getElementById('reset-game-button');
@@ -202,6 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const mainBtn = document.querySelector('#main-button');
   if (mainBtn) {
     mainBtn.addEventListener('click', showBook);
+  }
+  const forceDeathBtn = document.querySelector('#force-death-button');
+  if (forceDeathBtn) {
+    forceDeathBtn.addEventListener('click', forceDeath);
   }
   const libraryBtn = document.querySelector('#library-button');
   if (libraryBtn) {
@@ -237,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   tippy('[data-tippy-content]', { animation: 'shift-away', touch: true });
   updateDebugToggle();
+  updateDebugInfo();
 });
 
 // Kickoff at clock zero

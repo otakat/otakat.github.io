@@ -314,7 +314,7 @@ function updateTimerUI() {
   updateTimerVisibility();
   if (!hasPocketWatch) return;
   if (typeof updateLoopTimer === 'function') {
-    updateLoopTimer(timeRemaining * 1000);
+    updateLoopTimer(timeRemainingMs);
   }
 }
 

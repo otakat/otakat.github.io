@@ -88,6 +88,25 @@ body {
   filter: none;
 }
 
+.debug-overlay {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1100;
+  min-width: 10rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(20, 20, 20, 0.82);
+  color: #f4f4f4;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
 
 /* MENU */
 

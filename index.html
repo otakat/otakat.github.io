@@ -26,6 +26,9 @@
 						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="main-button" onclick="showBook()" data-tippy-content="Return to main view">
 							<span class="emoji fs-4">🏠</span><span class="label small">Main</span>
 						</button>
+						<button class="menu-button col-2 btn btn-light align-items-center justify-content-center p-1 gap-1" id="force-death-button" data-tippy-content="End this run immediately">
+							<span class="emoji fs-4">💀</span><span class="label small">Die</span>
+						</button>
 				</div>
 
 				<!-- Game menu row -->
@@ -50,10 +53,6 @@
 				<div class="row flex-grow-1" style="min-height: 0;">
 					<!-- Settings. Off by default. -->
 					<div id="settings-pane" class="d-none overflow-scroll h-100 col-12">
-						<div class="mb-3">
-              <label for="refresh-rate-slider" class="form-label">Refresh Rate: <span id="refresh-rate-display">30</span> Hz</label>
-              <input type="range" class="form-range" id="refresh-rate-slider" min="5" max="60" step="5" value="30">
-						</div>
 						<div class="mb-3">
 							<button id="reset-game-button" class="btn btn-danger">Reset Game</button>
 						</div>
@@ -110,6 +109,7 @@
 				</div>
 
 				<div id="popup-container"></div>
+				<pre id="debug-overlay" class="debug-overlay d-none"></pre>
                                 <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
 					<div class="modal-dialog modal-dialog-centered">
 						<div class="modal-content text-center">
