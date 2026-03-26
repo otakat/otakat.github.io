@@ -22,15 +22,16 @@ function processScheduledEvents() {
 }
 
 function restartGame(){
+  if (typeof resetUiBatchState === 'function') {
+    resetUiBatchState();
+  }
   const modal = bootstrap.Modal.getInstance(document.getElementById('resetModal'));
   if (modal) {modal.hide();}
   document.querySelectorAll('button').forEach(btn => btn.disabled = false);
 
-  timeRemaining = timeMax;
-  gameState.timeRemaining = timeRemaining;
+  setLoopTimeMs(timeMaxMs, timeMaxMs);
   timeWarnings = { half: false, quarter: false };
   gameState.timeWarnings = { ...timeWarnings };
-  gameState.timeMax = timeMax;
   skillList.forEach(skill => {
     if (gameState.skills.hasOwnProperty(skill)) {
       gameState.skills[skill].current_level = 0;
@@ -52,11 +53,32 @@ function restartGame(){
 
   gameOver = false;
   initializeGame();
+  window.gameClock?.resetFrameTime?.();
   deletePauseState(pauseStates.MODAL); // clock resumes
   updateTimerUI();
 }
 
 function resetGameState() {
+  if (typeof resetUiBatchState === 'function') {
+    resetUiBatchState();
+  }
+
+  ['skillsModal', 'artifactsModal', 'resetModal', 'resetConfirmModal'].forEach(modalId => {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return;
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    modalEl.setAttribute('aria-hidden', 'true');
+  });
+  document.body.classList.remove('modal-open');
+  document.body.style.removeProperty('padding-right');
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+  const popupContainer = document.getElementById('popup-container');
+  if (popupContainer) {
+    popupContainer.innerHTML = '';
+  }
+
   // Preserve base time dilation before wiping state
   const base =
   gameState?.globalParameters?.timeDilationBase ??
@@ -85,18 +107,16 @@ function resetGameState() {
   })
   actionsConstructed = {};
 
-  timeMax = defaultLoopTime;
-  timeRemaining = timeMax;
+  setLoopTimeMs(defaultLoopTimeMs, defaultLoopTimeMs);
   hasPocketWatch = false;
   timeWarnings = { half: false, quarter: false };
-  gameState.timeRemaining = timeRemaining;
-  gameState.timeMax = timeMax;
+  gameOver = false;
   gameState.hasPocketWatch = hasPocketWatch;
   gameState.timeWarnings = { ...timeWarnings };
-  if (window.gameClock && typeof gameClock.setRefreshHz === 'function') {
-    gameClock.setRefreshHz(gameState.globalParameters.refreshHz);
-  }
+  delete gameState.progressAnimations;
+  window.gameClock?.resetFrameTime?.();
   updateTimerUI();
+  document.querySelectorAll('button').forEach(btn => btn.disabled = false);
 
   const skillsTab = document.getElementById('skills-tab');
   if (skillsTab && !gameState.debugMode) {skillsTab.classList.add('d-none'); skillsTab.classList.remove('d-md-block');}
@@ -104,17 +124,18 @@ function resetGameState() {
   if (skillsButton && !gameState.debugMode) {skillsButton.classList.add('d-none');}
 
   initializeGame();
+  if (typeof showBook === 'function') {
+    showBook();
+  } else if (typeof openTab === 'function') {
+    openTab('None');
+  }
   if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
   initAlertSettingsUI();
 }
 
 async function saveGame(isManualSave = false) {
   try {
-    gameState.actionsActive.forEach(id => {
-      const a = actionsConstructed[id];
-      if (a) a.syncProgress();
-    });
-    gameState.progressAnimations = ProgressAnimationManager.snapshotAll();
+    syncTimeState();
     await localforage.setItem('gameState', gameState);
     if (isManualSave) { logPopupCombo('Game Saved', 'system'); }
   } catch (error) {
@@ -128,20 +149,29 @@ async function loadGame() {
   try {
     const savedState = await localforage.getItem('gameState');
     if (savedState) {
+      if (typeof resetUiBatchState === 'function') {
+        resetUiBatchState();
+      }
       const savedGameState = savedState;
 
       // Merge the saved game state with the empty game state
       // This ensures new variables in emptyGameState are initialized properly
       gameState = aggregateObjectProperties(emptyGameState, savedGameState);
 
-      timeMax = gameState.timeMax ?? gameState.timeStart ?? defaultLoopTime;
-      timeRemaining = gameState.timeRemaining ?? timeMax;
+      const savedTimeMaxMs =
+      Number.isFinite(gameState.timeMaxMs)
+        ? gameState.timeMaxMs
+        : (Number(gameState.timeMax ?? defaultLoopTime) * 1000);
+      const savedTimeRemainingMs =
+      Number.isFinite(gameState.timeRemainingMs)
+        ? gameState.timeRemainingMs
+        : (Number(gameState.timeRemaining ?? defaultLoopTime) * 1000);
+
+      setLoopTimeMs(savedTimeRemainingMs, savedTimeMaxMs);
       hasPocketWatch = gameState.hasPocketWatch ?? false;
       timeWarnings = gameState.timeWarnings || { half: false, quarter: false };
-      gameState.timeMax = timeMax;
-      if (window.gameClock && typeof gameClock.setRefreshHz === 'function') {
-        gameClock.setRefreshHz(gameState.globalParameters?.refreshHz || 30);
-      }
+      delete gameState.progressAnimations;
+      window.gameClock?.resetFrameTime?.();
 
       logPopupCombo('Data Loaded', 'system');
     }
@@ -151,7 +181,6 @@ async function loadGame() {
     console.error(errorMessage, error);
   }
 
-  gameClock.setRefreshHz(gameState.globalParameters.refreshHz);
   updateDebugToggle();
   initializeGame();
   updateTimerUI();
@@ -167,42 +196,39 @@ function initializeGame() {
     gameState.actionsAvailable = ['book1.hemlockForest.followWhisperingTrail'];
   }
 
+  const createdActionIds = [];
   gameState.actionsAvailable.forEach(actionId => {
-    createNewAction(actionId);
+    if (!actionsConstructed[actionId]) {
+      createNewAction(actionId, {
+        processState: false,
+        initTooltip: false,
+        refreshSkillIcons: false
+      });
+      createdActionIds.push(actionId);
+    }
   });
+  initializeQueuedActionTooltips(createdActionIds);
+  updateActionSkillIcons();
+  updateLogUI();
+  updateStoryUI();
 
   gameState.actionsActive.forEach(id => {
     const a = getAction(id);
     if (a) {
       a.start();
-      const snap = gameState.progressAnimations?.[id];
-      if (snap) {
-        ProgressAnimationManager.restore(
-          id,
-          a.elements.progressBarCurrent,
-          snap,
-          isGamePaused()
-        );
-      }
     }
   });
 
   processPauseButton();
   processActiveAndQueuedActions();
   if (typeof initLoopTimer === 'function') {
-    initLoopTimer(timeMax * 1000);
+    initLoopTimer(timeMaxMs);
   }
   updateTimerUI();
   refreshSkillsUI();
   recordStartingPermanentLevels();
   Object.keys(gameState.artifacts).forEach(id => {
     if (gameState.artifacts[id]) {applyArtifactEffects(id);}
-  });
-  Object.keys(gameState.inventory || {}).forEach(id => {
-    const data = itemData[id];
-    if (data && data.type === 'static' && typeof data.apply === 'function') {
-      data.apply();
-    }
   });
   if (Object.keys(gameState.inventory || {}).length === 0) {
     addItem('healing_potion', 3);
@@ -225,11 +251,17 @@ function initializeGame() {
 
 // Debug helpers
 function givePocketWatch() { unlockArtifact('pocketwatch'); }
-function setTimeRemaining(x) {
-  timeRemaining = Math.max(0, Math.min(timeMax, Number(x)));
-  gameState.timeRemaining = timeRemaining;
+function forceDeath() {
+  if (gameOver) return;
+  setLoopTimeMs(0, timeMaxMs);
   checkTimeWarnings();
   gameState.timeWarnings = { ...timeWarnings };
   updateTimerUI();
 }
-function showTimeRemaining() { console.log('Time remaining:', timeRemaining + '/' + timeMax); }
+function setTimeRemaining(x) {
+  setLoopTimeMs(Number(x) * 1000, timeMaxMs);
+  checkTimeWarnings();
+  gameState.timeWarnings = { ...timeWarnings };
+  updateTimerUI();
+}
+function showTimeRemaining() { console.log('Time remaining:', getTimeRemainingSeconds() + '/' + getTimeMaxSeconds()); }

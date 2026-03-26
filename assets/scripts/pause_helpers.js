@@ -6,11 +6,7 @@ function addPauseState(state) {
     gameState.pausedReasons.unshift(state);
   }
   if (!wasPaused && isGamePaused()) {
-    ProgressAnimationManager.pauseAll();
-    gameState.actionsActive.forEach(id => {
-      const a = actionsConstructed[id];
-      if (a) a.syncProgress();
-    });
+    window.gameClock?.resetFrameTime?.();
   }
   processPauseButton();
 
@@ -27,7 +23,7 @@ function deletePauseState(state) {
     gameState.pausedReasons = gameState.pausedReasons.filter(reason => reason !== state);
   }
   if (wasPaused && !isGamePaused()) {
-    ProgressAnimationManager.resumeAll();
+    window.gameClock?.resetFrameTime?.();
   }
   processPauseButton();
 

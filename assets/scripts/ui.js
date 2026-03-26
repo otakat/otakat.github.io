@@ -9,6 +9,153 @@ const alertTypeData = {
   system: { label: 'System', bootstrap: 'secondary' }
 };
 
+let uiFlushScheduled = false;
+let uiFlushRafId = null;
+let pendingActionIds = new Set();
+let pendingActionListRefresh = false;
+let pendingSkillUpdates = new Set();
+let pendingPopups = [];
+let pendingLogEntries = [];
+
+function scheduleUiFlush() {
+  if (uiFlushScheduled) return;
+  uiFlushScheduled = true;
+  uiFlushRafId = requestAnimationFrame(() => {
+    uiFlushRafId = null;
+    flushUiWork();
+  });
+}
+
+function resetUiBatchState() {
+  if (uiFlushRafId !== null) {
+    cancelAnimationFrame(uiFlushRafId);
+    uiFlushRafId = null;
+  }
+  uiFlushScheduled = false;
+  pendingActionIds.clear();
+  pendingActionListRefresh = false;
+  pendingSkillUpdates.clear();
+  pendingPopups = [];
+  pendingLogEntries = [];
+}
+
+function flushUiWork() {
+  uiFlushScheduled = false;
+
+  if (pendingActionIds.size > 0) {
+    const actionIds = Array.from(pendingActionIds);
+    pendingActionIds.clear();
+    actionIds.forEach(actionId => {
+      if (!actionsConstructed[actionId]) {
+        createNewAction(actionId, {
+          processState: false,
+          initTooltip: false,
+          refreshSkillIcons: false
+        });
+      }
+    });
+    initializeQueuedActionTooltips(actionIds);
+    updateActionSkillIcons();
+    pendingActionListRefresh = true;
+  }
+
+  if (pendingSkillUpdates.size > 0) {
+    const skillIds = Array.from(pendingSkillUpdates);
+    pendingSkillUpdates.clear();
+    skillIds.forEach(skill => renderSkillUI(skill));
+  }
+
+  if (pendingLogEntries.length > 0) {
+    const entries = pendingLogEntries;
+    pendingLogEntries = [];
+    entries.forEach(entry => {
+      appendLogEntryToUI(entry);
+      if (entry.tag === 'story') {
+        appendStoryEntryToUI(entry);
+      }
+    });
+  }
+
+  if (pendingPopups.length > 0) {
+    const popups = pendingPopups;
+    pendingPopups = [];
+    popups.forEach(({ text, alertType }) => renderPopup(text, alertType));
+  }
+
+  if (pendingActionListRefresh) {
+    pendingActionListRefresh = false;
+    processActiveAndQueuedActions();
+  }
+}
+
+function queueActionCreation(actionId) {
+  pendingActionIds.add(actionId);
+  scheduleUiFlush();
+}
+
+function queueActionListRefresh() {
+  pendingActionListRefresh = true;
+  scheduleUiFlush();
+}
+
+function queueSkillUpdate(skill) {
+  pendingSkillUpdates.add(skill);
+  scheduleUiFlush();
+}
+
+function queuePopup(text, alertType = 'system') {
+  pendingPopups.push({ text, alertType });
+  scheduleUiFlush();
+}
+
+function formatLogEntry(entry) {
+  return `${entry.date} (${entry.id}, ${entry.tag}) ${entry.text}\n\n`;
+}
+
+function ensureStoryWrapper() {
+  const storyHeader = document.getElementById('story-header-text');
+  if (!storyHeader) return null;
+  let wrapper = storyHeader.querySelector('.story-header-wrapper');
+  if (!wrapper) {
+    storyHeader.innerHTML = '';
+    wrapper = document.createElement('span');
+    wrapper.className = 'story-header-wrapper';
+    storyHeader.appendChild(wrapper);
+  }
+  return wrapper;
+}
+
+function appendLogEntryToUI(entry) {
+  const logTab = document.getElementById('log-tab');
+  const log = document.getElementById('game-log');
+  if (!logTab || !log) return;
+
+  const isScrolledToBottom = logTab.scrollHeight - logTab.clientHeight <= logTab.scrollTop + 1;
+  log.appendChild(document.createTextNode(formatLogEntry(entry)));
+
+  if (isScrolledToBottom) {
+    logTab.scrollTop = logTab.scrollHeight;
+  }
+}
+
+function appendStoryEntryToUI(entry) {
+  const storyHeader = document.getElementById('story-header-text');
+  const wrapper = ensureStoryWrapper();
+  if (!storyHeader || !wrapper) return;
+
+  const latest = wrapper.querySelector('.latest-story:last-of-type');
+  if (latest) {
+    const textNode = document.createTextNode(latest.textContent + ' ');
+    latest.replaceWith(textNode);
+  }
+
+  const current = document.createElement('span');
+  current.textContent = entry.text;
+  current.classList.add('latest-story');
+  wrapper.appendChild(current);
+  storyHeader.scrollTop = storyHeader.scrollHeight;
+}
+
 function showLibrary() {
   openTab('library-pane');
   updateLibrarySelection();
@@ -65,7 +212,7 @@ function refreshSkillsUI() {
       const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
       nameEl.textContent = `${skillEmojis?.[skill] || ''} ${skillName}`;
     }
-    updateSkill(skill, 0);
+    renderSkillUI(skill);
   });
 }
 
@@ -143,29 +290,37 @@ function updateLibrarySelection() {
   if (selected) selected.classList.add('selected');
 }
 
-function openSkills() {
-  if (typeof refreshSkillsUI === 'function') { refreshSkillsUI(); }
-  const modalEl = document.getElementById('skillsModal');
-  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+function bindModalPauseState(modalEl) {
+  if (!modalEl || modalEl.dataset.pauseBindingInitialized === 'true') return;
 
-  // Ensure any backdrop is cleaned up when the modal closes so gameplay can resume
+  modalEl.addEventListener('show.bs.modal', () => {
+    addPauseState?.(pauseStates?.MODAL);
+  });
+
   modalEl.addEventListener('hidden.bs.modal', () => {
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     deletePauseState?.(pauseStates?.MODAL);
-  }, { once: true });
+  });
 
+  modalEl.dataset.pauseBindingInitialized = 'true';
+}
+
+function openSkills() {
+  if (typeof refreshSkillsUI === 'function') { refreshSkillsUI(); }
+  const modalEl = document.getElementById('skillsModal');
+  bindModalPauseState(modalEl);
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   modal.show();
 }
 
 function openArtifacts() {
-  const modal = new bootstrap.Modal(document.getElementById('artifactsModal'));
+  const modalEl = document.getElementById('artifactsModal');
+  bindModalPauseState(modalEl);
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   modal.show();
 }
 
 function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
-  //if (id === undefined) {
-  //  id = generateUniqueId();
-  //}
   const currentDate = new Date(Date.now())
   const timestamp = currentDate.toLocaleDateString('en-US');
 
@@ -176,8 +331,8 @@ function addLogEntry(text, id = generateUniqueId(), tag = 'default') {
     date: timestamp
   };
   gameState.gameLog.push(logEntry);
-  updateLogUI();
-  updateStoryUI();
+  pendingLogEntries.push(logEntry);
+  scheduleUiFlush();
 }
 
 function updateLogUI() {
@@ -189,11 +344,8 @@ function updateLogUI() {
 
   log.textContent = '';
   gameState.gameLog.forEach(entry => {
-    log.textContent += entry.date + ' (';
-    log.textContent += entry.id + ', ';
-    log.textContent += entry.tag + ') '
-    log.textContent += entry.text + '\n\n';
-  })
+    log.appendChild(document.createTextNode(formatLogEntry(entry)));
+  });
 
   // If the scrollbar was at the bottom, keep it at the bottom after the update
   if (isScrolledToBottom) {
@@ -207,6 +359,7 @@ function updateStoryUI() {
 
   storyHeader.innerHTML = '';
   const wrapper = document.createElement('span');
+  wrapper.className = 'story-header-wrapper';
   const storyEntries = gameState.gameLog.filter(entry => entry.tag === 'story');
 
   storyEntries.forEach((entry, index) => {
@@ -224,7 +377,7 @@ function updateStoryUI() {
   storyHeader.scrollTop = storyHeader.scrollHeight;
 }
 
-function createPopup(text, alertType = 'system') {
+function renderPopup(text, alertType = 'system') {
   const data = alertTypeData[alertType] || alertTypeData.system;
   const alertDiv = document.createElement('div');
   alertDiv.className = `alert alert-${data.bootstrap} fade show d-flex align-items-center`;
@@ -257,6 +410,10 @@ function createPopup(text, alertType = 'system') {
   });
 }
 
+function createPopup(text, alertType = 'system') {
+  queuePopup(text, alertType);
+}
+
 function logPopupCombo(text, alertType = 'system', id, tag) {
   if (!gameState.alertSettings[alertType]) {
     const defaults = emptyGameState.alertSettings?.[alertType] || { popup: true, log: true };
@@ -266,7 +423,7 @@ function logPopupCombo(text, alertType = 'system', id, tag) {
   const settings = gameState.alertSettings[alertType];
   const logTag = tag || alertType;
   if (settings.log) { addLogEntry(text, id, logTag); }
-  if (settings.popup) { createPopup(text, alertType); }
+  if (settings.popup) { queuePopup(text, alertType); }
 }
 
 function initAlertSettingsUI() {
@@ -314,7 +471,7 @@ function updateTimerUI() {
   updateTimerVisibility();
   if (!hasPocketWatch) return;
   if (typeof updateLoopTimer === 'function') {
-    updateLoopTimer(timeRemaining * 1000);
+    updateLoopTimer(timeRemainingMs);
   }
 }
 

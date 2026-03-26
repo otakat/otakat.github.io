@@ -88,6 +88,25 @@ body {
   filter: none;
 }
 
+.debug-overlay {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1100;
+  min-width: 10rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(20, 20, 20, 0.82);
+  color: #f4f4f4;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
 
 /* MENU */
 
@@ -278,8 +297,22 @@ body {
         gap: 5px;
       }
 
+        .action-title-row {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+          min-width: 0;
+        }
+
         .action-label {
           font-size: 1.2em;
+        }
+
+        .action-expected-time {
+          color: #555;
+          font-size: 0.95em;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
       .action-skills {
@@ -298,6 +331,7 @@ body {
         height: 20px;
         border: 2px solid black;
         border-radius: 5px;
+        overflow: hidden;
       }
 
         .action-progress-text {
@@ -330,7 +364,7 @@ body {
           z-index: 1;
         }
 
-          .action-progress-bar-current.active {
+        .action-progress-bar-current.active {
             position: relative;
             background-image: repeating-linear-gradient(
               -45deg,
@@ -341,6 +375,12 @@ body {
             background-size: 120% 100%;
             animation: progress 30s linear infinite;
           }
+
+@media (max-width: 576px) {
+  .action-expected-time {
+    display: none;
+  }
+}
 
           .action-progress-bar-current.active::after {
             content: '';

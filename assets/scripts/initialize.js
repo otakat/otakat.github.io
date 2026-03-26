@@ -12,20 +12,23 @@ const pauseStates = {
   MANUAL: 'Paused (Manual)',
   INACTIVE: 'Paused (No Actions)',
   MODAL: 'Paused (Dialog Open)',
+  HIDDEN: 'Paused (Backgrounded)',
 };
 
 // Default loop time in seconds
 const defaultLoopTime = 60;
+const defaultLoopTimeMs = defaultLoopTime * 1000;
 
 const emptyGameState = {
   debugMode: true,
   actionsAvailable: [],
   actionsActive: [],
   actionsProgress: {},
-  progressAnimations: {},
   // Countdown timer replaces health mechanic
   timeRemaining: defaultLoopTime,
   timeMax: defaultLoopTime,
+  timeRemainingMs: defaultLoopTimeMs,
+  timeMaxMs: defaultLoopTimeMs,
   hasPocketWatch: false,
   pausedReasons: [pauseStates.INACTIVE],
   gameLog: [],
@@ -50,8 +53,11 @@ const emptyGameState = {
     system: { popup: true, log: true }
   },
   globalParameters: {
-    refreshHz: 30,      // Master clock refresh rate in ticks per second
     timeDilation: 1.0,  // Scales all gameplay time
+    fixedStepMs: 1000 / 60,
+    maxFrameDeltaMs: 250,
+    maxCatchUpSteps: 5,
+    fastActionThresholdMs: 500,
     masteryMaxRatio: 0.9,
     masteryGrowthRate: 5e-6,
     actionsMaxActive: 1,
@@ -78,5 +84,3 @@ let gameOver = false;
 const currentExperienceToLevel = 3000;
 const permanentExperienceToLevel = 3000;
 const customRequirementFns = {};
-let pendingTimeCost = 0;
-let refreshScheduled = false;

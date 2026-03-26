@@ -56,7 +56,11 @@
     return hasIn(state?.companions, id);
   };
   operators.timeAtLeast = function(state,seconds){
-    return (state?.timeRemaining || 0) >= seconds;
+    const remainingSeconds =
+      Number.isFinite(state?.timeRemainingMs)
+        ? state.timeRemainingMs / 1000
+        : (state?.timeRemaining || 0);
+    return remainingSeconds >= seconds;
   };
   operators.discovered = function(state,id){
     return operators.flag(state, `knows_${id}`);
@@ -89,7 +93,7 @@
   }
 
   function runConditionDemo(){
-    const state = {inventory:{}, artifacts:{}, skills:{agility:{current_level:0, permanent_level:0}}, flags:{}, loopFlags:{}, statuses:{}, companions:[], timeRemaining:0};
+    const state = {inventory:{}, artifacts:{}, skills:{agility:{current_level:0, permanent_level:0}}, flags:{}, loopFlags:{}, statuses:{}, companions:[], timeRemainingMs:0};
     console.log('Has pocket watch?', evaluate({allOf:[["hasArtifact","pocket_watch"]]}, state));
     state.artifacts.pocket_watch = true;
     console.log('Has pocket watch after gain?', evaluate({allOf:[["hasArtifact","pocket_watch"]]}, state));
