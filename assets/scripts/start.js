@@ -162,8 +162,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetButton = document.getElementById('reset-game-button');
   if (resetButton) {
     resetButton.addEventListener('click', () => {
+      const modalEl = document.getElementById('resetConfirmModal');
+      if (!modalEl) return;
+      if (typeof bindModalPauseState === 'function') {
+        bindModalPauseState(modalEl);
+      }
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    });
+  }
+  const confirmResetBtn = document.getElementById('confirm-reset-button');
+  if (confirmResetBtn) {
+    confirmResetBtn.addEventListener('click', async () => {
+      bootstrap.Modal.getInstance(document.getElementById('resetConfirmModal'))?.hide();
       resetGameState();
-      saveGame().catch(console.error);
+      await saveGame().catch(console.error);
     });
   }
   const restartBtn = document.querySelector('#restart-button');

@@ -25,6 +25,7 @@ class GameAction {
       container: this.container,
       progressContainer: this.container.querySelector('.action-progress-container'),
       progressText: this.container.querySelector('.action-progress-text'),
+      expectedTime: this.container.querySelector('.action-expected-time'),
       progressBarCurrent: this.container.querySelector('.action-progress-bar-current'),
       progressBarMastery: this.container.querySelector('.action-progress-bar-mastery')
     };
@@ -168,6 +169,20 @@ class GameAction {
     this.expectedWallClockMs = (this.cachedTimeCostMs - this.cachedTimeStartMs) / rate / dilation;
   }
 
+  formatExpectedDuration() {
+    const totalMs = Math.max(0, this.expectedWallClockMs || 0);
+    if (totalMs < 60000) {
+      const seconds = totalMs / 1000;
+      const precision = seconds < 10 ? 1 : 0;
+      return `${seconds.toFixed(precision)}s`;
+    }
+
+    let totalSeconds = Math.round(totalMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    totalSeconds -= minutes * 60;
+    return `${minutes}:${String(totalSeconds).padStart(2, '0')}`;
+  }
+
   refreshDerivedState({ forceMultiplier = false, forceThreshold = false } = {}) {
     this.refreshTimeCost();
     if (forceMultiplier || this.needsRateRecalc) {
@@ -212,6 +227,9 @@ class GameAction {
       ? 'Finishing...'
       : `${completedPercentage.toFixed(1)}% Completed (${masteryPct.toFixed(1)}% Mastery)`;
     this.elements.progressText.innerText = label;
+    if (this.elements.expectedTime) {
+      this.elements.expectedTime.innerText = this.formatExpectedDuration();
+    }
 
     if (this.elements && this.elements.progressBarCurrent) {
       this.elements.progressBarCurrent.style.width = completedPercentage + '%';
@@ -309,7 +327,10 @@ function createNewAction(id, options = {}) {
   container.className = 'action-container';
   container.innerHTML = `
   <div class="action-header">
-    <span class="action-label" data-tippy-content="Action Label">${label}</span>
+    <div class="action-title-row">
+      <span class="action-label" data-tippy-content="Action Label">${label}</span>
+      <span class="action-expected-time" data-tippy-content="Expected total completion time">0s</span>
+    </div>
     <span class="action-skills">${skillIcons}</span>
   </div>
   <div class="action-progress-container">

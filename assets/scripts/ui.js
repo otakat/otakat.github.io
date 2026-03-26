@@ -290,22 +290,33 @@ function updateLibrarySelection() {
   if (selected) selected.classList.add('selected');
 }
 
-function openSkills() {
-  if (typeof refreshSkillsUI === 'function') { refreshSkillsUI(); }
-  const modalEl = document.getElementById('skillsModal');
-  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+function bindModalPauseState(modalEl) {
+  if (!modalEl || modalEl.dataset.pauseBindingInitialized === 'true') return;
 
-  // Ensure any backdrop is cleaned up when the modal closes so gameplay can resume
+  modalEl.addEventListener('show.bs.modal', () => {
+    addPauseState?.(pauseStates?.MODAL);
+  });
+
   modalEl.addEventListener('hidden.bs.modal', () => {
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     deletePauseState?.(pauseStates?.MODAL);
-  }, { once: true });
+  });
 
+  modalEl.dataset.pauseBindingInitialized = 'true';
+}
+
+function openSkills() {
+  if (typeof refreshSkillsUI === 'function') { refreshSkillsUI(); }
+  const modalEl = document.getElementById('skillsModal');
+  bindModalPauseState(modalEl);
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   modal.show();
 }
 
 function openArtifacts() {
-  const modal = new bootstrap.Modal(document.getElementById('artifactsModal'));
+  const modalEl = document.getElementById('artifactsModal');
+  bindModalPauseState(modalEl);
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   modal.show();
 }
 

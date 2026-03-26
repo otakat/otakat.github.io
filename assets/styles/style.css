@@ -297,8 +297,22 @@ body {
         gap: 5px;
       }
 
+        .action-title-row {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+          min-width: 0;
+        }
+
         .action-label {
           font-size: 1.2em;
+        }
+
+        .action-expected-time {
+          color: #555;
+          font-size: 0.95em;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
       .action-skills {
@@ -350,7 +364,7 @@ body {
           z-index: 1;
         }
 
-          .action-progress-bar-current.active {
+        .action-progress-bar-current.active {
             position: relative;
             background-image: repeating-linear-gradient(
               -45deg,
@@ -361,6 +375,12 @@ body {
             background-size: 120% 100%;
             animation: progress 30s linear infinite;
           }
+
+@media (max-width: 576px) {
+  .action-expected-time {
+    display: none;
+  }
+}
 
           .action-progress-bar-current.active::after {
             content: '';

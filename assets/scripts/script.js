@@ -62,6 +62,23 @@ function resetGameState() {
   if (typeof resetUiBatchState === 'function') {
     resetUiBatchState();
   }
+
+  ['skillsModal', 'artifactsModal', 'resetModal', 'resetConfirmModal'].forEach(modalId => {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return;
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    modalEl.setAttribute('aria-hidden', 'true');
+  });
+  document.body.classList.remove('modal-open');
+  document.body.style.removeProperty('padding-right');
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+  const popupContainer = document.getElementById('popup-container');
+  if (popupContainer) {
+    popupContainer.innerHTML = '';
+  }
+
   // Preserve base time dilation before wiping state
   const base =
   gameState?.globalParameters?.timeDilationBase ??
@@ -93,11 +110,13 @@ function resetGameState() {
   setLoopTimeMs(defaultLoopTimeMs, defaultLoopTimeMs);
   hasPocketWatch = false;
   timeWarnings = { half: false, quarter: false };
+  gameOver = false;
   gameState.hasPocketWatch = hasPocketWatch;
   gameState.timeWarnings = { ...timeWarnings };
   delete gameState.progressAnimations;
   window.gameClock?.resetFrameTime?.();
   updateTimerUI();
+  document.querySelectorAll('button').forEach(btn => btn.disabled = false);
 
   const skillsTab = document.getElementById('skills-tab');
   if (skillsTab && !gameState.debugMode) {skillsTab.classList.add('d-none'); skillsTab.classList.remove('d-md-block');}
@@ -105,6 +124,11 @@ function resetGameState() {
   if (skillsButton && !gameState.debugMode) {skillsButton.classList.add('d-none');}
 
   initializeGame();
+  if (typeof showBook === 'function') {
+    showBook();
+  } else if (typeof openTab === 'function') {
+    openTab('None');
+  }
   if (typeof updateDebugToggle === 'function') { updateDebugToggle(); }
   initAlertSettingsUI();
 }
